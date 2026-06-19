@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Swcart</title>
+<link rel="icon" href="https://tools.swinfosystems.online/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#1A1410;--red:#E8472A;--orange:#FF8A3D;--cream:#FFF8F2;--body:#2E2E2E;--line:#F0E2D8;}
+  *{box-sizing:border-box;}
+  body{font-family:'Inter',sans-serif;color:var(--body);background:#fff;margin:0;display:flex;min-height:100vh;}
+  input, button{font-family:'Inter',sans-serif;}
+  h1,h2,h3{font-family:'Poppins',sans-serif;color:var(--ink);}
+  a{text-decoration:none;color:var(--red);font-weight:600;transition:.2s;}
+  a:hover{color:var(--ink);}
+
+  .auth-left{flex:1;background:url('https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1200&q=80') center/cover;position:relative;display:none;}
+  @media (min-width:992px){ .auth-left{display:block;} }
+  .auth-overlay{position:absolute;inset:0;background:linear-gradient(to top, rgba(26,20,16,.9), rgba(26,20,16,.2));display:flex;flex-direction:column;justify-content:flex-end;padding:60px;}
+  .auth-overlay h2{color:#fff;font-size:3rem;font-weight:800;margin:0 0 16px;line-height:1.1;}
+  .auth-overlay p{color:#cfc3b8;font-size:1.1rem;margin:0;max-width:400px;}
+
+  .auth-right{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+  .auth-form-wrap{width:100%;max-width:420px;}
+  
+  .brand{display:inline-flex;align-items:center;gap:10px;margin-bottom:40px;}
+  .brand img{height:46px;width:46px;border-radius:12px;}
+  .brand .name{font-family:'Poppins',sans-serif;font-weight:800;font-size:1.8rem;color:var(--ink);line-height:1;}
+  .brand .name span{color:var(--red);}
+
+  h1{font-size:2rem;font-weight:800;margin:0 0 8px;}
+  p.subtitle{color:#9a8f86;font-size:1.05rem;margin:0 0 32px;}
+
+  .form-group{margin-bottom:24px;text-align:left;}
+  label{display:block;font-size:.85rem;font-weight:600;color:var(--ink);margin-bottom:8px;}
+  input{width:100%;background:#F9F6F4;border:2px solid transparent;border-radius:14px;padding:16px 18px;font-size:1rem;color:var(--ink);transition:.3s;outline:none;}
+  input:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 4px rgba(255,138,61,.1);}
+  
+  .forgot-link{display:block;text-align:right;font-size:.85rem;margin-bottom:24px;margin-top:-10px;}
+
+  .btn-submit{width:100%;background:var(--ink);color:#fff;border:none;border-radius:14px;padding:18px;font-weight:700;font-size:1.1rem;cursor:pointer;transition:.3s;}
+  .btn-submit:hover{background:var(--red);transform:translateY(-2px);box-shadow:0 10px 20px rgba(0,0,0,.1);}
+
+  .auth-footer{margin-top:30px;font-size:.95rem;color:#9a8f86;text-align:center;}
+</style>
+</head>
+<body>
+  <div class="auth-left">
+    <div class="auth-overlay">
+      <h2>Welcome Back.</h2>
+      <p>Discover the latest trends in fashion, electronics, and home essentials. Shop smarter with Swcart.</p>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-form-wrap">
+      <a href="index.html" class="brand">
+        <img src="https://tools.swinfosystems.online/icon-192.png" alt="Swcart">
+        <div class="name">Sw<span>cart</span></div>
+      </a>
+      
+      <h1>Log In</h1>
+      <p class="subtitle">Enter your details to access your account.</p>
+
+      <form action="profile.html">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" placeholder="name@example.com" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" placeholder="••••••••" required>
+        </div>
+        
+        <a href="forgot-password.html" class="forgot-link">Forgot password?</a>
+        
+        <button type="submit" class="btn-submit">Sign In</button>
+      </form>
+      
+      <div class="auth-footer">
+        Don't have an account? <a href="register.html">Sign up</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
