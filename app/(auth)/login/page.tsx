@@ -13,9 +13,13 @@ export default function LoginPage() {
     setError("");
     const formData = new FormData(e.currentTarget);
     startTransition(async () => {
-      const result = await loginAction(formData);
-      if (result?.error) setError(result.error);
-      // If no error, redirect happens server-side automatically
+      try {
+        const result = await loginAction(formData);
+        if (result?.error) setError(result.error);
+      } catch (err: any) {
+        console.error("❌ Login server-action threw:", err);
+        setError(err?.message ?? "A server error occurred. Check logs.");
+      }
     });
   }
 
