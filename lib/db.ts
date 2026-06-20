@@ -4,15 +4,31 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
+function createPrismaClient() {
+  const connectionString = process.env.DATABASE_URL;
+
+  if (!connectionString) {
+    throw new Error("DATABASE_URL environment variable is not set");
+  }
+
+  const pool = new Pool({
+    connectionString,
+    max: 2,
+    idleTimeoutMillis: 30_000,
+    // Supabase requires SSL - rejectUnauthorized:false accepts their self-signed cert
+    ssl: { rejectUnauthorized: false },
+  });
+
+  const adapter = new PrismaPg(pool);
+  return new PrismaClient({ adapter });
+}
+
 let prisma: PrismaClient;
 
 if (globalForPrisma.prisma) {
   prisma = globalForPrisma.prisma;
 } else {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  const adapter = new PrismaPg(pool);
-  prisma = new PrismaClient({ adapter });
-  
+  prisma = createPrismaClient();
   if (process.env.NODE_ENV !== "production") {
     globalForPrisma.prisma = prisma;
   }
