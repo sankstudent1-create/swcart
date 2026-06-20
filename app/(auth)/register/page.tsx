@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { registerAction } from "@/app/actions/auth";
+import { registerSupabase } from "../../actions/authSupabase";
 import { useState, useTransition } from "react";
 
 export default function RegisterPage() {
@@ -13,7 +13,7 @@ export default function RegisterPage() {
     setError("");
     const formData = new FormData(e.currentTarget);
     startTransition(async () => {
-      const result = await registerAction(formData);
+      const result = await registerSupabase(formData);
       if (result?.error) setError(result.error);
     });
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { loginAction } from "../../actions/auth";
+import { loginSupabase } from "../../actions/authSupabase";
 import { useState, useTransition } from "react";
 
 export default function LoginPage() {
@@ -14,7 +14,7 @@ export default function LoginPage() {
     const formData = new FormData(e.currentTarget);
     startTransition(async () => {
       try {
-        const result = await loginAction(formData);
+        const result = await loginSupabase(formData);
         if (result?.error) setError(result.error);
       } catch (err: any) {
         console.error("❌ Login server-action threw:", err);
