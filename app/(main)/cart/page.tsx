@@ -25,7 +25,7 @@ export default async function CartPage() {
   });
 
   const items = cart?.items || [];
-  const subtotal = items.reduce((acc, item) => acc + (item.variant.price * item.quantity), 0);
+  const subtotal = items.reduce((acc: number, item: any) => acc + (item.variant.price * item.quantity), 0);
   const tax = Math.round(subtotal * 0.18);
   const total = subtotal + tax;
 
