@@ -5,82 +5,94 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 
-export async function registerAction(formData: FormData) {
+export async function registerAction(formData: FormData): Promise<{ error?: string }> {
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
   if (!name || !email || !password) {
-    throw new Error("Missing required fields");
+    return { error: "Please fill in all fields." };
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    throw new Error("Email already registered");
-  }
+  try {
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      return { error: "An account with this email already exists." };
+    }
 
-  const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
-  const role = await prisma.role.upsert({
-    where: { name: "CUSTOMER" },
-    update: {},
-    create: { name: "CUSTOMER", description: "Regular customer" }
-  });
+    const role = await prisma.role.upsert({
+      where: { name: "CUSTOMER" },
+      update: {},
+      create: { name: "CUSTOMER", description: "Regular customer" }
+    });
 
-  const user = await prisma.user.create({
-    data: { 
-      name, 
-      email, 
-      passwordHash,
-      roles: {
-        create: {
-          roleId: role.id
+    const user = await prisma.user.create({
+      data: { 
+        name, 
+        email, 
+        passwordHash,
+        roles: {
+          create: { roleId: role.id }
         }
-      }
-    },
-  });
+      },
+    });
 
-  const cookieStore = await cookies();
-  cookieStore.set("swcart_session", user.id, {
-    path: "/",
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7,
-  });
+    const cookieStore = await cookies();
+    cookieStore.set("swcart_session", user.id, {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+  } catch (err: any) {
+    console.error("Register error:", err);
+    return { error: "Something went wrong. Please try again." };
+  }
 
   redirect("/");
 }
 
-export async function loginAction(formData: FormData) {
+export async function loginAction(formData: FormData): Promise<{ error?: string }> {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
   if (!email || !password) {
-    throw new Error("Missing email or password");
+    return { error: "Please enter your email and password." };
   }
 
-  const user = await prisma.user.findUnique({ 
-    where: { email },
-    include: { roles: { include: { role: true } } }
-  });
-  if (!user) {
-    throw new Error("Invalid credentials");
+  let isSuperAdmin = false;
+
+  try {
+    const user = await prisma.user.findUnique({ 
+      where: { email },
+      include: { roles: { include: { role: true } } }
+    });
+
+    if (!user) {
+      return { error: "No account found with this email address." };
+    }
+
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      return { error: "Incorrect password. Please try again." };
+    }
+
+    const cookieStore = await cookies();
+    cookieStore.set("swcart_session", user.id, {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    isSuperAdmin = user.roles.some((ur: any) => ur.role.name === "SUPER_ADMIN");
+  } catch (err: any) {
+    console.error("Login error:", err);
+    return { error: "A server error occurred. Please try again shortly." };
   }
 
-  const isValid = await bcrypt.compare(password, user.passwordHash);
-  if (!isValid) {
-    throw new Error("Invalid credentials");
-  }
-
-  const cookieStore = await cookies();
-  cookieStore.set("swcart_session", user.id, {
-    path: "/",
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7,
-  });
-
-  const isSuperAdmin = user.roles.some((ur: any) => ur.role.name === "SUPER_ADMIN");
   if (isSuperAdmin) {
     redirect("/spr/admin");
   } else {
@@ -111,9 +123,7 @@ export async function checkSuperAdmin() {
   const userRole = await prisma.userRole.findFirst({
     where: {
       userId,
-      role: {
-        name: "SUPER_ADMIN"
-      }
+      role: { name: "SUPER_ADMIN" }
     }
   });
 
