@@ -49,8 +49,10 @@ export default async function RolesManager() {
               <div className="d-flex gap-2">
                 <button className="btn btn-sm btn-outline-dark rounded-pill flex-grow-1 fw-semibold shadow-sm hover-scale transition-all">Edit Privileges</button>
                 {role.name !== 'SUPER_ADMIN' && (
-                  <form action={deleteRoleAction.bind(null, role.id)} className="m-0">
-                    <button type="submit" className="btn btn-sm btn-outline-danger rounded-pill fw-semibold shadow-sm hover-bg-danger transition-all" title="Delete Role"><i className="bi bi-trash"></i></button>
+                  <form action={deleteRoleAction.bind(null, role.id) as any} className="m-0">
+                    <button type="submit" className="btn btn-sm btn-outline-danger shadow-sm px-3 hover-scale rounded-pill fw-semibold">
+                      <i className="bi bi-trash-fill"></i> Delete
+                    </button>
                   </form>
                 )}
               </div>

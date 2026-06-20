@@ -50,14 +50,14 @@ export default async function SellerErpDetail({ params }: { params: Promise<{ id
         <div className="d-flex gap-2 align-items-center">
           <EditSellerModal seller={seller} />
           {seller.isVerified ? 
-            <form action={verifySellerAction.bind(null, seller.id, false)} className="m-0">
+            <form action={verifySellerAction.bind(null, seller.id, false) as any} className="m-0">
               <button type="submit" className="btn btn-outline-warning rounded-pill px-4 fw-semibold shadow-sm hover-scale transition-all">Revoke Verification</button>
             </form> :
-            <form action={verifySellerAction.bind(null, seller.id, true)} className="m-0">
+            <form action={verifySellerAction.bind(null, seller.id, true) as any} className="m-0">
               <button type="submit" className="btn btn-success rounded-pill px-4 fw-bold shadow-sm hover-scale transition-all">Approve Seller</button>
             </form>
           }
-          <form action={deleteRecordAction} className="m-0">
+          <form action={deleteRecordAction as any} className="m-0">
             <input type="hidden" name="model" value="seller" />
             <input type="hidden" name="id" value={seller.id} />
             <button type="submit" className="btn btn-outline-danger rounded-pill px-4 fw-semibold shadow-sm hover-scale transition-all">Delete Seller</button>
@@ -123,7 +123,7 @@ export default async function SellerErpDetail({ params }: { params: Promise<{ id
                 </thead>
                 <tbody className="border-top-0">
                   {seller.products.map(p => {
-                    const stock = p.variants.reduce((acc, v) => acc + (v.inventory?.quantity || 0), 0);
+                    const stock = p.variants.reduce((acc: number, v: any) => acc + (v.inventory?.reduce((s: number, i: any) => s + i.quantity, 0) || 0), 0);
                     return (
                       <tr key={p.id} className="hover-bg-light transition-all">
                         <td className="py-3">

@@ -89,7 +89,7 @@ export default async function GenericDbPage({ params, searchParams }: { params: 
                   <td className="py-2 position-sticky end-0 bg-white text-center shadow-sm">
                     <div className="d-flex justify-content-center gap-2">
                       <button className="btn btn-sm btn-light rounded-pill px-3 fw-semibold text-dark border hover-bg-gray transition-all" title="Edit"><i className="bi bi-pencil-square"></i></button>
-                      <form action={deleteRecordAction} className="m-0">
+                      <form action={deleteRecordAction as any} className="m-0">
                         <input type="hidden" name="model" value={prismaModelName} />
                         <input type="hidden" name="id" value={record.id || record[scalarFields[0].name]} />
                         <button type="submit" className="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold hover-bg-danger transition-all" title="Delete"><i className="bi bi-trash"></i></button>

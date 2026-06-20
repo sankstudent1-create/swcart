@@ -55,7 +55,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
               <Link href="/profile?tab=address" className={`list-group-item list-group-item-action py-3 px-4 ${tab === 'address' ? 'bg-light border-start border-4 border-danger fw-bold text-dark' : 'text-muted border-start border-4 border-transparent'}`}>
                 <i className="bi bi-geo-alt me-2"></i> Saved Addresses
               </Link>
-              <form action={logoutAction} className="list-group-item list-group-item-action py-3 px-4 text-danger" style={{cursor: "pointer"}}>
+              <form action={logoutAction as any} className="list-group-item list-group-item-action py-3 px-4 text-danger" style={{cursor: "pointer"}}>
                 <button type="submit" className="bg-transparent border-0 text-danger p-0 w-100 text-start fw-semibold">
                   <i className="bi bi-box-arrow-right me-2"></i> Log Out
                 </button>
@@ -87,14 +87,20 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                           </div>
                           <div className="text-end">
                             <div className="fw-bold fs-5">₹{order.totalAmount.toLocaleString('en-IN')}</div>
-                            <span className="badge bg-success bg-opacity-25 text-success rounded-pill px-3 mt-1 border border-success border-opacity-25">{order.status}</span>
+                            <div className="d-flex align-items-center justify-content-end gap-2 mt-2">
+                              <span className={`badge rounded-pill px-3 border ${order.status === 'PAID' || order.status === 'DELIVERED' ? 'bg-success bg-opacity-25 text-success border-success border-opacity-25' : 'bg-warning bg-opacity-25 text-warning border-warning border-opacity-25'}`}>{order.status}</span>
+                              <Link href={`/orders/${order.id}/invoice`} className="btn btn-sm btn-outline-dark rounded-pill shadow-sm px-3 fw-bold" target="_blank"><i className="bi bi-receipt me-1"></i> Invoice</Link>
+                            </div>
                           </div>
                         </div>
                         <div className="d-flex gap-3 overflow-auto pb-2">
                           {order.items.map(item => (
                             <div key={item.id} className="d-flex align-items-center gap-2 bg-white border border-light rounded-3 p-2 shadow-sm" style={{minWidth: "220px"}}>
                               <div className="text-truncate flex-grow-1 small">
-                                <span className="fw-bold text-dark">{item.quantity}x</span> <span className="text-muted">{item.variant.product.name}</span>
+                                <div className="fw-bold">{item.variant.size} {item.variant.color} - <span className="text-muted">{item.variant.product.title}</span></div>
+                                <div className="d-flex justify-content-between align-items-center mt-1">
+                                  <div className="text-success fw-bold">₹{item.variant.price} <span className="text-muted fw-normal">x {item.quantity}</span></div>
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -145,7 +151,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                           <div className="text-muted small mb-1">{address.street}</div>
                           <div className="text-muted small mb-1">{address.city}, {address.state} {address.postalCode}</div>
                           <div className="text-muted small mb-3">{address.country}</div>
-                          <form action={deleteAddressAction}>
+                          <form action={deleteAddressAction as any}>
                             <input type="hidden" name="addressId" value={address.id} />
                             <button className="btn btn-sm btn-outline-danger px-3 rounded-pill"><i className="bi bi-trash"></i> Remove</button>
                           </form>

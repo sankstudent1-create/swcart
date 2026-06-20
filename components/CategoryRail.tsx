@@ -12,7 +12,7 @@ export default async function CategoryRail() {
             <div className="cat-circle">
               <img src={c.img} alt={c.name} />
             </div>
-            <span>{c.label || c.name}</span>
+            <span>{(c as any).label || c.name}</span>
           </button>
         ))}
       </div>

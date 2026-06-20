@@ -52,7 +52,7 @@ export default async function CartPage() {
                 <div style={{width: "110px", textAlign: "right"}}>Total</div>
               </div>
               
-              {items.map(item => (
+              {items.map((item: any) => (
                 <CartItemRow key={item.id} item={item as any} />
               ))}
             </div>

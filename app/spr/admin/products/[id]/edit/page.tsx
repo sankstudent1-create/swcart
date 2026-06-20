@@ -40,7 +40,7 @@ export default async function ProductMasterEdit({ params }: { params: Promise<{ 
         <div className="col-lg-8">
           <div className="bg-white p-4 p-md-5 rounded-4 shadow-sm border-0 h-100">
             <h5 className="fw-bold mb-4">Core Details</h5>
-            <form action={updateProductAction}>
+            <form action={updateProductAction as any}>
               <input type="hidden" name="id" value={product.id} />
               
               <div className="mb-4">

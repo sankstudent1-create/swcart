@@ -13,8 +13,7 @@ export default async function UserProfile360({ params }: { params: Promise<{ id:
     where: { id },
     include: {
       customerProfile: { include: { addresses: true } },
-      orders: { include: { items: { include: { variant: { include: { product: true } } } } }, orderBy: { createdAt: "desc" } },
-      refunds: true,
+      orders: { include: { items: { include: { variant: { include: { product: true } } } }, refunds: true }, orderBy: { createdAt: "desc" } },
       roles: { include: { role: true } },
       supportTickets: true,
       cart: { include: { items: true } },
@@ -26,7 +25,8 @@ export default async function UserProfile360({ params }: { params: Promise<{ id:
 
   const allRoles = await prisma.role.findMany();
   const totalSpent = user.orders.filter(o => o.status === "DELIVERED" || o.status === "PAID").reduce((sum, o) => sum + o.totalAmount, 0);
-  const totalRefunded = user.refunds.reduce((sum, r) => sum + r.amount, 0);
+  const userRefunds = user.orders.flatMap(o => o.refunds || []);
+  const totalRefunded = userRefunds.reduce((sum, r) => sum + r.amount, 0);
 
   return (
     <div>
@@ -81,7 +81,7 @@ export default async function UserProfile360({ params }: { params: Promise<{ id:
                 </div>
                 <h6 className="text-muted fw-bold text-uppercase mb-2" style={{ letterSpacing: "1px", fontSize: "0.8rem" }}>Total Refunded</h6>
                 <h2 className="fw-black mb-1 display-6">₹{totalRefunded.toLocaleString('en-IN')}</h2>
-                <div className="text-danger small fw-bold">{user.refunds.length} total refunds</div>
+                <div className="text-danger small fw-bold">{userRefunds.length} total refunds</div>
               </div>
             </div>
             

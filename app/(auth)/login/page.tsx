@@ -23,7 +23,7 @@ export default function LoginPage() {
           <h1>Log In</h1>
           <p className="subtitle">Enter your details to access your account.</p>
 
-          <form action={loginAction}>
+          <form action={loginAction as any}>
             <div className="form-group">
               <label>Email Address</label>
               <input type="email" name="email" placeholder="name@example.com" required />

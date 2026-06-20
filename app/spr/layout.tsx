@@ -82,7 +82,7 @@ export default async function AdminLayout({
                 <span className="visually-hidden">New alerts</span>
               </span>
             </div>
-            <form action={logoutAction} className="m-0">
+            <form action={logoutAction as any} className="m-0">
               <button type="submit" className="btn btn-sm text-white rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center hover-scale transition-all" style={{ backgroundColor: "var(--red)" }}>
                 <i className="bi bi-box-arrow-right me-2"></i> Log Out
               </button>

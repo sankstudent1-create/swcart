@@ -42,13 +42,14 @@ export default async function CategoryDetail({ params }: { params: Promise<{ id:
 
       <div className="bg-white p-4 rounded-4 shadow-sm border-0 mb-4">
         <h5 className="fw-bold mb-3"><i className="bi bi-pencil-square me-2 text-primary"></i> Edit Category Identity</h5>
-        <form action={updateCategoryAction} className="row g-3">
+        <form action={updateCategoryAction as any} className="row g-3">
           <input type="hidden" name="id" value={category.id} />
           <div className="col-md-5">
             <input name="name" className="form-control rounded-pill bg-light border-0 fw-semibold" defaultValue={category.name} required />
           </div>
           <div className="col-md-5">
-            <input name="image" className="form-control rounded-pill bg-light border-0 fw-semibold" placeholder="Category Image URL" defaultValue={category.image || ""} />
+            <label className="form-label text-muted small fw-bold text-uppercase">Category Image URL</label>
+            <input name="image" className="form-control rounded-pill bg-light border-0" placeholder="https://.../image.png" defaultValue={(category as any).image || ""} />
           </div>
           <div className="col-md-2">
             <button type="submit" className="btn btn-dark w-100 rounded-pill fw-bold hover-scale transition-all">Save</button>

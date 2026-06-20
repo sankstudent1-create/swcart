@@ -55,20 +55,50 @@ export async function placeOrderAction(formData: FormData) {
       return { success: false, message: "Cart is empty" };
     }
 
-    const subtotal = cart.items.reduce((acc, item) => acc + (item.variant.price * item.quantity), 0);
-    const totalAmount = subtotal + Math.round(subtotal * 0.18);
+    const subtotal = cart.items.reduce((acc: number, item: any) => acc + (item.variant.price * item.quantity), 0);
+    const taxAmount = Math.round(subtotal * 0.18);
+    const totalAmount = subtotal + taxAmount;
+
+    let customerProfile = await prisma.customerProfile.findUnique({ where: { userId } });
+    if (!customerProfile) {
+      customerProfile = await prisma.customerProfile.create({ data: { userId } });
+    }
+
+    const street = formData.get("address") as string || "123 Main St";
+    const city = formData.get("city") as string || "City";
+    const postalCode = formData.get("zip") as string || "000000";
+
+    const address = await prisma.address.create({
+      data: {
+        customerProfileId: customerProfile.id,
+        street,
+        city,
+        state: "State",
+        postalCode,
+        country: "IN"
+      }
+    });
 
     const order = await prisma.order.create({
       data: {
         userId,
+        shippingAddressId: address.id,
         totalAmount,
-        status: "PAID",
+        taxAmount,
+        status: "PROCESSING",
         items: {
           create: cart.items.map(item => ({
             variantId: item.variantId,
             quantity: item.quantity,
             priceAtBuy: item.variant.price
           }))
+        },
+        payments: {
+          create: [{
+            method: "COD",
+            amount: totalAmount,
+            status: "PENDING"
+          }]
         }
       }
     });

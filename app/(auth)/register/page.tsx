@@ -23,7 +23,7 @@ export default function RegisterPage() {
           <h1>Create an account</h1>
           <p className="subtitle">Join Swcart to start shopping.</p>
 
-          <form action={registerAction}>
+          <form action={registerAction as any}>
             <div className="form-group">
               <label>Full Name</label>
               <input type="text" name="name" placeholder="John Doe" required />

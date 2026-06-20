@@ -21,7 +21,7 @@ export default async function AdminSettingsPage() {
       <div className="row g-4">
         <div className="col-lg-8">
           <div className="bg-white p-4 p-md-5 rounded-4 shadow-sm border-0">
-            <form action={updateSettingsAction}>
+            <form action={updateSettingsAction as any}>
               <h5 className="fw-bold mb-4 d-flex align-items-center"><i className="bi bi-truck fs-4 me-2 text-primary"></i> Shipping & Delivery</h5>
               <div className="row g-4 mb-5">
                 <div className="col-md-6">
