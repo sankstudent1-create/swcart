@@ -1,0 +1,410 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// -------------------------------------
+// 1. Identity & Access Management (IAM)
+// -------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  phone         String?
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  roles             UserRole[]
+  customerProfile   CustomerProfile?
+  sellerProfile     Seller?
+  deliveryProfile   DeliveryPerson?
+
+  orders            Order[]
+  reviews           Review[]
+  supportTickets    SupportTicket[]
+  messages          Message[]
+  cart              Cart?
+  wishlist          Wishlist?
+}
+
+model Role {
+  id          String     @id @default(cuid())
+  name        String     @unique // SUPER_ADMIN, SITE_ADMIN, OFFICE_ASSISTANT, SELLER, CUSTOMER, DELIVERY
+  description String?
+  users       UserRole[]
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User @relation(fields: [userId], references: [id])
+  role   Role @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId])
+}
+
+model CustomerProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  dob         DateTime?
+  preferences Json?
+  addresses   Address[]
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Address {
+  id                String          @id @default(cuid())
+  customerProfileId String
+  street            String
+  city              String
+  state             String
+  postalCode        String
+  country           String
+  isDefault         Boolean         @default(false)
+  customerProfile   CustomerProfile @relation(fields: [customerProfileId], references: [id])
+  orders            Order[]
+}
+
+// -------------------------------------
+// 2. Multi-Vendor & Products
+// -------------------------------------
+
+model Seller {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  companyName String
+  gstNumber   String?
+  bankDetails Json?
+  isVerified  Boolean   @default(false)
+  user        User      @relation(fields: [userId], references: [id])
+  products    Product[]
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  image       String?
+  parentId    String?
+  parent      Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children    Category[] @relation("SubCategories")
+  products    Product[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  sellerId    String
+  categoryId  String
+  title       String
+  description String
+  basePrice   Float
+  images      String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  seller      Seller          @relation(fields: [sellerId], references: [id])
+  category    Category        @relation(fields: [categoryId], references: [id])
+  variants    ProductVariant[]
+  reviews     Review[]
+}
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  productId String
+  sku       String   @unique
+  size      String?
+  color     String?
+  price     Float
+  product   Product  @relation(fields: [productId], references: [id])
+  inventory Inventory[]
+  cartItems CartItem[]
+  orderItems OrderItem[]
+  wishItems WishlistItem[]
+}
+
+model Inventory {
+  id          String         @id @default(cuid())
+  variantId   String
+  warehouseId String
+  quantity    Int            @default(0)
+  variant     ProductVariant @relation(fields: [variantId], references: [id])
+  warehouse   Warehouse      @relation(fields: [warehouseId], references: [id])
+
+  @@unique([variantId, warehouseId])
+}
+
+// -------------------------------------
+// 3. Shopping Experience
+// -------------------------------------
+
+model Cart {
+  id     String     @id @default(cuid())
+  userId String     @unique
+  user   User       @relation(fields: [userId], references: [id])
+  items  CartItem[]
+}
+
+model CartItem {
+  id        String         @id @default(cuid())
+  cartId    String
+  variantId String
+  quantity  Int            @default(1)
+  cart      Cart           @relation(fields: [cartId], references: [id])
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@unique([cartId, variantId])
+}
+
+model Wishlist {
+  id     String         @id @default(cuid())
+  userId String         @unique
+  user   User           @relation(fields: [userId], references: [id])
+  items  WishlistItem[]
+}
+
+model WishlistItem {
+  id         String         @id @default(cuid())
+  wishlistId String
+  variantId  String
+  wishlist   Wishlist       @relation(fields: [wishlistId], references: [id])
+  variant    ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@unique([wishlistId, variantId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  rating    Int
+  comment   String?
+  mediaUrls String[]
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+// -------------------------------------
+// 4. Orders & Financials
+// -------------------------------------
+
+model Order {
+  id               String      @id @default(cuid())
+  userId           String
+  shippingAddressId String
+  totalAmount      Float
+  taxAmount        Float       @default(0) // CGST + SGST
+  shippingFee      Float       @default(0)
+  status           String      @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  user             User        @relation(fields: [userId], references: [id])
+  shippingAddress  Address     @relation(fields: [shippingAddressId], references: [id])
+  items            OrderItem[]
+  payments         Payment[]
+  refunds          Refund[]
+  trackingHistory  TrackingHistory[]
+  couponId         String?
+  coupon           Coupon?     @relation(fields: [couponId], references: [id])
+}
+
+model OrderItem {
+  id        String         @id @default(cuid())
+  orderId   String
+  variantId String
+  quantity  Int
+  priceAtBuy Float
+  order     Order          @relation(fields: [orderId], references: [id])
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+}
+
+model Payment {
+  id                 String   @id @default(cuid())
+  orderId            String
+  method             String   // RAZORPAY, COD
+  razorpayOrderId    String?  @unique
+  razorpayPaymentId  String?  @unique
+  amount             Float
+  status             String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  createdAt          DateTime @default(now())
+
+  order              Order    @relation(fields: [orderId], references: [id])
+}
+
+model Refund {
+  id          String   @id @default(cuid())
+  orderId     String
+  amount      Float
+  reason      String?
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED
+  createdAt   DateTime @default(now())
+
+  order       Order    @relation(fields: [orderId], references: [id])
+}
+
+// -------------------------------------
+// 5. Internal Logistics & Routing
+// -------------------------------------
+
+model Warehouse {
+  id        String      @id @default(cuid())
+  name      String
+  location  String
+  inventory Inventory[]
+}
+
+model ShippingProvider {
+  id          String   @id @default(cuid())
+  name        String   // Internal, Delhivery, BlueDart
+  apiKeys     Json?
+}
+
+model Vehicle {
+  id           String   @id @default(cuid())
+  licensePlate String   @unique
+  type         String   // Truck, Van, Bike
+  capacity     Float?
+}
+
+model DeliveryPerson {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  vehicleId String?
+  user      User     @relation(fields: [userId], references: [id])
+  routes    Route[]
+}
+
+model Route {
+  id               String          @id @default(cuid())
+  deliveryPersonId String
+  assignedDate     DateTime
+  pathData         Json?           // GeoJSON or array of coordinates
+  status           String          @default("PLANNED") // PLANNED, IN_PROGRESS, COMPLETED
+
+  deliveryPerson   DeliveryPerson  @relation(fields: [deliveryPersonId], references: [id])
+}
+
+model TrackingHistory {
+  id        String   @id @default(cuid())
+  orderId   String
+  status    String   // Packed, Shipped, OutForDelivery, Delivered
+  location  String?
+  timestamp DateTime @default(now())
+
+  order     Order    @relation(fields: [orderId], references: [id])
+}
+
+// -------------------------------------
+// 6. Customer Support & Engagement
+// -------------------------------------
+
+model SupportTicket {
+  id          String         @id @default(cuid())
+  userId      String
+  subject     String
+  status      String         @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  user        User           @relation(fields: [userId], references: [id])
+  conversations Conversation[]
+}
+
+model Conversation {
+  id              String        @id @default(cuid())
+  supportTicketId String
+  ticket          SupportTicket @relation(fields: [supportTicketId], references: [id])
+  messages        Message[]
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  body           String
+  createdAt      DateTime     @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  sender         User         @relation(fields: [senderId], references: [id])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Coupon {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  discountType String   // PERCENTAGE, FIXED
+  discountVal  Float
+  minSpend     Float?
+  maxDiscount  Float?
+  validUntil   DateTime
+  usageLimit   Int?
+  usedCount    Int      @default(0)
+  orders       Order[]
+}
+
+model Offer {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  bannerImage String?
+  validFrom   DateTime
+  validUntil  DateTime
+  isActive    Boolean  @default(true)
+}
+
+// -------------------------------------
+// 7. Global Site Settings & CMS
+// -------------------------------------
+
+model SiteSetting {
+  id           String @id @default("GLOBAL")
+  brandName    String @default("Swcart")
+  contactEmail String?
+  contactPhone String?
+  companyAddr  String?
+
+  // Fees & Taxes
+  defaultGst       Float @default(18.0)
+  deliveryFee      Float @default(50.0)
+  codFee           Float @default(0.0)
+  freeShippingThresh Float @default(499.0)
+
+  // API Keys (Encrypted/Hidden in production app layer)
+  razorpayKeyId    String?
+  razorpaySecret   String?
+  gmailSmtpUser    String?
+  gmailSmtpPass    String?
+
+  // Socials
+  facebookUrl      String?
+  instagramUrl     String?
+  twitterUrl       String?
+}
+
+model DynamicPage {
+  id        String   @id @default(cuid())
+  slug      String   @unique // privacy-policy, terms-of-service, etc.
+  title     String
+  content   String   // Markdown/HTML content
+  updatedAt DateTime @updatedAt
+}
+
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  orderIndex Int     @default(0)
+}

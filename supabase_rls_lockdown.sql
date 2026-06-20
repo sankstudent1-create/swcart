@@ -1,0 +1,42 @@
+-- Enable Row Level Security for all tables
+ALTER TABLE "User" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Role" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "UserRole" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "CustomerProfile" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Address" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Seller" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Category" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Product" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "ProductVariant" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Inventory" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Cart" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "CartItem" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Wishlist" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "WishlistItem" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Review" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Order" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "OrderItem" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Payment" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Refund" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Warehouse" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "ShippingProvider" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Vehicle" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "DeliveryPerson" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Route" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "TrackingHistory" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "SupportTicket" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Conversation" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Message" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "NewsletterSubscriber" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Coupon" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Offer" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "SiteSetting" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "DynamicPage" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "FAQ" ENABLE ROW LEVEL SECURITY;
+
+-- Note: Because we are NOT defining any policies (e.g. CREATE POLICY), 
+-- the default behavior of Postgres when RLS is enabled without policies 
+-- is to DENY ALL operations to standard roles (like the anonymous or authenticated Supabase web roles).
+-- However, Prisma connects via the direct connection string using the "postgres" role.
+-- The "postgres" role is a superuser (or has the bypassrls attribute) so it completely ignores RLS.
+-- This effectively secures your database from public PostgREST API endpoint abuse, while allowing Next.js/Prisma to function flawlessly.
