@@ -3,10 +3,16 @@
 import { ReactNode } from "react";
 import SellerNav from "@/components/SellerNav";
 import { requireSeller } from "@/lib/roleGuard";
+import { redirect } from "next/navigation";
 
 export default async function SellerLayout({ children }: { children: ReactNode }) {
-  // Ensure the user is a seller; redirects if not
-  await requireSeller();
+  try {
+    await requireSeller();
+  } catch (e) {
+    // If not authenticated or not a seller, send to login page
+    redirect("/login");
+    return null; // unreachable but satisfies TS
+  }
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
       <aside className="w-64 bg-gray-800 p-4">
