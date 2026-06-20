@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
+import PrintButton from "@/components/PrintButton";
+
 export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const userId = await getSessionUserId();
   if (!userId) redirect("/login");
@@ -42,9 +44,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
         <Link href="/profile" className="btn btn-outline-dark rounded-pill fw-bold">
           <i className="bi bi-arrow-left me-2"></i> Back to Orders
         </Link>
-        <button className="btn text-white rounded-pill fw-bold shadow-sm px-4" style={{ backgroundColor: "var(--red)" }} onClick={() => window.print()}>
-          <i className="bi bi-printer me-2"></i> Print Invoice
-        </button>
+        <PrintButton />
       </div>
 
       <div className="bg-white p-5 rounded-4 shadow-sm border border-light invoice-container">
