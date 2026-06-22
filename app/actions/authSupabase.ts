@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { supabase, supabaseAdmin } from "@/lib/supabaseClient";
+import { prisma } from "@/lib/db";
 
 /**
  * Register a new user using Supabase Auth.
@@ -28,6 +29,36 @@ export async function registerSupabase(formData: FormData): Promise<{ error?: st
     if (error) {
       console.error("Supabase register error:", error);
       return { error: error.message };
+    }
+
+    // Sync to public DB tables if sign-up succeeds
+    if (data.user) {
+      const role = await prisma.role.upsert({
+        where: { name: "CUSTOMER" },
+        update: {},
+        create: { name: "CUSTOMER", description: "Regular customer" }
+      });
+
+      const existingUser = await prisma.user.findUnique({
+        where: { id: data.user.id }
+      });
+
+      if (!existingUser) {
+        await prisma.user.create({
+          data: {
+            id: data.user.id,
+            name,
+            email,
+            passwordHash: "", // password managed by Supabase Auth
+            roles: {
+              create: { roleId: role.id }
+            },
+            customerProfile: {
+              create: {}
+            }
+          }
+        });
+      }
     }
 
     // Store JWT in httpOnly cookie (same name used by the rest of the app).
@@ -62,6 +93,36 @@ export async function loginSupabase(formData: FormData): Promise<{ error?: strin
     if (error) {
       console.error("Supabase login error:", error);
       return { error: error.message };
+    }
+
+    // Sync/Lazily create public DB records on successful login
+    if (data.user) {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: data.user.id }
+      });
+
+      if (!existingUser) {
+        const role = await prisma.role.upsert({
+          where: { name: "CUSTOMER" },
+          update: {},
+          create: { name: "CUSTOMER", description: "Regular customer" }
+        });
+
+        await prisma.user.create({
+          data: {
+            id: data.user.id,
+            name: data.user.user_metadata?.full_name || data.user.email?.split("@")[0] || "User",
+            email: data.user.email!,
+            passwordHash: "",
+            roles: {
+              create: { roleId: role.id }
+            },
+            customerProfile: {
+              create: {}
+            }
+          }
+        });
+      }
     }
 
     const cookieStore = await cookies();
