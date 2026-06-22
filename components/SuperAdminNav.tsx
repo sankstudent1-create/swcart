@@ -23,6 +23,7 @@ export default function SuperAdminNav() {
         <Link
           key={item.href}
           href={item.href}
+          data-bs-dismiss="offcanvas"
           className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 
             ${pathname === item.href ? "bg-white/10 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"} 
             backdrop-blur-sm`}
