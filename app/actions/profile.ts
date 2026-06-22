@@ -71,3 +71,21 @@ export async function deleteAddressAction(formData: FormData) {
     console.error(error);
   }
 }
+
+export async function updateProfileAvatarAction(avatarUrl: string) {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, message: "Unauthorized" };
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { avatar: avatarUrl }
+    });
+    revalidatePath("/profile");
+    return { success: true, message: "Profile picture updated successfully." };
+  } catch (error) {
+    console.error("updateProfileAvatarAction error:", error);
+    return { success: false, message: "Failed to update profile picture." };
+  }
+}
+

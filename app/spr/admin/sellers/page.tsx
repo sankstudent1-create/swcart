@@ -1,6 +1,7 @@
 import { checkSuperAdmin } from "@/app/actions/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
+import { handleSellerApplicationAction } from "@/app/actions/admin";
 import Link from "next/link";
 
 export default async function SellersDashboard() {
@@ -14,16 +15,77 @@ export default async function SellersDashboard() {
     }
   });
 
+  const pendingApps = await prisma.sellerApplication.findMany({
+    where: { status: "PENDING" },
+    include: { user: true }
+  });
+
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="fw-bold mb-0 text-dark">Seller ERP Dashboard</h2>
-        <div className="d-flex gap-2">
-          <input type="text" className="form-control rounded-pill px-4 shadow-sm border-0" placeholder="Search sellers..." />
+        <div>
+          <h2 className="fw-bold mb-0 text-dark">Seller Management</h2>
+          <p className="text-muted small mb-0">Approve new vendors and view active seller operations.</p>
         </div>
       </div>
-      
+
+      {/* Pending Applications Section */}
+      {pendingApps.length > 0 && (
+        <div className="bg-white p-4 rounded-4 shadow-sm border border-warning mb-5">
+          <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+            <i className="bi bi-exclamation-circle-fill text-warning me-2 fs-4 animate-pulse"></i>
+            Pending Applications ({pendingApps.length})
+          </h5>
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="table-light text-muted small text-uppercase">
+                <tr>
+                  <th className="fw-bold border-0 py-3">Store/Company</th>
+                  <th className="fw-bold border-0 py-3">Applicant Name</th>
+                  <th className="fw-bold border-0 py-3">GST Number</th>
+                  <th className="fw-bold border-0 py-3">Applied On</th>
+                  <th className="fw-bold border-0 py-3 text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingApps.map((app) => (
+                  <tr key={app.id}>
+                    <td className="py-3">
+                      <div className="fw-bold text-dark">{app.companyName}</div>
+                    </td>
+                    <td className="py-3">
+                      <div className="fw-semibold text-dark">{app.user.name}</div>
+                      <div className="text-muted small">{app.user.email}</div>
+                    </td>
+                    <td className="py-3 text-muted">{app.gstNumber || "Not Provided"}</td>
+                    <td className="py-3 text-muted small fw-semibold">
+                      {new Date(app.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 text-end">
+                      <div className="d-flex gap-2 justify-content-end">
+                        <form action={handleSellerApplicationAction.bind(null, app.id, "APPROVE") as any}>
+                          <button type="submit" className="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm">
+                            <i className="bi bi-check-lg me-1"></i> Approve
+                          </button>
+                        </form>
+                        <form action={handleSellerApplicationAction.bind(null, app.id, "REJECT") as any}>
+                          <button type="submit" className="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold shadow-sm">
+                            <i className="bi bi-x-lg me-1"></i> Reject
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Active Sellers Section */}
       <div className="bg-white p-4 rounded-4 shadow-sm border-0">
+        <h5 className="fw-bold text-dark mb-4">Active Sellers ({sellers.length})</h5>
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0 border-light">
             <thead className="table-light text-muted small text-uppercase" style={{ letterSpacing: "0.5px" }}>
@@ -32,7 +94,7 @@ export default async function SellersDashboard() {
                 <th className="fw-bold border-0 py-3">Owner</th>
                 <th className="fw-bold border-0 py-3">Products</th>
                 <th className="fw-bold border-0 py-3">Status</th>
-                <th className="fw-bold border-0 rounded-end py-3">Actions</th>
+                <th className="fw-bold border-0 rounded-end py-3 text-end">Actions</th>
               </tr>
             </thead>
             <tbody className="border-top-0">
@@ -59,8 +121,8 @@ export default async function SellersDashboard() {
                       <span className="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2 rounded-pill">Pending</span>
                     }
                   </td>
-                  <td className="py-3">
-                    <Link href={`/spr/admin/sellers/${s.id}`} className="btn btn-sm btn-light rounded-pill px-3 fw-semibold text-dark border shadow-sm me-2 hover-scale transition-all">Analytics</Link>
+                  <td className="py-3 text-end">
+                    <Link href={`/spr/admin/sellers/${s.id}`} className="btn btn-sm btn-light rounded-pill px-3 fw-semibold text-dark border shadow-sm hover-scale transition-all">Analytics</Link>
                   </td>
                 </tr>
               ))}
@@ -73,8 +135,13 @@ export default async function SellersDashboard() {
       </div>
       <style>{`
         .hover-bg-light:hover { background-color: #f8f9fa !important; }
-        .hover-scale:hover { transform: scale(1.05); }
+        .hover-scale:hover { transform: scale(1.03); }
         .transition-all { transition: all 0.2s ease-in-out; }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: .5; }
+        }
       `}</style>
     </div>
   );

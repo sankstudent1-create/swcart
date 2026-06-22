@@ -60,7 +60,7 @@ export default async function AdminUsersPage() {
                   </td>
                   <td className="text-muted small py-3 fw-semibold">{new Date(u.createdAt).toLocaleDateString()}</td>
                   <td className="py-3">
-                    <button className="btn btn-sm btn-light rounded-pill px-3 me-2 fw-semibold text-dark shadow-sm border"><i className="bi bi-pencil-square me-1"></i> Edit</button>
+                    <Link href={`/spr/admin/users/${u.id}`} className="btn btn-sm btn-light rounded-pill px-3 me-2 fw-semibold text-dark shadow-sm border text-decoration-none"><i className="bi bi-pencil-square me-1"></i> Edit</Link>
                     <button className="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold shadow-sm"><i className="bi bi-slash-circle me-1"></i> Ban</button>
                   </td>
                 </tr>

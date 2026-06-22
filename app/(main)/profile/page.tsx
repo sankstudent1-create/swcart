@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getSessionUserId, logoutAction } from "@/app/actions/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { deleteAddressAction } from "@/app/actions/profile";
+import { deleteAddressAction, updateProfileAvatarAction } from "@/app/actions/profile";
 import AddressForm from "@/components/AddressForm";
 
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ tab?: string, success?: string }> }) {
@@ -37,9 +37,13 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         {/* Sidebar */}
         <div className="col-lg-3">
           <div className="bg-white p-4 rounded-4 shadow-sm border border-light text-center mb-4">
-            <div className="avatar-placeholder mx-auto mb-3" style={{width: "80px", height: "80px", borderRadius: "50%", background: "var(--red)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2rem", fontWeight: "bold"}}>
-              {user.name.charAt(0).toUpperCase()}
-            </div>
+            {user.avatar ? (
+              <img src={user.avatar} alt={user.name} className="mx-auto mb-3 shadow-sm border border-light" style={{width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover"}} />
+            ) : (
+              <div className="avatar-placeholder mx-auto mb-3" style={{width: "80px", height: "80px", borderRadius: "50%", background: "var(--red)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2rem", fontWeight: "bold"}}>
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             <h5 className="fw-bold mb-1">{user.name}</h5>
             <p className="text-muted small mb-0">{user.email}</p>
           </div>
@@ -133,6 +137,20 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                     <div className="text-success fw-bold fs-5"><i className="bi bi-patch-check-fill me-1"></i> Active</div>
                   </div>
                 </div>
+
+                <form action={async (formData: FormData) => {
+                  "use server";
+                  const avatarUrl = formData.get("avatarUrl") as string;
+                  if (avatarUrl !== undefined) {
+                    await updateProfileAvatarAction(avatarUrl);
+                  }
+                }} className="mt-5 border-top pt-4" style={{maxWidth: "600px"}}>
+                  <h5 className="fw-bold text-dark mb-3"><i className="bi bi-image me-2 text-muted"></i> Update Profile Photo</h5>
+                  <div className="d-flex gap-2">
+                    <input type="text" name="avatarUrl" className="form-control bg-light border-0 shadow-sm py-2 px-3 fw-semibold" placeholder="Paste image URL here..." defaultValue={user.avatar || ""} />
+                    <button type="submit" className="btn btn-dark rounded-pill px-4 fw-bold shadow-sm">Save</button>
+                  </div>
+                </form>
               </>
             )}
 

@@ -7,11 +7,13 @@ export default function SuperAdminNav() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: "/spr/admin/dashboard", label: "Dashboard", icon: "bi-speedometer2" },
+    { href: "/spr/admin", label: "Dashboard", icon: "bi-speedometer2" },
     { href: "/spr/admin/users", label: "Users", icon: "bi-people" },
     { href: "/spr/admin/sellers", label: "Sellers", icon: "bi-shop" },
     { href: "/spr/admin/products", label: "Products", icon: "bi-box-seam" },
     { href: "/spr/admin/orders", label: "Orders", icon: "bi-receipt" },
+    { href: "/spr/admin/coupons", label: "Coupons", icon: "bi-tag" },
+    { href: "/spr/admin/offers", label: "Offers", icon: "bi-gift" },
     { href: "/spr/admin/settings", label: "Settings", icon: "bi-gear" },
   ];
 

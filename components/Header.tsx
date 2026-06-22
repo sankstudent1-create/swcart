@@ -94,6 +94,60 @@ export default async function Header() {
           </div>
         </div>
       </header>
+
+      {/* Mobile Offcanvas Drawer */}
+      <div className="offcanvas offcanvas-start bg-dark text-white" tabIndex={-1} id="menuCanvas" aria-labelledby="menuCanvasLabel">
+        <div className="offcanvas-header border-bottom border-light border-opacity-10">
+          <h5 className="offcanvas-title fw-bold" id="menuCanvasLabel">
+            <span className="text-danger">Sw</span>cart Menu
+          </h5>
+          <button type="button" className="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div className="offcanvas-body p-4">
+          <nav className="d-flex flex-column gap-3 fs-5">
+            <Link href="/" className="text-white text-decoration-none py-2 border-bottom border-light border-opacity-10 d-flex align-items-center gap-2">
+              <i className="bi bi-house"></i> Home
+            </Link>
+            <Link href="/cart" className="text-white text-decoration-none py-2 border-bottom border-light border-opacity-10 d-flex align-items-center justify-content-between">
+              <div className="d-flex align-items-center gap-2">
+                <i className="bi bi-cart3"></i> Cart
+              </div>
+              {cartCount > 0 && <span className="badge bg-danger rounded-pill">{cartCount}</span>}
+            </Link>
+            <Link href="/wishlist" className="text-white text-decoration-none py-2 border-bottom border-light border-opacity-10 d-flex align-items-center justify-content-between">
+              <div className="d-flex align-items-center gap-2">
+                <i className="bi bi-heart"></i> Wishlist
+              </div>
+              {wishCount > 0 && <span className="badge bg-danger rounded-pill">{wishCount}</span>}
+            </Link>
+            <Link href="/track-order" className="text-white text-decoration-none py-2 border-bottom border-light border-opacity-10 d-flex align-items-center gap-2">
+              <i className="bi bi-geo-alt"></i> Track Order
+            </Link>
+            <Link href="/sell" className="text-white text-decoration-none py-2 border-bottom border-light border-opacity-10 d-flex align-items-center gap-2">
+              <i className="bi bi-shop"></i> Become Seller
+            </Link>
+            <Link href="/help" className="text-white text-decoration-none py-2 border-bottom border-light border-opacity-10 d-flex align-items-center gap-2">
+              <i className="bi bi-question-circle"></i> Help Center
+            </Link>
+            
+            {isSuperAdmin && (
+              <Link href="/spr/admin" className="text-danger text-decoration-none py-2 border-bottom border-light border-opacity-10 d-flex align-items-center gap-2">
+                <i className="bi bi-speedometer2"></i> Admin Panel
+              </Link>
+            )}
+
+            {userId ? (
+              <Link href="/profile" className="text-white text-decoration-none py-2 d-flex align-items-center gap-2 mt-3">
+                <i className="bi bi-person-circle"></i> My Account
+              </Link>
+            ) : (
+              <Link href="/login" className="text-white text-decoration-none py-2 d-flex align-items-center gap-2 mt-3" style={{color: "var(--red) !important"}}>
+                <i className="bi bi-box-arrow-in-right"></i> Login / Sign Up
+              </Link>
+            )}
+          </nav>
+        </div>
+      </div>
     </>
   );
 }

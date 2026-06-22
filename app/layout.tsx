@@ -28,6 +28,7 @@ export default function RootLayout({
       <body className={inter.className}>
         {children}
         <Toaster position="bottom-right" richColors />
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" async></script>
       </body>
     </html>
   );

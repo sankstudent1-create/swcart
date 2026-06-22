@@ -46,6 +46,19 @@ export default async function AdminSettingsPage() {
                 </div>
               </div>
 
+              <h5 className="fw-bold mb-4 d-flex align-items-center"><i className="bi bi-shop fs-4 me-2 text-warning"></i> Sellers & Vendors</h5>
+              <div className="row g-4 mb-5">
+                <div className="col-12">
+                  <div className="form-check form-switch bg-light p-3 rounded-3 shadow-sm d-flex align-items-center justify-content-between">
+                    <div className="ms-2">
+                      <label className="form-check-label fw-bold text-dark" htmlFor="autoApproveSellers">Auto-Approve Seller Applications</label>
+                      <div className="text-muted small">Immediately grant seller accounts and roles upon submission without manual approval.</div>
+                    </div>
+                    <input className="form-check-input me-2" type="checkbox" name="autoApproveSellers" id="autoApproveSellers" value="true" defaultChecked={settings?.autoApproveSellers !== false} style={{ width: "3em", height: "1.5em", cursor: "pointer" }} />
+                  </div>
+                </div>
+              </div>
+
               <div className="d-flex justify-content-end pt-3 border-top">
                 <button type="submit" className="btn btn-dark btn-lg rounded-pill px-5 shadow-sm fw-bold hover-scale transition-all">Save Changes</button>
               </div>

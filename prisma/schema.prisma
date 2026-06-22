@@ -31,6 +31,7 @@ model User {
   messages          Message[]
   cart              Cart?
   wishlist          Wishlist?
+  sellerApplication SellerApplication?
 }
 
 model Role {
@@ -392,6 +393,8 @@ model SiteSetting {
   facebookUrl      String?
   instagramUrl     String?
   twitterUrl       String?
+
+  autoApproveSellers Boolean @default(true)
 }
 
 model DynamicPage {
@@ -408,3 +411,16 @@ model FAQ {
   answer    String
   orderIndex Int     @default(0)
 }
+
+model SellerApplication {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  companyName String
+  gstNumber   String?
+  bankDetails Json?
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
+}
+
