@@ -1,4 +1,3 @@
-"use client";
 
 import { ReactNode } from "react";
 import SellerNav from "@/components/SellerNav";
