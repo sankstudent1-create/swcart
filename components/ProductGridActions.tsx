@@ -28,13 +28,90 @@ export default function ProductGridActions({ productId }: { productId: string })
   };
 
   return (
-    <div style={{padding: "0 20px 20px", display: "flex", gap: "8px", alignItems: "center"}}>
-      <button className="prod-add" onClick={handleAddToCart} disabled={isPending} style={{flex: 1, marginTop: 0}}>
-        {isPending ? "..." : "Add to cart"}
-      </button>
-      <button className="wish-btn-inline" onClick={handleAddToWishlist} disabled={isPending} style={{width: "40px", height: "40px", borderRadius: "12px", border: "2px solid var(--line)", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink)", fontSize: "1.1rem", transition: ".2s", cursor: "pointer", flexShrink: 0}}>
+    <>
+      {/* Absolute Wishlist Button */}
+      <button 
+        className="wishlist-overlay-btn" 
+        onClick={handleAddToWishlist} 
+        disabled={isPending}
+        title="Add to Wishlist"
+        aria-label="Add to Wishlist"
+      >
         <i className="bi bi-heart"></i>
       </button>
-    </div>
+
+      {/* Add to Cart Button Container */}
+      <div className="prod-action-container">
+        <button className="prod-add-btn" onClick={handleAddToCart} disabled={isPending}>
+          {isPending ? (
+            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          ) : (
+            <>
+              <i className="bi bi-bag-plus"></i> Add to Cart
+            </>
+          )}
+        </button>
+      </div>
+
+      <style>{`
+        .wishlist-overlay-btn {
+          position: absolute;
+          top: 14px;
+          right: 14px;
+          z-index: 10;
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          background: rgba(255, 255, 255, 0.75);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--ink);
+          font-size: 1.05rem;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .wishlist-overlay-btn:hover {
+          background: var(--red);
+          color: #fff;
+          border-color: var(--red);
+          transform: scale(1.1) rotate(5deg);
+          box-shadow: 0 8px 16px rgba(232, 71, 42, 0.3);
+        }
+        .prod-action-container {
+          padding: 0 16px 16px;
+          margin-top: auto;
+        }
+        .prod-add-btn {
+          border: none;
+          background: var(--ink);
+          color: #fff;
+          border-radius: 12px;
+          padding: 10px 16px;
+          font-size: 0.85rem;
+          font-weight: 700;
+          width: 100%;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
+          letter-spacing: 0.2px;
+        }
+        .prod-add-btn:hover {
+          background: var(--red);
+          color: #fff;
+          box-shadow: 0 8px 20px rgba(232, 71, 42, 0.25);
+          transform: translateY(-2px);
+        }
+        .prod-add-btn:active {
+          transform: translateY(0);
+        }
+      `}</style>
+    </>
   );
 }
