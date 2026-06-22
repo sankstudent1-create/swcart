@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { deleteAddressAction, updateProfileAvatarAction } from "@/app/actions/profile";
 import AddressForm from "@/components/AddressForm";
+import ProfileSupportManager from "./ProfileSupportManager";
 
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ tab?: string, success?: string }> }) {
   const userId = await getSessionUserId();
@@ -24,6 +25,25 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
 
   const params = await searchParams;
   const tab = params.tab || "orders";
+
+  // Fetch support tickets for this user
+  const tickets = await prisma.supportTicket.findMany({
+    where: { userId },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      conversations: {
+        include: {
+          messages: {
+            orderBy: { createdAt: "asc" },
+            include: { sender: true }
+          }
+        }
+      }
+    }
+  });
+
+  // Client serialization
+  const serializedTickets = JSON.parse(JSON.stringify(tickets));
 
   return (
     <div className="container py-5" style={{ minHeight: "70vh" }}>
@@ -59,6 +79,9 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
               <Link href="/profile?tab=address" className={`list-group-item list-group-item-action py-3 px-4 ${tab === 'address' ? 'bg-light border-start border-4 border-danger fw-bold text-dark' : 'text-muted border-start border-4 border-transparent'}`}>
                 <i className="bi bi-geo-alt me-2"></i> Saved Addresses
               </Link>
+              <Link href="/profile?tab=support" className={`list-group-item list-group-item-action py-3 px-4 ${tab === 'support' ? 'bg-light border-start border-4 border-danger fw-bold text-dark' : 'text-muted border-start border-4 border-transparent'}`}>
+                <i className="bi bi-headset me-2"></i> Support Helpdesk
+              </Link>
               <form action={logoutAction as any} className="list-group-item list-group-item-action py-3 px-4 text-danger" style={{cursor: "pointer"}}>
                 <button type="submit" className="bg-transparent border-0 text-danger p-0 w-100 text-start fw-semibold">
                   <i className="bi bi-box-arrow-right me-2"></i> Log Out
@@ -93,6 +116,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                             <div className="fw-bold fs-5">₹{order.totalAmount.toLocaleString('en-IN')}</div>
                             <div className="d-flex align-items-center justify-content-end gap-2 mt-2">
                               <span className={`badge rounded-pill px-3 border ${order.status === 'PAID' || order.status === 'DELIVERED' ? 'bg-success bg-opacity-25 text-success border-success border-opacity-25' : 'bg-warning bg-opacity-25 text-warning border-warning border-opacity-25'}`}>{order.status}</span>
+                              <Link href={`/track-order?id=${order.id}`} className="btn btn-sm btn-outline-danger rounded-pill shadow-sm px-3 fw-bold"><i className="bi bi-truck me-1"></i> Track</Link>
                               <Link href={`/orders/${order.id}/invoice`} className="btn btn-sm btn-outline-dark rounded-pill shadow-sm px-3 fw-bold" target="_blank"><i className="bi bi-receipt me-1"></i> Invoice</Link>
                             </div>
                           </div>
@@ -181,6 +205,10 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                 
                 <AddressForm />
               </>
+            )}
+
+            {tab === "support" && (
+              <ProfileSupportManager tickets={serializedTickets} />
             )}
           </div>
         </div>

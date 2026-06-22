@@ -5,13 +5,20 @@ import ProductGrid from "@/components/ProductGrid";
 import DealBanner from "@/components/DealBanner";
 import Newsletter from "@/components/Newsletter";
 
-export default function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ cat?: string }>;
+}) {
+  const sp = await searchParams;
+  const activeCat = sp.cat || undefined;
+
   return (
     <main>
       <Hero />
-      <CategoryRail />
+      <CategoryRail activeCat={activeCat} />
       <PromoStrip />
-      <ProductGrid />
+      <ProductGrid cat={activeCat} />
       <DealBanner />
       <Newsletter />
     </main>

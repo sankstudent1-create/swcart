@@ -145,7 +145,36 @@ export async function updateSellerSettingsAction(companyName: string, gstNumber:
   }
 }
 
-export async function saveSellerProductAction(productId: string | null, data: { title: string, description: string, basePrice: number, categoryId: string }) {
+export async function saveSellerProductAction(
+  productId: string | null,
+  data: {
+    title: string;
+    description: string;
+    basePrice: number;
+    discountPercent: number;
+    categoryId: string;
+    images: string[];
+    isPublished: boolean;
+    brand?: string;
+    tags?: string[];
+    weightGrams?: number;
+    dimLength?: number;
+    dimWidth?: number;
+    dimHeight?: number;
+    returnPolicy?: string;
+    warrantyInfo?: string;
+    metaTitle?: string;
+    metaDescription?: string;
+    variants: {
+      id?: string;
+      sku: string;
+      size?: string;
+      color?: string;
+      price: number;
+      quantity: number;
+    }[];
+  }
+) {
   const userId = await getSessionUserId();
   if (!userId) return { success: false, message: "Unauthorized" };
 
@@ -153,8 +182,21 @@ export async function saveSellerProductAction(productId: string | null, data: { 
     const seller = await prisma.seller.findUnique({ where: { userId } });
     if (!seller) return { success: false, message: "Seller profile not found" };
 
+    // Ensure default warehouse exists
+    const warehouse = await prisma.warehouse.upsert({
+      where: { id: "default-warehouse" },
+      update: {},
+      create: {
+        id: "default-warehouse",
+        name: "Main Seller Warehouse",
+        location: "Default Storehouse"
+      }
+    });
+
+    let activeProductId = productId;
+
     if (productId) {
-      // Update
+      // Update product
       const existing = await prisma.product.findUnique({ where: { id: productId } });
       if (!existing || existing.sellerId !== seller.id) {
         return { success: false, message: "Product not found or unauthorized access" };
@@ -166,26 +208,136 @@ export async function saveSellerProductAction(productId: string | null, data: { 
           title: data.title,
           description: data.description,
           basePrice: data.basePrice,
-          categoryId: data.categoryId
+          discountPercent: data.discountPercent,
+          categoryId: data.categoryId,
+          images: data.images,
+          isPublished: data.isPublished,
+          brand: data.brand || null,
+          tags: data.tags || [],
+          weightGrams: data.weightGrams || null,
+          dimLength: data.dimLength || null,
+          dimWidth: data.dimWidth || null,
+          dimHeight: data.dimHeight || null,
+          returnPolicy: data.returnPolicy || null,
+          warrantyInfo: data.warrantyInfo || null,
+          metaTitle: data.metaTitle || null,
+          metaDescription: data.metaDescription || null,
         }
       });
-      revalidatePath("/seller/products");
-      return { success: true, message: "Product updated successfully" };
     } else {
-      // Create
-      await prisma.product.create({
+      // Create product
+      const newProduct = await prisma.product.create({
         data: {
           sellerId: seller.id,
           categoryId: data.categoryId,
           title: data.title,
           description: data.description,
           basePrice: data.basePrice,
-          images: []
+          discountPercent: data.discountPercent,
+          images: data.images,
+          isPublished: data.isPublished,
+          brand: data.brand || null,
+          tags: data.tags || [],
+          weightGrams: data.weightGrams || null,
+          dimLength: data.dimLength || null,
+          dimWidth: data.dimWidth || null,
+          dimHeight: data.dimHeight || null,
+          returnPolicy: data.returnPolicy || null,
+          warrantyInfo: data.warrantyInfo || null,
+          metaTitle: data.metaTitle || null,
+          metaDescription: data.metaDescription || null,
         }
       });
-      revalidatePath("/seller/products");
-      return { success: true, message: "Product created successfully" };
+      activeProductId = newProduct.id;
     }
+
+    // Handle variants and inventory
+    if (activeProductId && data.variants && data.variants.length > 0) {
+      const updatedVariantIds: string[] = [];
+
+      for (const v of data.variants) {
+        let variant;
+        if (v.id) {
+          // Update existing variant
+          variant = await prisma.productVariant.update({
+            where: { id: v.id },
+            data: {
+              sku: v.sku,
+              size: v.size || null,
+              color: v.color || null,
+              price: v.price
+            }
+          });
+        } else {
+          // Check if SKU exists
+          const existingVariant = await prisma.productVariant.findUnique({
+            where: { sku: v.sku }
+          });
+          if (existingVariant) {
+            // Re-assign or update existing
+            variant = await prisma.productVariant.update({
+              where: { id: existingVariant.id },
+              data: {
+                productId: activeProductId,
+                size: v.size || null,
+                color: v.color || null,
+                price: v.price
+              }
+            });
+          } else {
+            // Create new
+            variant = await prisma.productVariant.create({
+              data: {
+                productId: activeProductId,
+                sku: v.sku,
+                size: v.size || null,
+                color: v.color || null,
+                price: v.price
+              }
+            });
+          }
+        }
+        updatedVariantIds.push(variant.id);
+
+        // Upsert inventory for this variant
+        await prisma.inventory.upsert({
+          where: {
+            variantId_warehouseId: {
+              variantId: variant.id,
+              warehouseId: warehouse.id
+            }
+          },
+          update: {
+            quantity: v.quantity || 0
+          },
+          create: {
+            variantId: variant.id,
+            warehouseId: warehouse.id,
+            quantity: v.quantity || 0
+          }
+        });
+      }
+
+      // Clean up variants of this product that are no longer in the updated list
+      const allProductVariants = await prisma.productVariant.findMany({
+        where: { productId: activeProductId }
+      });
+      for (const pv of allProductVariants) {
+        if (!updatedVariantIds.includes(pv.id)) {
+          try {
+            await prisma.productVariant.delete({ where: { id: pv.id } });
+          } catch (e) {
+            console.warn("Could not delete variant because it is referenced in orders:", pv.id);
+          }
+        }
+      }
+    }
+
+    revalidatePath("/seller/products");
+    return { 
+      success: true, 
+      message: productId ? "Product updated successfully" : "Product created successfully" 
+    };
   } catch (error: any) {
     return { success: false, message: error.message || "Failed to save product" };
   }
@@ -227,5 +379,47 @@ export async function updateSellerOrderStatusAction(orderId: string, status: str
     return { success: true, message: "Order status updated successfully" };
   } catch (error: any) {
     return { success: false, message: error.message || "Failed to update order" };
+  }
+}
+
+export async function updateSellerOrderLogisticsAction(
+  orderId: string,
+  data: {
+    status: string;
+    shippingProvider: string | null;
+    trackingNumber: string | null;
+  }
+) {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, message: "Unauthorized" };
+
+  try {
+    const seller = await prisma.seller.findUnique({ where: { userId } });
+    if (!seller) return { success: false, message: "Seller profile not found" };
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: data.status,
+        shippingProvider: data.shippingProvider,
+        trackingNumber: data.trackingNumber
+      }
+    });
+
+    // Create a tracking milestone
+    await prisma.trackingHistory.create({
+      data: {
+        orderId,
+        status: data.status,
+        location: data.shippingProvider ? `Dispatched via ${data.shippingProvider}` : "Order Updated by Vendor",
+        timestamp: new Date()
+      }
+    });
+
+    revalidatePath("/seller/orders");
+    revalidatePath(`/track-order`);
+    return { success: true, message: "Order logistics updated successfully" };
+  } catch (error: any) {
+    return { success: false, message: error.message || "Failed to update order logistics" };
   }
 }
