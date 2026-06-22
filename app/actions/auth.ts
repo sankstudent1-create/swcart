@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { supabase } from "@/lib/supabaseClient";
 
 export async function registerAction(formData: FormData): Promise<{ error?: string }> {
   const name = formData.get("name") as string;
@@ -113,7 +114,16 @@ export async function checkSession() {
 
 export async function getSessionUserId() {
   const cookieStore = await cookies();
-  return cookieStore.get("swcart_session")?.value || null;
+  const token = cookieStore.get("swcart_session")?.value;
+  if (!token) return null;
+  
+  try {
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data.user) return null;
+    return data.user.id;
+  } catch (err) {
+    return null;
+  }
 }
 
 export async function checkSuperAdmin() {

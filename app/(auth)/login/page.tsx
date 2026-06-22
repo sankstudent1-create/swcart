@@ -13,13 +13,8 @@ export default function LoginPage() {
     setError("");
     const formData = new FormData(e.currentTarget);
     startTransition(async () => {
-      try {
-        const result = await loginSupabase(formData);
-        if (result?.error) setError(result.error);
-      } catch (err: any) {
-        console.error("❌ Login server-action threw:", err);
-        setError(err?.message ?? "A server error occurred. Check logs.");
-      }
+      const result = await loginSupabase(formData);
+      if (result?.error) setError(result.error);
     });
   }
 
