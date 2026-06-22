@@ -139,38 +139,38 @@ export default async function Header() {
           {/* Nav Items */}
           <div className="p-4">
             <nav className="d-flex flex-column gap-2">
-              <a href="/" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all" data-bs-dismiss="offcanvas">
+              <a href="/" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all">
                 <i className="bi bi-house fs-5 text-danger"></i> Home
               </a>
               
-              <a href="/cart" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center justify-content-between transition-all" data-bs-dismiss="offcanvas">
+              <a href="/cart" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center justify-content-between transition-all">
                 <div className="d-flex align-items-center gap-3">
                   <i className="bi bi-cart3 fs-5 text-danger"></i> Cart
                 </div>
                 {cartCount > 0 && <span className="badge bg-danger rounded-pill px-3 py-2 fw-bold">{cartCount}</span>}
               </a>
               
-              <a href="/wishlist" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center justify-content-between transition-all" data-bs-dismiss="offcanvas">
+              <a href="/wishlist" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center justify-content-between transition-all">
                 <div className="d-flex align-items-center gap-3">
                   <i className="bi bi-heart fs-5 text-danger"></i> Wishlist
                 </div>
                 {wishCount > 0 && <span className="badge bg-danger rounded-pill px-3 py-2 fw-bold">{wishCount}</span>}
               </a>
               
-              <a href="/track-order" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all" data-bs-dismiss="offcanvas">
+              <a href="/track-order" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all">
                 <i className="bi bi-geo-alt fs-5 text-danger"></i> Track Order
               </a>
               
-              <a href="/sell" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all" data-bs-dismiss="offcanvas">
+              <a href="/sell" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all">
                 <i className="bi bi-shop fs-5 text-danger"></i> Become Seller
               </a>
               
-              <a href="/help" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all" data-bs-dismiss="offcanvas">
+              <a href="/help" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all">
                 <i className="bi bi-question-circle fs-5 text-danger"></i> Help Center
               </a>
 
               {isSuperAdmin && (
-                <a href="/spr/admin" className="text-danger text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all fw-bold mt-2" style={{ background: "rgba(232, 71, 42, 0.05)", border: "1px solid rgba(232, 71, 42, 0.15)" }} data-bs-dismiss="offcanvas">
+                <a href="/spr/admin" className="text-danger text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all fw-bold mt-2" style={{ background: "rgba(232, 71, 42, 0.05)", border: "1px solid rgba(232, 71, 42, 0.15)" }}>
                   <i className="bi bi-speedometer2 fs-5"></i> Admin Control Panel
                 </a>
               )}
