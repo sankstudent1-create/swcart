@@ -111,6 +111,24 @@ export default function ProductGridActions({ productId }: { productId: string })
         .prod-add-btn:active {
           transform: translateY(0);
         }
+        @media (max-width: 575px) {
+          .prod-add-btn {
+            padding: 8px 8px;
+            font-size: 0.78rem;
+            gap: 4px;
+            border-radius: 10px;
+          }
+          .prod-action-container {
+            padding: 0 10px 10px;
+          }
+          .wishlist-overlay-btn {
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            font-size: 0.95rem;
+          }
+        }
       `}</style>
     </>
   );

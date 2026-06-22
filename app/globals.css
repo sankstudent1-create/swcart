@@ -6,6 +6,7 @@
   --body:#2E2E2E;
   --line:#F0E2D8;
 }
+html, body{overflow-x:hidden;}
 *{box-sizing:border-box;}
 body{font-family:'Inter',sans-serif;color:var(--body);background:#fff;margin:0;}
 input, button, select, textarea{font-family:'Inter',sans-serif;}
@@ -292,4 +293,43 @@ button {cursor: pointer;}
   .hero{padding:50px 0 130px;}
   .hero-card.two{display:none;}
   .deal-banner{padding:30px 22px;}
+}
+@media (max-width: 575px) {
+  .prod-body {
+    padding: 12px 10px 8px;
+  }
+  .prod-name {
+    font-size: 0.82rem;
+    min-height: 38px;
+    margin: 2px 0 4px;
+    line-height: 1.35;
+  }
+  .prod-price {
+    font-size: 1rem;
+  }
+  .prod-price .old {
+    font-size: 0.78rem;
+    margin-left: 4px;
+  }
+  .prod-tag {
+    top: 10px;
+    left: 10px;
+    font-size: 0.58rem;
+    padding: 4px 10px;
+  }
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .site-header {
+    padding: 12px 0;
+  }
+  .brand .name {
+    font-size: 1.35rem;
+  }
+  .brand img {
+    height: 34px;
+    width: 34px;
+    border-radius: 8px;
+  }
 }
