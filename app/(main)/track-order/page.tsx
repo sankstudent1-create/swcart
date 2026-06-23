@@ -58,7 +58,7 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
             <i className="bi bi-box-seam text-danger fs-3"></i>
           </div>
           <h1 className="font-jakarta fw-bolder text-dark mb-2" style={{ letterSpacing: "-1px", fontSize: "2.5rem" }}>Track Your Package</h1>
-          <p className="font-inter text-muted mb-4 fs-5">Enter your Order ID to get real-time tracking updates.</p>
+          <p className="font-jakarta text-muted mb-4 fs-5">Enter your Order ID to get real-time tracking updates.</p>
 
           {/* Glassmorphic Search Form */}
           <div className="glass-panel p-3 p-md-4 mx-auto shadow-lg" style={{ maxWidth: "600px", borderRadius: "20px" }}>
@@ -69,7 +69,7 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
                   <input 
                     type="text" 
                     name="id"
-                    className="form-control form-control-lg border-0 shadow-none font-inter"
+                    className="form-control form-control-lg border-0 shadow-none font-jakarta"
                     style={{ background: "rgba(255,255,255,0.8)", paddingLeft: "50px", borderRadius: "14px", height: "56px" }}
                     placeholder="e.g. clx123456789..."
                     defaultValue={orderId || ""}
@@ -85,9 +85,9 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
         </div>
       </div>
 
-      <div className="container py-5 font-inter" style={{ minHeight: "50vh", maxWidth: "800px" }}>
+      <div className="container py-5 font-jakarta" style={{ minHeight: "50vh", maxWidth: "800px" }}>
         {errorMsg && (
-          <div className="alert alert-danger border-0 rounded-4 p-4 text-center shadow-sm glass-panel font-inter fade-in d-flex flex-column align-items-center" style={{ background: "rgba(255,235,238,0.8)" }}>
+          <div className="alert alert-danger border-0 rounded-4 p-4 text-center shadow-sm glass-panel font-jakarta fade-in d-flex flex-column align-items-center" style={{ background: "rgba(255,235,238,0.8)" }}>
             <i className="bi bi-exclamation-triangle text-danger fs-1 mb-2"></i>
             <span className="fw-semibold text-danger">{errorMsg}</span>
           </div>
@@ -196,7 +196,7 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
                             {item.variant.color && ` • Color: ${item.variant.color}`}
                           </div>
                         </div>
-                        <div className="bg-light rounded-pill px-3 py-1 text-dark fw-bold font-inter shadow-sm" style={{ fontSize: "0.8rem" }}>
+                        <div className="bg-light rounded-pill px-3 py-1 text-dark fw-bold font-jakarta shadow-sm" style={{ fontSize: "0.8rem" }}>
                           x{item.quantity}
                         </div>
                       </div>

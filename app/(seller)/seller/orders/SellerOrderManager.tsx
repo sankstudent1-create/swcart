@@ -114,7 +114,7 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&family=Libre+Barcode+39&family=Inter:wght@400;500;600;700;800&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #f8f9fa; display: flex; justify-content: center; padding: 2rem; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8f9fa; display: flex; justify-content: center; padding: 2rem; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .label { width: 4in; min-height: 6in; background: #fff; color: #111; display: flex; flex-direction: column; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 2px solid #e9ecef; overflow: hidden; }
         .hdr { padding: 16px; background: linear-gradient(135deg, #e63946 0%, #c1121f 100%); display: flex; justify-content: space-between; align-items: center; color: white; }
         .hdr .brand { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -1px; }
@@ -193,7 +193,7 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800;900&family=Inter:wght@400;500;600&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #e0e0e0; display: flex; justify-content: center; padding: 2rem; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: #111; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #e0e0e0; display: flex; justify-content: center; padding: 2rem; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: #111; }
         .invoice { width: 850px; max-width: 100%; background: #f8f9fa; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 50px rgba(0,0,0,0.1); border: 1px solid #fff; }
         .hdr { padding: 40px 48px 30px; background: linear-gradient(135deg, #1A1A24 0%, #2B2B3C 100%); color: white; display: flex; justify-content: space-between; align-items: flex-start; position: relative; overflow: hidden; }
         .hdr::after { content: ""; position: absolute; right: -50px; top: -50px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(230,57,70,0.2) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
