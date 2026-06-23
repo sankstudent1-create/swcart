@@ -40,8 +40,8 @@ export default function CheckoutForm({ items, savedAddress }: any) {
   const handleApplyCoupon = async () => {
     if (!couponCode) return;
     const res = await validateCouponAction(couponCode);
-    if (res.success) {
-      setCoupon(res.coupon);
+    if (res.success && res.coupon) {
+      setCoupon(res.coupon as any);
       toast.success("Coupon applied!");
     } else {
       setCoupon(null);
