@@ -237,6 +237,8 @@ model Order {
   trackingHistory  TrackingHistory[]
   couponId         String?
   coupon           Coupon?     @relation(fields: [couponId], references: [id])
+  deliveryPersonId String?
+  deliveryPerson   DeliveryPerson? @relation(fields: [deliveryPersonId], references: [id])
 }
 
 model OrderItem {
@@ -303,6 +305,7 @@ model DeliveryPerson {
   vehicleId String?
   user      User     @relation(fields: [userId], references: [id])
   routes    Route[]
+  orders    Order[]
 }
 
 model Route {

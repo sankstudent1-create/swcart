@@ -4,7 +4,7 @@ import React, { useTransition } from "react";
 import { verifySellerAction } from "@/app/actions/admin-modules";
 import { toast } from "sonner";
 
-export default function SellerManager({ sellers }: { sellers: any[] }) {
+export default function SellerManager({ sellers, analytics }: { sellers: any[], analytics: any }) {
   const [isPending, startTransition] = useTransition();
 
   const handleVerify = (id: string, isVerified: boolean) => {
@@ -18,7 +18,34 @@ export default function SellerManager({ sellers }: { sellers: any[] }) {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="fw-bold mb-0 text-dark">Sellers & Merchants</h2>
+        <h2 className="fw-bold mb-0 text-dark">Sellers ERP</h2>
+      </div>
+
+      <div className="row g-4 mb-5">
+        <div className="col-md-3">
+          <div className="bg-white p-4 rounded-4 shadow-sm border-0 d-flex flex-column gap-2" style={{ borderLeft: "4px solid #007aff !important" }}>
+            <div className="text-muted small fw-bold text-uppercase" style={{ letterSpacing: "1px" }}>Total Merchants</div>
+            <div className="fs-3 fw-bold text-dark">{analytics.totalSellers}</div>
+          </div>
+        </div>
+        <div className="col-md-3">
+          <div className="bg-white p-4 rounded-4 shadow-sm border-0 d-flex flex-column gap-2" style={{ borderLeft: "4px solid #34c759 !important" }}>
+            <div className="text-muted small fw-bold text-uppercase" style={{ letterSpacing: "1px" }}>Active Verified</div>
+            <div className="fs-3 fw-bold text-success">{analytics.activeSellers}</div>
+          </div>
+        </div>
+        <div className="col-md-3">
+          <div className="bg-white p-4 rounded-4 shadow-sm border-0 d-flex flex-column gap-2" style={{ borderLeft: "4px solid #ff9500 !important" }}>
+            <div className="text-muted small fw-bold text-uppercase" style={{ letterSpacing: "1px" }}>Total Global Products</div>
+            <div className="fs-3 fw-bold text-warning">{analytics.totalProducts}</div>
+          </div>
+        </div>
+        <div className="col-md-3">
+          <div className="bg-white p-4 rounded-4 shadow-sm border-0 d-flex flex-column gap-2" style={{ borderLeft: "4px solid #ff3b30 !important" }}>
+            <div className="text-muted small fw-bold text-uppercase" style={{ letterSpacing: "1px" }}>Total Merchant Revenue</div>
+            <div className="fs-3 fw-bold text-danger">₹{analytics.totalRevenue.toLocaleString("en-IN")}</div>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white p-4 rounded-4 shadow-sm border-0">
