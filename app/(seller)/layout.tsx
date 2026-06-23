@@ -58,7 +58,7 @@ export default async function SellerLayout({ children }: { children: React.React
   );
 
   return (
-    <div className={`d-flex flex-column flex-lg-row ${outfit.className}`} style={{ minHeight: "100vh", backgroundColor: "#f4f5f7" }}>
+    <div className={`d-flex flex-column flex-lg-row ${outfit.className}`} style={{ minHeight: "100vh", backgroundColor: "#0d0d0d" }} data-bs-theme="dark">
       
       {/* Desktop Sidebar (hidden on mobile) */}
       <aside 

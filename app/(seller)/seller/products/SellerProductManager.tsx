@@ -235,26 +235,26 @@ export default function SellerProductManager({ products, categories }: SellerPro
                       <div className="row g-3">
                         <div className="col-md-8">
                           <label className="form-label text-muted small text-uppercase fw-bold mb-1">Product Title *</label>
-                          <input type="text" className="form-control bg-dark border-secondary text-white rounded-3" placeholder="e.g. Premium Cotton T-Shirt" value={form.title} onChange={e => set("title", e.target.value)} required />
+                          <input type="text" className="form-control rounded-3" placeholder="e.g. Premium Cotton T-Shirt" value={form.title} onChange={e => set("title", e.target.value)} required />
                         </div>
                         <div className="col-md-4">
                           <label className="form-label text-muted small text-uppercase fw-bold mb-1">Brand</label>
-                          <input type="text" className="form-control bg-dark border-secondary text-white rounded-3" placeholder="e.g. Nike" value={form.brand} onChange={e => set("brand", e.target.value)} />
+                          <input type="text" className="form-control rounded-3" placeholder="e.g. Nike" value={form.brand} onChange={e => set("brand", e.target.value)} />
                         </div>
                       </div>
                       <div>
                         <label className="form-label text-muted small text-uppercase fw-bold mb-1">Category *</label>
-                        <select className="form-select bg-dark border-secondary text-white rounded-3" value={form.categoryId} onChange={e => set("categoryId", e.target.value)} required>
+                        <select className="form-select rounded-3" value={form.categoryId} onChange={e => set("categoryId", e.target.value)} required>
                           {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                       </div>
                       <div>
                         <label className="form-label text-muted small text-uppercase fw-bold mb-1">Description *</label>
-                        <textarea className="form-control bg-dark border-secondary text-white rounded-3" rows={4} placeholder="Detailed product description..." value={form.description} onChange={e => set("description", e.target.value)} required />
+                        <textarea className="form-control rounded-3" rows={4} placeholder="Detailed product description..." value={form.description} onChange={e => set("description", e.target.value)} required />
                       </div>
                       <div>
                         <label className="form-label text-muted small text-uppercase fw-bold mb-1">Tags (comma-separated)</label>
-                        <input type="text" className="form-control bg-dark border-secondary text-white rounded-3" placeholder="cotton, summer, casual" value={form.tags} onChange={e => set("tags", e.target.value)} />
+                        <input type="text" className="form-control rounded-3" placeholder="cotton, summer, casual" value={form.tags} onChange={e => set("tags", e.target.value)} />
                       </div>
                       <div className="d-flex align-items-center gap-3 mt-1">
                         <div className="form-check form-switch">
@@ -273,11 +273,11 @@ export default function SellerProductManager({ products, categories }: SellerPro
                       <div className="row g-3">
                         <div className="col-md-6">
                           <label className="form-label text-muted small text-uppercase fw-bold mb-1">Base Price (₹) *</label>
-                          <input type="number" className="form-control bg-dark border-secondary text-white rounded-3" min={0} value={form.basePrice || ""} onChange={e => set("basePrice", e.target.value)} required />
+                          <input type="number" className="form-control rounded-3" min={0} value={form.basePrice || ""} onChange={e => set("basePrice", e.target.value)} required />
                         </div>
                         <div className="col-md-6">
                           <label className="form-label text-muted small text-uppercase fw-bold mb-1">Discount %</label>
-                          <input type="number" className="form-control bg-dark border-secondary text-white rounded-3" min={0} max={100} placeholder="0" value={form.discountPercent || ""} onChange={e => set("discountPercent", e.target.value)} />
+                          <input type="number" className="form-control rounded-3" min={0} max={100} placeholder="0" value={form.discountPercent || ""} onChange={e => set("discountPercent", e.target.value)} />
                         </div>
                       </div>
                       {Number(form.discountPercent) > 0 && (
@@ -298,7 +298,7 @@ export default function SellerProductManager({ products, categories }: SellerPro
                               <div className="rounded-3 overflow-hidden border border-secondary" style={{ width: 48, height: 48, flexShrink: 0, background: "#111" }}>
                                 {img.startsWith("http") && <img src={img} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => (e.target as HTMLImageElement).style.display = "none"} />}
                               </div>
-                              <input type="url" className="form-control bg-dark border-secondary text-white rounded-3 flex-grow-1" placeholder="https://..." value={img}
+                              <input type="url" className="form-control rounded-3 flex-grow-1" placeholder="https://..." value={img}
                                 onChange={e => { const imgs = [...form.images]; imgs[idx] = e.target.value; set("images", imgs); }} />
                               <button type="button" className="btn btn-outline-danger rounded-3 px-2" disabled={form.images.length === 1}
                                 onClick={() => set("images", form.images.filter((_, i) => i !== idx))}>
