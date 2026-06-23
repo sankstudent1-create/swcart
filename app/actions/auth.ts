@@ -115,7 +115,21 @@ export async function checkSession() {
 export async function getSessionUserId() {
   const cookieStore = await cookies();
   const token = cookieStore.get("swcart_session")?.value;
-  return token || null;
+  if (!token) return null;
+
+  // Check if it is a Supabase JWT (contains dots)
+  if (token.includes(".")) {
+    try {
+      const { data, error } = await supabase.auth.getUser(token);
+      if (error || !data.user) return null;
+      return data.user.id;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  // Otherwise, it's a legacy CUID/UUID session
+  return token;
 }
 
 export async function checkSuperAdmin() {
