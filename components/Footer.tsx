@@ -31,7 +31,8 @@ export default function Footer() {
             <Link href="/track-order">Track your order</Link>
             <Link href="/refunds">Returns &amp; refunds</Link>
             <Link href="/shipping">Shipping info</Link>
-            <Link href="/help">Contact us</Link>
+            <Link href="/contact">Contact us</Link>
+            <Link href="/about">About us</Link>
             <Link href="/help">FAQs</Link>
           </div>
           <div className="col-md-3">
@@ -46,9 +47,12 @@ export default function Footer() {
         </div>
         <div className="footer-bottom d-flex justify-content-between flex-wrap gap-2">
           <div>© 2026 Swcart. All rights reserved.</div>
-          <div>
-            <Link href="#" style={{display: "inline", marginRight: "16px"}}>Privacy Policy</Link>
-            <Link href="#" style={{display: "inline"}}>Terms of Service</Link>
+          <div className="d-flex flex-wrap gap-3">
+            <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/terms">Terms of Service</Link>
+            <Link href="/cookie-policy">Cookie Policy</Link>
+            <Link href="/dmca">DMCA</Link>
+            <Link href="/disclaimer">Disclaimer</Link>
           </div>
         </div>
       </div>

@@ -14,6 +14,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
     where: { id: userId },
     include: {
       customerProfile: { include: { addresses: true } },
+      wallet: true,
+      rewardPoints: true,
       orders: {
         orderBy: { createdAt: "desc" },
         include: { items: { include: { variant: { include: { product: true } } } } }
@@ -66,6 +68,23 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             )}
             <h5 className="fw-bold mb-1">{user.name}</h5>
             <p className="text-muted small mb-0">{user.email}</p>
+          </div>
+          
+          {/* Wallet & Rewards Widget */}
+          <div className="bg-white p-4 rounded-4 shadow-sm border border-light mb-4">
+            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+              <span className="text-muted small fw-semibold text-uppercase">Wallet Balance</span>
+              <span className="fw-bold text-success" style={{ fontSize: "1.1rem" }}>
+                ₹{(user.wallet?.balance || 0).toLocaleString('en-IN')}
+              </span>
+            </div>
+            <div className="d-flex align-items-center justify-content-between">
+              <span className="text-muted small fw-semibold text-uppercase">Loyalty Points</span>
+              <span className="fw-bold text-danger" style={{ fontSize: "1.1rem" }}>
+                <i className="bi bi-gift me-1"></i>
+                {user.rewardPoints?.points || 0} pts
+              </span>
+            </div>
           </div>
 
           <div className="bg-white rounded-4 shadow-sm border border-light overflow-hidden">

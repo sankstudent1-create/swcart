@@ -17,8 +17,17 @@ interface Review {
   id: string;
   rating: number;
   comment: string | null;
+  mediaUrls: string[];
   userName: string;
   userAvatar: string | null;
+  createdAt: string;
+}
+
+interface ProductQuestion {
+  id: string;
+  question: string;
+  answers: { answer: string; userName: string; createdAt: string }[];
+  userName: string;
   createdAt: string;
 }
 
@@ -39,6 +48,8 @@ interface Product {
   reviews: Review[];
   reviewCount: number;
   avgRating: number;
+  seller?: { companyName: string; isVerified: boolean };
+  questions?: ProductQuestion[];
 }
 
 const FALLBACK_IMG = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80";
@@ -79,12 +90,14 @@ export default function ProductDetailClient({ product: p }: { product: Product }
   const { full, half, empty } = stars(p.avgRating);
 
   return (
-    <main>
-      <div className="container">
-        <div className="breadcrumb-nav">
-          <Link href="/">Home</Link>&nbsp;/&nbsp;
-          <Link href={`/?cat=${encodeURIComponent(p.cat)}`}>{p.cat}</Link>&nbsp;/&nbsp;
-          <span style={{ color: "var(--ink)" }}>{p.name}</span>
+    <main style={{ backgroundColor: "#faf9f8" }}>
+      <div className="container py-3">
+        <div className="breadcrumb-nav small text-muted">
+          <Link href="/" className="text-decoration-none text-muted hover-red transition-all">Home</Link>
+          <i className="bi bi-chevron-right mx-2" style={{ fontSize: "0.7rem" }}></i>
+          <Link href={`/?cat=${encodeURIComponent(p.cat)}`} className="text-decoration-none text-muted hover-red transition-all">{p.cat}</Link>
+          <i className="bi bi-chevron-right mx-2" style={{ fontSize: "0.7rem" }}></i>
+          <span className="fw-bold" style={{ color: "var(--ink)" }}>{p.name}</span>
         </div>
       </div>
 
@@ -124,20 +137,34 @@ export default function ProductDetailClient({ product: p }: { product: Product }
           {/* Info */}
           <div className="col-lg-6">
             <div className="product-info">
-              <div className="p-cat">{p.cat}</div>
-              <h1 className="p-title">{p.name}</h1>
+              <div className="p-cat text-uppercase fw-bold text-danger mb-2" style={{ letterSpacing: "1px", fontSize: "0.8rem" }}>{p.cat}</div>
+              <h1 className="p-title fw-bolder mb-3" style={{ fontSize: "2.5rem", lineHeight: "1.2", letterSpacing: "-0.5px" }}>{p.name}</h1>
 
-              {/* Rating row */}
-              {p.reviewCount > 0 && (
-                <div className="p-rating">
-                  <div>
-                    {Array(full).fill(0).map((_, i) => <i key={`f${i}`} className="bi bi-star-fill"></i>)}
-                    {half && <i className="bi bi-star-half"></i>}
-                    {Array(empty).fill(0).map((_, i) => <i key={`e${i}`} className="bi bi-star"></i>)}
+              {/* Rating & Seller Row */}
+              <div className="d-flex flex-wrap align-items-center gap-3 mb-4 pb-3 border-bottom">
+                {p.reviewCount > 0 ? (
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="text-warning d-flex gap-1" style={{ fontSize: "1.1rem" }}>
+                      {Array(full).fill(0).map((_, i) => <i key={`f${i}`} className="bi bi-star-fill"></i>)}
+                      {half && <i className="bi bi-star-half"></i>}
+                      {Array(empty).fill(0).map((_, i) => <i key={`e${i}`} className="bi bi-star"></i>)}
+                    </div>
+                    <span className="fw-bold">{p.avgRating.toFixed(1)}</span>
+                    <a href="#reviews" className="text-muted text-decoration-none hover-red transition-all">({p.reviewCount} reviews)</a>
                   </div>
-                  <span>{p.avgRating.toFixed(1)} ({p.reviewCount} review{p.reviewCount !== 1 ? "s" : ""})</span>
+                ) : (
+                  <div className="text-muted small"><i className="bi bi-star me-1"></i> No reviews yet</div>
+                )}
+                
+                <div style={{ width: "1px", height: "20px", background: "#ddd" }}></div>
+                
+                <div className="d-flex align-items-center gap-2">
+                  <i className="bi bi-shop text-muted"></i>
+                  <span className="text-muted small">Sold by:</span>
+                  <span className="fw-bold text-dark">{p.seller?.companyName || "Swcart Verified"}</span>
+                  {p.seller?.isVerified && <i className="bi bi-patch-check-fill text-primary" title="Verified Seller"></i>}
                 </div>
-              )}
+              </div>
 
               {/* Price box */}
               <div className="p-price-box">
@@ -229,27 +256,58 @@ export default function ProductDetailClient({ product: p }: { product: Product }
                 disabled={!inStock}
               />
 
-              <div className="features-grid">
+              <div className="features-grid mt-5">
                 <div className="f-item">
-                  <div className="f-icon"><i className="bi bi-truck"></i></div>
+                  <div className="f-icon bg-danger bg-opacity-10 text-danger"><i className="bi bi-truck"></i></div>
                   <div className="f-text">Fast Delivery<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>Within 2-3 business days</span></div>
                 </div>
                 <div className="f-item">
-                  <div className="f-icon"><i className="bi bi-arrow-return-left"></i></div>
+                  <div className="f-icon bg-success bg-opacity-10 text-success"><i className="bi bi-arrow-return-left"></i></div>
                   <div className="f-text">Easy Returns<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>7 days hassle-free</span></div>
                 </div>
                 <div className="f-item">
-                  <div className="f-icon"><i className="bi bi-shield-check"></i></div>
+                  <div className="f-icon bg-primary bg-opacity-10 text-primary"><i className="bi bi-shield-check"></i></div>
                   <div className="f-text">1 Year Warranty<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>Guaranteed protection</span></div>
                 </div>
                 <div className="f-item">
-                  <div className="f-icon"><i className="bi bi-lock"></i></div>
+                  <div className="f-icon bg-warning bg-opacity-10 text-warning"><i className="bi bi-lock"></i></div>
                   <div className="f-text">Secure Checkout<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>256-bit encryption</span></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Q&A Section */}
+        {p.questions && p.questions.length > 0 && (
+          <div className="mt-5 pt-5 border-top">
+            <h3 className="fw-bolder mb-4">Questions & Answers</h3>
+            <div className="row g-4">
+              {p.questions.map(q => (
+                <div key={q.id} className="col-lg-6">
+                  <div className="bg-white border rounded-4 p-4 shadow-sm h-100">
+                    <div className="d-flex gap-3 mb-3">
+                      <div className="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style={{ width: 32, height: 32 }}>Q</div>
+                      <div>
+                        <div className="fw-bold">{q.question}</div>
+                        <div className="text-muted small">Asked by {q.userName} on {new Date(q.createdAt).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+                    {q.answers.map((a, i) => (
+                      <div key={i} className="d-flex gap-3 mt-3 pt-3 border-top border-light">
+                        <div className="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style={{ width: 32, height: 32 }}>A</div>
+                        <div>
+                          <div className="text-dark">{a.answer}</div>
+                          <div className="text-muted small mt-1">Answered by {a.userName} on {new Date(a.createdAt).toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Reviews Section */}
         {p.reviews.length > 0 && (
@@ -282,7 +340,24 @@ export default function ProductDetailClient({ product: p }: { product: Product }
                         <i key={i} className="bi bi-star" style={{ color: "#ddd", fontSize: ".9rem" }}></i>
                       ))}
                     </div>
-                    {review.comment && <p style={{ fontSize: ".9rem", color: "#555", margin: 0 }}>{review.comment}</p>}
+                    {review.comment && <p style={{ fontSize: "1rem", color: "#444", margin: "12px 0 0" }}>"{review.comment}"</p>}
+                    
+                    {/* Rich Media Reviews */}
+                    {review.mediaUrls && review.mediaUrls.length > 0 && (
+                      <div className="d-flex gap-2 mt-3 overflow-auto pb-2" style={{ scrollbarWidth: "thin" }}>
+                        {review.mediaUrls.map((url, i) => (
+                          <div key={i} className="flex-shrink-0 border rounded-3 overflow-hidden shadow-sm" style={{ width: "80px", height: "80px", cursor: "pointer" }}>
+                            {url.endsWith(".mp4") ? (
+                              <div className="position-relative w-100 h-100 bg-dark d-flex align-items-center justify-content-center">
+                                <i className="bi bi-play-circle-fill text-white fs-4"></i>
+                              </div>
+                            ) : (
+                              <img src={url} alt="Review attachment" className="w-100 h-100" style={{ objectFit: "cover" }} />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

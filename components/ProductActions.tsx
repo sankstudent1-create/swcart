@@ -46,8 +46,11 @@ export default function ProductActions({ productId, variantId, disabled = false 
       <button className="btn-add" onClick={handleAddToCart} disabled={isPending || disabled}>
         {disabled ? "Out of Stock" : isPending ? "Adding..." : "Add to Cart"}
       </button>
-      <button className="btn-wish" onClick={handleAddToWishlist} disabled={isPending}>
+      <button className="btn-wish" onClick={handleAddToWishlist} title="Add to Wishlist" disabled={isPending}>
         <i className="bi bi-heart"></i>
+      </button>
+      <button className="btn-wish" onClick={() => toast.success("Added to Compare list!")} title="Compare" disabled={isPending}>
+        <i className="bi bi-bar-chart"></i>
       </button>
     </div>
   );

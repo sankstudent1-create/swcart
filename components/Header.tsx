@@ -20,6 +20,19 @@ export default async function Header() {
     user = dbUser;
   }
 
+  const dbCategories = await prisma.category.findMany({
+    where: { parentId: null },
+    include: { children: true },
+    take: 8
+  });
+
+  const categories = dbCategories.length > 0 ? dbCategories : [
+    { id: "c1", name: "Electronics", children: [{ id: "c1_1", name: "Smartphones" }, { id: "c1_2", name: "Headphones" }, { id: "c1_3", name: "Laptops" }] },
+    { id: "c2", name: "Fashion", children: [{ id: "c2_1", name: "Menswear" }, { id: "c2_2", name: "Womenswear" }, { id: "c2_3", name: "Accessories" }] },
+    { id: "c3", name: "Home & Kitchen", children: [{ id: "c3_1", name: "Cookware" }, { id: "c3_2", name: "Furniture" }] },
+    { id: "c4", name: "Grocery", children: [{ id: "c4_1", name: "Pantry Staples" }, { id: "c4_2", name: "Beverages" }] },
+  ];
+
   const isSeller = user?.roles?.some((r: any) => r.role.name === "SELLER") || false;
   const isWarehouseManager = user?.roles?.some((r: any) => r.role.name === "WAREHOUSE_MANAGER") || false;
   const isDeliveryAgent = user?.roles?.some((r: any) => r.role.name === "DELIVERY") || false;
@@ -121,6 +134,48 @@ export default async function Header() {
           </div>
         </div>
       </header>
+
+      {/* Desktop Mega Menu Bar */}
+      <nav className="mega-menu-bar d-none d-lg-block border-bottom border-light bg-white shadow-sm position-relative z-3">
+        <div className="container">
+          <div className="d-flex align-items-center gap-4 py-1">
+            {categories.map((cat: any) => (
+              <div key={cat.id} className="mega-menu-item position-relative">
+                <Link href={`/categories?id=${cat.id}`} className="nav-link fw-semibold py-2 d-flex align-items-center gap-1 text-dark hover-red" style={{ fontSize: "0.9rem" }}>
+                  {cat.name} <i className="bi bi-chevron-down small" style={{ fontSize: "0.7rem" }}></i>
+                </Link>
+                {cat.children && cat.children.length > 0 && (
+                  <div className="mega-menu-dropdown position-absolute bg-white rounded-3 shadow-lg p-4 border border-light dropdown-animate" style={{ top: "100%", left: 0, minWidth: "500px", zIndex: 1000 }}>
+                    <div className="row">
+                      <div className="col-6">
+                        <h6 className="fw-bold mb-3 text-danger">{cat.name} Departments</h6>
+                        <ul className="list-unstyled d-flex flex-column gap-2 mb-0">
+                          {cat.children.map((sub: any) => (
+                            <li key={sub.id}>
+                              <Link href={`/categories?id=${sub.id}`} className="text-decoration-none text-muted hover-red small">
+                                {sub.name}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="col-6 bg-light rounded-3 p-3 d-flex flex-column justify-content-between">
+                        <div>
+                          <h6 className="fw-bold mb-1 small text-dark">International Shipping Available</h6>
+                          <p className="text-muted small mb-0">Get quality goods delivered directly to your doorstep globally.</p>
+                        </div>
+                        <Link href={`/categories?id=${cat.id}`} className="btn btn-danger btn-sm rounded-pill fw-bold mt-3 align-self-start">
+                          Explore All
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </nav>
 
       {/* Mobile Offcanvas Drawer */}
       <div className="offcanvas offcanvas-start text-white border-0 shadow-lg" tabIndex={-1} id="menuCanvas" aria-labelledby="menuCanvasLabel" style={{ background: "linear-gradient(135deg, #1A1410 0%, #2A1F18 100%)" }}>
@@ -229,6 +284,20 @@ export default async function Header() {
         <style>{`
           .hover-bg-light-opacity:hover { background-color: rgba(255,255,255,0.06); }
           .transition-all { transition: all 0.2s ease; }
+          .mega-menu-item .dropdown-animate {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(8px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+          }
+          .mega-menu-item:hover .dropdown-animate {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+          }
+          .hover-red:hover {
+            color: var(--red) !important;
+          }
         `}</style>
       </div>
     </>

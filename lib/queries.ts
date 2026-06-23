@@ -116,6 +116,13 @@ export async function getProductById(id: string) {
           include: { user: { select: { name: true, avatar: true } } },
           orderBy: { createdAt: "desc" },
           take: 10
+        },
+        seller: true,
+        questions: {
+          include: {
+            user: { select: { name: true } },
+            answers: { include: { user: { select: { name: true } } } }
+          }
         }
       }
     });
@@ -149,19 +156,35 @@ export async function getProductById(id: string) {
           sku: v.sku,
           size: v.size,
           color: v.color,
-          price: v.price,
+          price: prod.discountPercent > 0 ? v.price * (1 - prod.discountPercent/100) : v.price,
           stock: v.inventory[0]?.quantity || 0
         })),
         reviews: prod.reviews.map(r => ({
           id: r.id,
           rating: r.rating,
           comment: r.comment,
+          mediaUrls: r.mediaUrls || [],
           userName: r.user.name,
           userAvatar: r.user.avatar,
           createdAt: r.createdAt.toISOString()
         })),
         reviewCount: prod.reviews.length,
-        avgRating
+        avgRating,
+        seller: {
+          companyName: prod.seller.companyName,
+          isVerified: prod.seller.isVerified
+        },
+        questions: prod.questions.map(q => ({
+          id: q.id,
+          question: q.question,
+          userName: q.user.name,
+          createdAt: q.createdAt.toISOString(),
+          answers: q.answers.map(a => ({
+            answer: a.answer,
+            userName: a.user.name,
+            createdAt: a.createdAt.toISOString()
+          }))
+        }))
       };
     }
   } catch (error) {
