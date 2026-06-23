@@ -7,42 +7,35 @@ export default async function SellerOrdersPage() {
   const userId = await getSessionUserId();
   if (!userId) redirect("/login");
 
-  const seller = await prisma.seller.findUnique({
-    where: { userId }
-  });
+  const seller = await prisma.seller.findUnique({ where: { userId } });
+  if (!seller) redirect("/sell");
 
-  if (!seller) {
-    redirect("/sell");
-  }
-
-  // Get products owned by seller
   const products = await prisma.product.findMany({
-    where: { sellerId: seller.id }
+    where: { sellerId: seller.id },
+    select: { id: true }
   });
 
   const productIds = products.map(p => p.id);
 
-  // Fetch order items matching products
   const orderItems = await prisma.orderItem.findMany({
     where: { variant: { productId: { in: productIds } } },
     include: {
       order: {
         include: {
-          user: true,
+          user: { select: { name: true, email: true, phone: true } },
           shippingAddress: true
         }
       },
       variant: {
-        include: { product: true }
+        include: {
+          product: {
+            select: { title: true, images: true }
+          }
+        }
       }
     },
     orderBy: { order: { createdAt: "desc" } }
   });
 
-  // Client serialization
-  const serializedOrderItems = JSON.parse(JSON.stringify(orderItems));
-
-  return (
-    <SellerOrderManager orderItems={serializedOrderItems} />
-  );
+  return <SellerOrderManager orderItems={JSON.parse(JSON.stringify(orderItems))} />;
 }

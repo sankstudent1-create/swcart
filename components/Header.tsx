@@ -143,6 +143,12 @@ export default async function Header() {
                 <i className="bi bi-house fs-5 text-danger"></i> Home
               </a>
               
+              {user && (
+                <a href="/profile" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all">
+                  <i className="bi bi-person-circle fs-5 text-danger"></i> Profile
+                </a>
+              )}
+              
               <a href="/cart" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center justify-content-between transition-all">
                 <div className="d-flex align-items-center gap-3">
                   <i className="bi bi-cart3 fs-5 text-danger"></i> Cart

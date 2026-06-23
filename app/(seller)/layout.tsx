@@ -90,7 +90,7 @@ export default async function SellerLayout({ children }: { children: React.React
       <div className="flex-grow-1 d-flex flex-column" style={{ maxWidth: "100%", overflowX: "hidden" }}>
         
         {/* Top Navbar */}
-        <div className="bg-white px-4 py-3 shadow-sm d-flex justify-content-between align-items-center sticky-top z-2">
+        <div className="px-4 py-3 d-flex justify-content-between align-items-center sticky-top z-2" style={{ backgroundColor: "#111", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
           {/* Hamburger toggle button visible on mobile */}
           <button 
             className="btn btn-light border-0 d-lg-none fs-4 p-0 me-3" 
@@ -102,19 +102,19 @@ export default async function SellerLayout({ children }: { children: React.React
             <i className="bi bi-list"></i>
           </button>
           
-          <div className="fw-bold text-muted text-uppercase" style={{ letterSpacing: "1.5px", fontSize: "0.85rem" }}>
+          <div className="fw-bold text-uppercase" style={{ letterSpacing: "1.5px", fontSize: "0.85rem", color: "rgba(255,255,255,0.5)" }}>
             Seller Merchant Panel
           </div>
           
           <div className="d-flex align-items-center gap-4 ms-auto">
-            <div className="d-none d-sm-block bg-light bg-opacity-70 px-3 py-1 rounded-pill border">
-              <span className="small text-muted fw-semibold">Store: </span>
-              <strong className="small text-dark fw-bold">{seller.companyName}</strong>
+            <div className="d-none d-sm-block px-3 py-1 rounded-pill" style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <span className="small fw-semibold" style={{ color: "rgba(255,255,255,0.5)" }}>Store: </span>
+              <strong className="small text-white fw-bold">{seller.companyName}</strong>
             </div>
             
             <div className="position-relative" style={{ cursor: "pointer" }}>
-              <i className="bi bi-bell fs-5 text-dark hover-text-danger transition-all"></i>
-              <span className="position-absolute top-0 start-100 translate-middle p-1 border border-light rounded-circle" style={{ backgroundColor: "var(--red)" }}>
+              <i className="bi bi-bell fs-5 text-white hover-text-danger transition-all"></i>
+              <span className="position-absolute top-0 start-100 translate-middle p-1 border border-dark rounded-circle" style={{ backgroundColor: "var(--red)" }}>
                 <span className="visually-hidden">New alerts</span>
               </span>
             </div>
@@ -128,7 +128,7 @@ export default async function SellerLayout({ children }: { children: React.React
         </div>
 
         {/* Page Content */}
-        <main className="p-4 p-md-5 overflow-auto flex-grow-1" style={{ backgroundColor: "#f4f5f7", color: "#1a1410" }}>
+        <main className="p-4 p-md-5 overflow-auto flex-grow-1" style={{ backgroundColor: "#0d0d0d", color: "#fff" }}>
           {children}
         </main>
       </div>

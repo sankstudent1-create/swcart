@@ -49,7 +49,6 @@ export default async function ProductGrid({ cat }: ProductGridProps) {
                       <img
                         src={imgSrc}
                         alt={p.name}
-                        onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }}
                       />
                     </div>
                     <div className="prod-body">
