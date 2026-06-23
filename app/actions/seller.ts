@@ -365,14 +365,22 @@ export async function deleteSellerProductAction(productId: string) {
   }
 }
 
-export async function updateSellerOrderStatusAction(orderId: string, status: string) {
+export async function updateSellerOrderStatusAction(sellerOrderId: string, status: string) {
   const userId = await getSessionUserId();
   if (!userId) return { success: false, message: "Unauthorized" };
 
   try {
-    // Basic verification: update order status directly
-    await prisma.order.update({
-      where: { id: orderId },
+    const seller = await prisma.seller.findUnique({ where: { userId } });
+    if (!seller) return { success: false, message: "Seller profile not found" };
+
+    // IDOR FIX: Verify that this SellerOrder belongs to the current seller
+    const sellerOrder = await prisma.sellerOrder.findUnique({ where: { id: sellerOrderId } });
+    if (!sellerOrder || sellerOrder.sellerId !== seller.id) {
+      return { success: false, message: "Order not found or unauthorized access" };
+    }
+
+    await prisma.sellerOrder.update({
+      where: { id: sellerOrderId },
       data: { status }
     });
     revalidatePath("/seller/orders");
@@ -383,7 +391,7 @@ export async function updateSellerOrderStatusAction(orderId: string, status: str
 }
 
 export async function updateSellerOrderLogisticsAction(
-  orderId: string,
+  sellerOrderId: string,
   data: {
     status: string;
     shippingProvider: string | null;
@@ -397,8 +405,14 @@ export async function updateSellerOrderLogisticsAction(
     const seller = await prisma.seller.findUnique({ where: { userId } });
     if (!seller) return { success: false, message: "Seller profile not found" };
 
-    const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
+    // IDOR FIX: Verify that this SellerOrder belongs to the current seller
+    const existingOrder = await prisma.sellerOrder.findUnique({ where: { id: sellerOrderId } });
+    if (!existingOrder || existingOrder.sellerId !== seller.id) {
+      return { success: false, message: "Order not found or unauthorized access" };
+    }
+
+    const updatedOrder = await prisma.sellerOrder.update({
+      where: { id: sellerOrderId },
       data: {
         status: data.status,
         shippingProvider: data.shippingProvider,
@@ -406,10 +420,10 @@ export async function updateSellerOrderLogisticsAction(
       }
     });
 
-    // Create a tracking milestone
+    // Create a tracking milestone attached to the parent Order
     await prisma.trackingHistory.create({
       data: {
-        orderId,
+        orderId: updatedOrder.orderId,
         status: data.status,
         location: data.shippingProvider ? `Dispatched via ${data.shippingProvider}` : "Order Updated by Vendor",
         timestamp: new Date()

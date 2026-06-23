@@ -15,10 +15,14 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
     include: {
       user: true,
       shippingAddress: true,
-      items: {
+      sellerOrders: {
         include: {
-          variant: {
-            include: { product: true }
+          items: {
+            include: {
+              variant: {
+                include: { product: true }
+              }
+            }
           }
         }
       }
@@ -34,7 +38,8 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
     );
   }
 
-  const subtotal = order.items.reduce((acc, item) => acc + item.priceAtBuy * item.quantity, 0);
+  const items = order.sellerOrders.flatMap((so: any) => so.items);
+  const subtotal = items.reduce((acc: number, item: any) => acc + item.priceAtBuy * item.quantity, 0);
   const tax = order.taxAmount;
   const total = order.totalAmount;
 
@@ -155,7 +160,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                 💳 Cash on Delivery (COD)
               </span>
               <span style={{ padding: "0.35rem 1rem", borderRadius: "2rem", fontSize: "0.78rem", fontWeight: 700, background: "#e8f4fd", color: "#0c5460", border: "1px solid #bee5eb" }}>
-                {order.items.length} item{order.items.length !== 1 ? "s" : ""}
+                {items.length} item{items.length !== 1 ? "s" : ""}
               </span>
             </div>
 
@@ -175,7 +180,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                 </tr>
               </thead>
               <tbody>
-                {order.items.map((item, i) => (
+                {items.map((item: any, i: number) => (
                   <tr key={item.id} style={{ borderBottom: "1px solid #f5f5f5" }}>
                     <td style={{ padding: "0.75rem 0.75rem", color: "#bbb", fontSize: "0.85rem" }}>{i + 1}</td>
                     <td style={{ padding: "0.75rem 0.75rem" }}>

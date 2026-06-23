@@ -20,11 +20,15 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
         include: {
           user: true,
           trackingHistory: { orderBy: { timestamp: "desc" } },
-          items: {
+          sellerOrders: {
             include: {
-              variant: {
+              items: {
                 include: {
-                  product: true
+                  variant: {
+                    include: {
+                      product: true
+                    }
+                  }
                 }
               }
             }
@@ -153,7 +157,7 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
           <div className="bg-light p-4 rounded-4 border-light mt-4">
             <h6 className="fw-bold mb-3 text-dark"><i className="bi bi-box-seam text-danger me-2"></i> Shipment Items</h6>
             <div className="d-flex flex-column gap-2">
-              {order.items.map((item: any, i: number) => (
+              {order.sellerOrders.flatMap((so: any) => so.items).map((item: any, i: number) => (
                 <div key={i} className="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary border-opacity-10 last-border-0">
                   <div>
                     <span className="fw-bold small text-dark">{item.variant.product.title}</span>

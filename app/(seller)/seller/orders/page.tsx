@@ -17,13 +17,17 @@ export default async function SellerOrdersPage() {
 
   const productIds = products.map(p => p.id);
 
-  const orderItems = await prisma.orderItem.findMany({
+  const rawOrderItems = await prisma.orderItem.findMany({
     where: { variant: { productId: { in: productIds } } },
     include: {
-      order: {
+      sellerOrder: {
         include: {
-          user: { select: { name: true, email: true, phone: true } },
-          shippingAddress: true
+          order: {
+            include: {
+              user: { select: { name: true, email: true, phone: true } },
+              shippingAddress: true
+            }
+          }
         }
       },
       variant: {
@@ -34,8 +38,18 @@ export default async function SellerOrdersPage() {
         }
       }
     },
-    orderBy: { order: { createdAt: "desc" } }
+    orderBy: { sellerOrder: { createdAt: "desc" } }
   });
 
-  return <SellerOrderManager orderItems={JSON.parse(JSON.stringify(orderItems))} />;
+  // Map back to expected structure so SellerOrderManager continues to work
+  const formattedItems = rawOrderItems.map((item: any) => ({
+    ...item,
+    order: {
+      ...item.sellerOrder.order,
+      status: item.sellerOrder.status, // use SellerOrder status
+      id: item.sellerOrder.id // Use SellerOrderId so update actions work correctly
+    }
+  }));
+
+  return <SellerOrderManager orderItems={JSON.parse(JSON.stringify(formattedItems))} />;
 }

@@ -18,7 +18,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       rewardPoints: true,
       orders: {
         orderBy: { createdAt: "desc" },
-        include: { items: { include: { variant: { include: { product: true } } } } }
+        include: { sellerOrders: { include: { items: { include: { variant: { include: { product: true } } } } } } }
       }
     }
   });
@@ -124,7 +124,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                   </div>
                 ) : (
                   <div className="d-flex flex-column gap-4">
-                    {user.orders.map(order => (
+                    {user.orders.map((order: any) => (
                       <div key={order.id} className="border border-light rounded-4 p-4 bg-light bg-opacity-50">
                         <div className="d-flex justify-content-between align-items-center mb-3 border-bottom border-light pb-3">
                           <div>
@@ -141,7 +141,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                           </div>
                         </div>
                         <div className="d-flex gap-3 overflow-auto pb-2">
-                          {order.items.map(item => (
+                          {order.sellerOrders.flatMap((so: any) => so.items).map((item: any) => (
                             <div key={item.id} className="d-flex align-items-center gap-2 bg-white border border-light rounded-3 p-2 shadow-sm" style={{minWidth: "220px"}}>
                               <div className="text-truncate flex-grow-1 small">
                                 <div className="fw-bold">{item.variant.size} {item.variant.color} - <span className="text-muted">{item.variant.product.title}</span></div>

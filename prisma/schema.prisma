@@ -42,6 +42,11 @@ model User {
   auditLogs        AuditLog[]
   productQuestions ProductQuestion[]
   productAnswers   ProductAnswer[]
+
+  // Security & Soft Delete
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String?
+  deletedAt        DateTime?
 }
 
 model Role {
@@ -91,12 +96,17 @@ model Seller {
   userId       String              @unique
   companyName  String
   gstNumber    String?
+  taxId        String?
   bankDetails  Json?
   isVerified   Boolean             @default(false)
+  kycStatus    String              @default("PENDING") // PENDING, APPROVED, REJECTED
+  deletedAt    DateTime?
+  
   user         User                @relation(fields: [userId], references: [id])
   products     Product[]
   subscription SellerSubscription?
   followers    SellerFollower[]
+  sellerOrders SellerOrder[]
 }
 
 model Category {
@@ -155,8 +165,12 @@ model Product {
   promoted      PromotedProduct?
   bundles       ProductBundle?
 
+  deletedAt     DateTime?
+
   @@index([sellerId])
   @@index([categoryId])
+  @@index([categoryId, isPublished])
+  @@index([sellerId, createdAt])
 }
 
 model ProductVariant {
@@ -255,7 +269,7 @@ model Order {
 
   user                User              @relation(fields: [userId], references: [id])
   shippingAddress     Address           @relation(fields: [shippingAddressId], references: [id])
-  items               OrderItem[]
+  sellerOrders        SellerOrder[]
   payments            Payment[]
   refunds             Refund[]
   trackingHistory     TrackingHistory[]
@@ -270,14 +284,32 @@ model Order {
   @@index([status])
 }
 
+model SellerOrder {
+  id               String   @id @default(cuid())
+  orderId          String
+  sellerId         String
+  status           String   @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  shippingProvider String?
+  trackingNumber   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  seller           Seller   @relation(fields: [sellerId], references: [id])
+  items            OrderItem[]
+
+  @@index([orderId])
+  @@index([sellerId])
+}
+
 model OrderItem {
-  id         String         @id @default(cuid())
-  orderId    String
-  variantId  String
-  quantity   Int
-  priceAtBuy Float
-  order      Order          @relation(fields: [orderId], references: [id])
-  variant    ProductVariant @relation(fields: [variantId], references: [id])
+  id            String         @id @default(cuid())
+  sellerOrderId String
+  variantId     String
+  quantity      Int
+  priceAtBuy    Float
+  sellerOrder   SellerOrder    @relation(fields: [sellerOrderId], references: [id], onDelete: Cascade)
+  variant       ProductVariant @relation(fields: [variantId], references: [id])
 }
 
 model Payment {
@@ -486,15 +518,16 @@ model FAQ {
 }
 
 model SellerApplication {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  companyName String
-  gstNumber   String?
-  bankDetails Json?
-  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id])
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  companyName  String
+  gstNumber    String?
+  bankDetails  Json?
+  kycDocuments String[]
+  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
 }
 
 // -------------------------------------

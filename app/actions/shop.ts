@@ -46,103 +46,121 @@ export async function placeOrderAction(formData: FormData) {
   if (!userId) return { success: false, message: "Unauthorized" };
 
   try {
-    const cart = await prisma.cart.findUnique({
-      where: { userId },
-      include: { items: { include: { variant: { include: { product: true } } } } }
-    });
+    const orderId = await prisma.$transaction(async (tx) => {
+      const cart = await tx.cart.findUnique({
+        where: { userId },
+        include: { items: { include: { variant: { include: { product: true } } } } }
+      });
 
-    if (!cart || cart.items.length === 0) {
-      return { success: false, message: "Cart is empty" };
-    }
-
-    const couponCode = formData.get("couponCode") as string;
-    let couponId = null;
-
-    let subtotal = cart.items.reduce((acc: number, item: any) => {
-      const discount = item.variant.product.discountPercent || 0;
-      const price = item.variant.price * (1 - (discount / 100));
-      return acc + (price * item.quantity);
-    }, 0);
-
-    if (couponCode) {
-      const coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
-      if (coupon && coupon.validUntil >= new Date() && (!coupon.usageLimit || coupon.usedCount < coupon.usageLimit)) {
-        couponId = coupon.id;
-        if (coupon.discountType === "PERCENTAGE") {
-          subtotal = subtotal * (1 - (coupon.discountVal / 100));
-        } else {
-          subtotal = Math.max(0, subtotal - coupon.discountVal);
-        }
-        await prisma.coupon.update({
-          where: { id: coupon.id },
-          data: { usedCount: { increment: 1 } }
-        });
+      if (!cart || cart.items.length === 0) {
+        throw new Error("Cart is empty");
       }
-    }
 
-    const taxAmount = Math.round(subtotal * 0.18);
-    const totalAmount = subtotal + taxAmount;
+      // Group items by sellerId for multi-vendor support
+      const sellerGroups: Record<string, typeof cart.items> = {};
+      cart.items.forEach(item => {
+        const sId = item.variant.product.sellerId;
+        if (!sellerGroups[sId]) sellerGroups[sId] = [];
+        sellerGroups[sId].push(item);
+      });
 
-    let customerProfile = await prisma.customerProfile.findUnique({ where: { userId } });
-    if (!customerProfile) {
-      customerProfile = await prisma.customerProfile.create({ data: { userId } });
-    }
+      const couponCode = formData.get("couponCode") as string;
+      let couponId = null;
 
-    const street = formData.get("address") as string || "123 Main St";
-    const city = formData.get("city") as string || "City";
-    const postalCode = formData.get("zip") as string || "000000";
+      let subtotal = cart.items.reduce((acc: number, item: any) => {
+        const discount = item.variant.product.discountPercent || 0;
+        const price = item.variant.price * (1 - (discount / 100));
+        return acc + (price * item.quantity);
+      }, 0);
 
-    const address = await prisma.address.create({
-      data: {
-        customerProfileId: customerProfile.id,
-        street,
-        city,
-        state: "State",
-        postalCode,
-        country: "IN"
-      }
-    });
-
-    const order = await prisma.order.create({
-      data: {
-        userId,
-        shippingAddressId: address.id,
-        totalAmount,
-        taxAmount,
-        status: "PROCESSING",
-        couponId,
-        items: {
-          create: cart.items.map(item => {
-            const discount = item.variant.product.discountPercent || 0;
-            const price = item.variant.price * (1 - (discount / 100));
-            return {
-              variantId: item.variantId,
-              quantity: item.quantity,
-              priceAtBuy: price
-            };
-          })
-        },
-        payments: {
-          create: [{
-            method: "COD",
-            amount: totalAmount,
-            status: "PENDING"
-          }]
+      if (couponCode) {
+        const coupon = await tx.coupon.findUnique({ where: { code: couponCode } });
+        if (coupon && coupon.validUntil >= new Date() && (!coupon.usageLimit || coupon.usedCount < coupon.usageLimit)) {
+          couponId = coupon.id;
+          if (coupon.discountType === "PERCENTAGE") {
+            subtotal = subtotal * (1 - (coupon.discountVal / 100));
+          } else {
+            subtotal = Math.max(0, subtotal - coupon.discountVal);
+          }
+          await tx.coupon.update({
+            where: { id: coupon.id },
+            data: { usedCount: { increment: 1 } }
+          });
         }
       }
+
+      const taxAmount = Math.round(subtotal * 0.18);
+      const totalAmount = subtotal + taxAmount;
+
+      let customerProfile = await tx.customerProfile.findUnique({ where: { userId } });
+      if (!customerProfile) {
+        customerProfile = await tx.customerProfile.create({ data: { userId } });
+      }
+
+      const street = formData.get("address") as string || "123 Main St";
+      const city = formData.get("city") as string || "City";
+      const postalCode = formData.get("zip") as string || "000000";
+
+      const address = await tx.address.create({
+        data: {
+          customerProfileId: customerProfile.id,
+          street,
+          city,
+          state: "State",
+          postalCode,
+          country: "IN"
+        }
+      });
+
+      const order = await tx.order.create({
+        data: {
+          userId,
+          shippingAddressId: address.id,
+          totalAmount,
+          taxAmount,
+          status: "PROCESSING",
+          couponId,
+          payments: {
+            create: [{
+              method: "COD",
+              amount: totalAmount,
+              status: "PENDING"
+            }]
+          },
+          sellerOrders: {
+            create: Object.entries(sellerGroups).map(([sId, items]) => ({
+              sellerId: sId,
+              status: "PROCESSING",
+              items: {
+                create: items.map(item => {
+                  const discount = item.variant.product.discountPercent || 0;
+                  const price = item.variant.price * (1 - (discount / 100));
+                  return {
+                    variantId: item.variantId,
+                    quantity: item.quantity,
+                    priceAtBuy: price
+                  };
+                })
+              }
+            }))
+          }
+        }
+      });
+
+      await tx.cartItem.deleteMany({
+        where: { cartId: cart.id }
+      });
+
+      return order.id;
     });
 
-    await prisma.cartItem.deleteMany({
-      where: { cartId: cart.id }
-    });
-    
     revalidatePath("/cart");
     revalidatePath("/profile");
 
-    return { success: true, orderId: order.id };
-  } catch (error) {
+    return { success: true, orderId };
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: "Failed to place order" };
+    return { success: false, message: error.message || "Failed to place order" };
   }
 }
 
