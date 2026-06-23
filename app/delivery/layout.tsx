@@ -11,8 +11,8 @@ export default async function DeliveryLayout({ children }: { children: React.Rea
   const userId = await getSessionUserId();
   if (!userId) redirect("/login");
 
-  const isDelivery = await prisma.userRole.findUnique({
-    where: { userId_roleId: { userId: userId, roleId: (await prisma.role.findFirst({ where: { name: "DELIVERY" } }))?.id || "" } }
+  const isDelivery = await prisma.userRole.findFirst({
+    where: { userId: userId, role: { name: "DELIVERY" } }
   });
 
   if (!isDelivery) redirect("/");
