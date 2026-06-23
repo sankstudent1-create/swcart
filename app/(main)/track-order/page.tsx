@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import "./track.css"; // We'll add this below for custom animations
+import PrintTrackingBtn from "./PrintTrackingBtn";
 
 export default async function TrackOrderPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const sp = await searchParams;
@@ -208,10 +209,15 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
               {/* Tracking History Timeline */}
               <div className="col-md-6">
                 <div className="glass-panel p-4 h-100 shadow-sm border-0">
-                  <h6 className="font-jakarta fw-bolder mb-4 text-dark d-flex align-items-center">
-                    <div className="bg-dark bg-opacity-10 text-dark rounded p-2 me-3"><i className="bi bi-clock-history"></i></div>
-                    Detailed History
-                  </h6>
+                  <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h6 className="font-jakarta fw-bolder text-dark d-flex align-items-center m-0">
+                      <div className="bg-dark bg-opacity-10 text-dark rounded p-2 me-3"><i className="bi bi-clock-history"></i></div>
+                      Detailed History
+                    </h6>
+                    <div style={{ width: "180px" }}>
+                      <PrintTrackingBtn order={order} />
+                    </div>
+                  </div>
                   
                   {order.trackingHistory && order.trackingHistory.length > 0 ? (
                     <div className="position-relative ms-2 mt-3 pb-3">
