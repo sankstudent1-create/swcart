@@ -16,8 +16,14 @@ export default async function WarehousePage() {
 
   const warehouseId = staffRecord.warehouseId;
 
-  const orders = await prisma.order.findMany({
-    where: { assignedWarehouseId: warehouseId, status: "PROCESSING", deliveryPersonId: null },
+  const inboundOrders = await prisma.order.findMany({
+    where: { assignedWarehouseId: warehouseId, status: "IN_TRANSIT_TO_HUB", deliveryPersonId: null },
+    include: { user: true, shippingAddress: true, items: true },
+    orderBy: { createdAt: "desc" }
+  });
+
+  const atHubOrders = await prisma.order.findMany({
+    where: { assignedWarehouseId: warehouseId, status: "AT_HUB", deliveryPersonId: null },
     include: { user: true, shippingAddress: true, items: true },
     orderBy: { createdAt: "desc" }
   });
@@ -27,11 +33,17 @@ export default async function WarehousePage() {
     include: { user: true, orders: { where: { status: "SHIPPED" } } }
   });
 
+  const allWarehouses = await prisma.warehouse.findMany({
+    where: { id: { not: warehouseId } }
+  });
+
   return (
     <WarehouseDashboard 
       warehouse={staffRecord.warehouse} 
-      orders={orders} 
+      inboundOrders={inboundOrders}
+      atHubOrders={atHubOrders}
       localAgents={localAgents} 
+      allWarehouses={allWarehouses}
     />
   );
 }

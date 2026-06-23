@@ -4,11 +4,13 @@ import { prisma } from "@/lib/db";
 import { checkSuperAdmin } from "./auth";
 import { revalidatePath } from "next/cache";
 
-export async function createWarehouseAction(data: { name: string, location: string }) {
+export async function createWarehouseAction(data: { name: string; location: string; pincodes: string[] }) {
   const isSuperAdmin = await checkSuperAdmin();
   if (!isSuperAdmin) return { success: false, message: "Unauthorized" };
   try {
-    await prisma.warehouse.create({ data });
+    await prisma.warehouse.create({
+      data: { name: data.name, location: data.location, pincodes: data.pincodes }
+    });
     revalidatePath("/spr/admin/logistics");
     return { success: true, message: "Warehouse created" };
   } catch (err: any) {
@@ -111,7 +113,7 @@ export async function dispatchOrderAction(orderId: string, assignedWarehouseId: 
       data: {
         assignedWarehouseId,
         shippingProvider: "Internal Delivery",
-        status: "PROCESSING", // Still processing at hub
+        status: "IN_TRANSIT_TO_HUB",
         trackingNumber: "SW-" + Date.now().toString().slice(-8)
       }
     });
@@ -119,8 +121,8 @@ export async function dispatchOrderAction(orderId: string, assignedWarehouseId: 
     await prisma.trackingHistory.create({
       data: {
         orderId,
-        status: "Routed to Hub",
-        location: "Central Sortation",
+        status: "In Transit to Hub",
+        location: "Dispatched from Origin",
       }
     });
     revalidatePath("/spr/admin/logistics");

@@ -39,3 +39,62 @@ export async function assignAgentToOrderAction(orderId: string, deliveryPersonId
     return { success: false, message: err.message || "Failed to assign order" };
   }
 }
+
+export async function receivePackageAction(orderId: string) {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, message: "Unauthorized" };
+
+  try {
+    const staff = await prisma.warehouseStaff.findUnique({ where: { userId }, include: { warehouse: true } });
+    if (!staff) return { success: false, message: "Unauthorized" };
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status: "AT_HUB" }
+    });
+
+    await prisma.trackingHistory.create({
+      data: {
+        orderId,
+        status: "Arrived at Hub",
+        location: staff.warehouse.name
+      }
+    });
+
+    revalidatePath("/warehouse");
+    return { success: true, message: "Package received at hub" };
+  } catch (err: any) {
+    return { success: false, message: "Failed to receive package" };
+  }
+}
+
+export async function forwardPackageAction(orderId: string, targetWarehouseId: string) {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, message: "Unauthorized" };
+
+  try {
+    const staff = await prisma.warehouseStaff.findUnique({ where: { userId }, include: { warehouse: true } });
+    if (!staff) return { success: false, message: "Unauthorized" };
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        assignedWarehouseId: targetWarehouseId,
+        status: "IN_TRANSIT_TO_HUB"
+      }
+    });
+
+    await prisma.trackingHistory.create({
+      data: {
+        orderId,
+        status: "Forwarded to Next Hub",
+        location: `Dispatched from ${staff.warehouse.name}`
+      }
+    });
+
+    revalidatePath("/warehouse");
+    return { success: true, message: "Package forwarded" };
+  } catch (err: any) {
+    return { success: false, message: "Failed to forward package" };
+  }
+}

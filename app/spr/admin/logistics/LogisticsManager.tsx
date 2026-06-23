@@ -10,7 +10,7 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
 
   // Modals
   const [showWarehouseModal, setShowWarehouseModal] = useState(false);
-  const [warehouseForm, setWarehouseForm] = useState({ name: "", location: "" });
+  const [warehouseForm, setWarehouseForm] = useState({ name: "", location: "", pincodes: "" });
 
   const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [vehicleForm, setVehicleForm] = useState({ licensePlate: "", type: "Truck", capacity: 0 });
@@ -27,7 +27,8 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
   const handleWarehouse = (e: React.FormEvent) => {
     e.preventDefault();
     startTransition(async () => {
-      const res = await createWarehouseAction(warehouseForm);
+      const pinArray = warehouseForm.pincodes.split(',').map(p => p.trim()).filter(Boolean);
+      const res = await createWarehouseAction({ name: warehouseForm.name, location: warehouseForm.location, pincodes: pinArray });
       if (res.success) { toast.success(res.message); setShowWarehouseModal(false); }
       else toast.error(res.message);
     });
@@ -225,6 +226,7 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
                   <tr>
                     <th>Hub Name</th>
                     <th>Location</th>
+                    <th>Service Pincodes</th>
                     <th>Managers</th>
                     <th className="text-end">Action</th>
                   </tr>
@@ -234,6 +236,7 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
                     <tr key={w.id}>
                       <td className="fw-bold">{w.name}</td>
                       <td>{w.location}</td>
+                      <td className="small text-muted" style={{maxWidth: 150}}>{w.pincodes?.join(', ') || 'None'}</td>
                       <td>{w.staff?.map((s: any) => <span key={s.id} className="badge bg-secondary me-1">{s.user.name}</span>) || "-"}</td>
                       <td className="text-end">
                         <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => startTransition(async () => { const res = await deleteWarehouseAction(w.id); if (res.success) toast.success(res.message); else toast.error(res.message); })}>Remove</button>
@@ -374,8 +377,12 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
                     <input type="text" className="form-control" placeholder="Delhi North Hub" value={warehouseForm.name} onChange={e => setWarehouseForm({...warehouseForm, name: e.target.value})} required />
                   </div>
                   <div>
-                    <label className="form-label text-muted small fw-bold text-uppercase">Location / Address</label>
-                    <input type="text" className="form-control" value={warehouseForm.location} onChange={e => setWarehouseForm({...warehouseForm, location: e.target.value})} required />
+                    <label className="form-label text-muted small fw-bold text-uppercase">Hub Location</label>
+                    <input type="text" className="form-control" placeholder="e.g., Downtown Facility" value={warehouseForm.location} onChange={e => setWarehouseForm({...warehouseForm, location: e.target.value})} required />
+                  </div>
+                  <div>
+                    <label className="form-label text-muted small fw-bold text-uppercase">Covered Pincodes (Comma separated)</label>
+                    <input type="text" className="form-control" placeholder="e.g., 40001, 431122, 431131" value={warehouseForm.pincodes} onChange={e => setWarehouseForm({...warehouseForm, pincodes: e.target.value})} required />
                   </div>
                 </div>
                 <div className="modal-footer border-top-0 p-4 pt-0">

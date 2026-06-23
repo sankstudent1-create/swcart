@@ -286,6 +286,7 @@ model Warehouse {
   id        String      @id @default(cuid())
   name      String
   location  String
+  pincodes  String[]
   inventory Inventory[]
   staff     WarehouseStaff[]
   deliveryPersons DeliveryPerson[]
