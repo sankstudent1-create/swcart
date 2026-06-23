@@ -4,7 +4,7 @@ import React, { useTransition } from "react";
 import { updateDeliveryStatusAction } from "@/app/actions/delivery";
 import { toast } from "sonner";
 
-export default function DeliveryDashboard({ deliveryPerson, analytics }: { deliveryPerson: any, analytics?: any }) {
+export default function DeliveryDashboard({ deliveryPerson, completedOrders = [], analytics }: { deliveryPerson: any, completedOrders?: any[], analytics?: any }) {
   const [isPending, startTransition] = useTransition();
 
   const handleUpdate = (orderId: string, status: string, location: string) => {
@@ -107,8 +107,41 @@ export default function DeliveryDashboard({ deliveryPerson, analytics }: { deliv
         {deliveryPerson.orders.length === 0 && (
           <div className="text-center py-5">
             <i className="bi bi-box-seam fs-1 text-muted mb-3 opacity-50"></i>
-            <h5 className="text-muted fw-bold">No packages assigned</h5>
-            <p className="text-muted small">You're all caught up for the day!</p>
+            <h5 className="text-muted fw-bold">No packages pending</h5>
+            <p className="text-muted small">You're all caught up!</p>
+          </div>
+        )}
+      </div>
+
+      <h5 className="fw-bold mt-5 mb-3 d-flex justify-content-between align-items-center">
+        Completed Today
+        <span className="badge rounded-pill bg-success">{completedOrders.length}</span>
+      </h5>
+      <div className="d-flex flex-column gap-3 mb-5">
+        {completedOrders.map((order: any, idx: number) => {
+          const addr = order.shippingAddress;
+          return (
+            <div key={order.id} className="rounded-4 overflow-hidden" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", opacity: 0.8 }}>
+              <div className="p-3 d-flex justify-content-between align-items-center" style={{ background: "rgba(40,167,69,0.1)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <div>
+                  <i className="bi bi-check-circle-fill text-success me-2"></i>
+                  <span className="font-monospace text-muted small">TRK: {order.trackingNumber}</span>
+                </div>
+                <span className="badge bg-success">Delivered</span>
+              </div>
+              <div className="p-3 pb-2">
+                <h6 className="fw-bold mb-1 text-light">{order.user?.name}</h6>
+                <div className="text-muted small">
+                  <i className="bi bi-geo-alt text-success me-1"></i> 
+                  {addr ? `${addr.street}, ${addr.city}` : "Address Unknown"}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {completedOrders.length === 0 && (
+          <div className="text-center py-4 text-muted small border border-secondary border-opacity-10 rounded-4">
+            No completed deliveries yet today.
           </div>
         )}
       </div>

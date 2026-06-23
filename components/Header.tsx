@@ -71,10 +71,30 @@ export default async function Header() {
                   </Link>
                 )}
                 {userId ? (
-                  <Link href="/profile" className="header-icon-btn d-none d-sm-flex">
-                    <i className="bi bi-person-circle"></i>
-                    <span className="d-none d-md-inline">Account</span>
-                  </Link>
+                  <div className="dropdown d-none d-sm-flex">
+                    <button className="header-icon-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" style={{ background: "transparent", border: "none" }}>
+                      <i className="bi bi-person-circle"></i>
+                      <span className="d-none d-md-inline ms-1">Account</span>
+                    </button>
+                    <ul className="dropdown-menu dropdown-menu-end shadow border-0 mt-3 rounded-4" style={{ minWidth: "220px", fontSize: "0.9rem" }}>
+                      <li><div className="dropdown-header fw-bold text-dark fs-6">{user?.name}</div></li>
+                      <li><Link className="dropdown-item py-2 d-flex align-items-center" href="/profile"><i className="bi bi-person me-3 text-muted fs-5"></i> My Profile</Link></li>
+                      <li><Link className="dropdown-item py-2 d-flex align-items-center" href="/profile"><i className="bi bi-box-seam me-3 text-muted fs-5"></i> My Orders</Link></li>
+                      
+                      {isSeller && (
+                        <>
+                          <li><hr className="dropdown-divider opacity-10" /></li>
+                          <li><Link className="dropdown-item py-2 text-warning fw-bold d-flex align-items-center" href="/seller/dashboard"><i className="bi bi-shop me-3 fs-5"></i> Seller Portal</Link></li>
+                        </>
+                      )}
+                      {isWarehouseManager && (
+                        <li><Link className="dropdown-item py-2 text-info fw-bold d-flex align-items-center" href="/warehouse"><i className="bi bi-building me-3 fs-5"></i> Hub Manager</Link></li>
+                      )}
+                      {isDeliveryAgent && (
+                        <li><Link className="dropdown-item py-2 text-success fw-bold d-flex align-items-center" href="/delivery"><i className="bi bi-truck me-3 fs-5"></i> Driver App</Link></li>
+                      )}
+                    </ul>
+                  </div>
                 ) : (
                   <Link href="/login" className="header-icon-btn d-none d-sm-flex" style={{color: "var(--red)"}}>
                     <i className="bi bi-box-arrow-in-right"></i>

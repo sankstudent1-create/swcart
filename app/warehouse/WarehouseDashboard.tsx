@@ -4,7 +4,7 @@ import React, { useState, useTransition } from "react";
 import { assignAgentToOrderAction, receivePackageAction, forwardPackageAction } from "@/app/actions/warehouse";
 import { toast } from "sonner";
 
-export default function WarehouseDashboard({ warehouse, inboundOrders, atHubOrders, localAgents, allWarehouses, analytics }: any) {
+export default function WarehouseDashboard({ warehouse, inboundOrders, atHubOrders, outboundOrders, localAgents, allWarehouses, analytics }: any) {
   const [isPending, startTransition] = useTransition();
 
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -82,20 +82,23 @@ export default function WarehouseDashboard({ warehouse, inboundOrders, atHubOrde
 
       <div className="row g-4">
         {/* Inbound Freight */}
-        <div className="col-12 col-xl-6">
+        <div className="col-12 col-xl-4">
           <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
             <h5 className="fw-bold mb-4 d-flex justify-content-between align-items-center">
-              <span><i className="bi bi-truck me-2 text-danger"></i> Inbound Freight</span>
+              <span><i className="bi bi-truck me-2 text-danger"></i> Inbound</span>
               <span className="badge bg-danger rounded-pill">{inboundOrders.length}</span>
             </h5>
             <div className="d-flex flex-column gap-3">
               {inboundOrders.map((o: any) => (
-                <div key={o.id} className="p-3 border rounded-3 d-flex justify-content-between align-items-center bg-light">
-                  <div>
+                <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2 bg-light">
+                  <div className="d-flex justify-content-between">
                     <div className="font-monospace fw-bold mb-1">{o.trackingNumber}</div>
-                    <div className="small text-muted">From: Origin &bull; Dest: {o.shippingAddress?.postalCode}</div>
+                    <span className="small text-muted">{o.shippingAddress?.postalCode}</span>
                   </div>
-                  <button className="btn btn-sm btn-dark rounded-pill fw-bold px-3 shadow-sm" onClick={() => handleReceive(o.id)} disabled={isPending}>
+                  <div className="small text-muted">
+                    <strong>Cust:</strong> {o.user?.name} ({o.user?.phone || 'N/A'})
+                  </div>
+                  <button className="btn btn-sm btn-dark rounded-pill fw-bold px-3 shadow-sm mt-2" onClick={() => handleReceive(o.id)} disabled={isPending}>
                     <i className="bi bi-upc-scan me-1"></i> Receive / Scan
                   </button>
                 </div>
@@ -106,10 +109,10 @@ export default function WarehouseDashboard({ warehouse, inboundOrders, atHubOrde
         </div>
 
         {/* Ready for Sortation */}
-        <div className="col-12 col-xl-6">
+        <div className="col-12 col-xl-4">
           <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
             <h5 className="fw-bold mb-4 d-flex justify-content-between align-items-center">
-              <span><i className="bi bi-box-seam me-2 text-warning"></i> Ready for Sortation</span>
+              <span><i className="bi bi-box-seam me-2 text-warning"></i> Sortation</span>
               <span className="badge bg-warning text-dark rounded-pill">{atHubOrders.length}</span>
             </h5>
             <div className="d-flex flex-column gap-3">
@@ -118,10 +121,14 @@ export default function WarehouseDashboard({ warehouse, inboundOrders, atHubOrde
                 const isLocal = warehouse.pincodes?.includes(destPin) || !warehouse.pincodes?.length;
 
                 return (
-                  <div key={o.id} className="p-3 border rounded-3 d-flex justify-content-between align-items-center">
-                    <div>
-                      <div className="font-monospace fw-bold mb-1">{o.trackingNumber}</div>
-                      <div className="small text-muted">{o.shippingAddress?.street}, {o.shippingAddress?.city} - <strong>{destPin}</strong></div>
+                  <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2">
+                    <div className="d-flex justify-content-between">
+                      <div className="font-monospace fw-bold">{o.trackingNumber}</div>
+                      <strong className="text-dark">{destPin}</strong>
+                    </div>
+                    <div className="small text-muted mb-2">
+                      <div className="fw-bold text-dark">{o.user?.name} <span className="fw-normal">({o.user?.phone || 'N/A'})</span></div>
+                      {o.shippingAddress?.street}, {o.shippingAddress?.city}
                     </div>
                     {isLocal ? (
                       <button className="btn btn-sm btn-success rounded-pill fw-bold px-3 shadow-sm" onClick={() => { setAssignForm({ orderId: o.id, deliveryPersonId: "" }); setShowAssignModal(true); }}>
@@ -136,6 +143,34 @@ export default function WarehouseDashboard({ warehouse, inboundOrders, atHubOrde
                 );
               })}
               {atHubOrders.length === 0 && <div className="text-muted text-center py-4 small">Sortation queue is empty.</div>}
+            </div>
+          </div>
+        </div>
+
+        {/* Outbound & Dispatched */}
+        <div className="col-12 col-xl-4">
+          <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
+            <h5 className="fw-bold mb-4 d-flex justify-content-between align-items-center">
+              <span><i className="bi bi-send me-2 text-success"></i> Dispatched</span>
+              <span className="badge bg-success rounded-pill">{outboundOrders?.length || 0}</span>
+            </h5>
+            <div className="d-flex flex-column gap-3">
+              {outboundOrders?.map((o: any) => (
+                <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2 bg-light">
+                  <div className="d-flex justify-content-between">
+                    <div className="font-monospace fw-bold">{o.trackingNumber}</div>
+                    <span className={`badge ${o.status === 'DELIVERED' ? 'bg-success' : 'bg-primary'}`}>{o.status}</span>
+                  </div>
+                  <div className="small">
+                    <span className="text-muted">Cust:</span> {o.user?.name} ({o.shippingAddress?.postalCode})
+                  </div>
+                  <div className="small border-top pt-2 mt-1">
+                    <span className="text-muted"><i className="bi bi-person-badge"></i> Agent:</span> {o.deliveryPerson?.user?.name}
+                    <div className="text-muted ms-3"><i className="bi bi-truck"></i> {o.deliveryPerson?.vehicle?.licensePlate || "No Vehicle"}</div>
+                  </div>
+                </div>
+              ))}
+              {(!outboundOrders || outboundOrders.length === 0) && <div className="text-muted text-center py-4 small">No recent dispatches.</div>}
             </div>
           </div>
         </div>

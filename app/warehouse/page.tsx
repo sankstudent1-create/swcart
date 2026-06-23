@@ -28,6 +28,13 @@ export default async function WarehousePage() {
     orderBy: { createdAt: "desc" }
   });
 
+  const outboundOrders = await prisma.order.findMany({
+    where: { assignedWarehouseId: warehouseId, status: { in: ["SHIPPED", "DELIVERED"] }, deliveryPersonId: { not: null } },
+    include: { user: true, shippingAddress: true, deliveryPerson: { include: { user: true, vehicle: true } } },
+    orderBy: { updatedAt: "desc" },
+    take: 50
+  });
+
   const localAgents = await prisma.deliveryPerson.findMany({
     where: { warehouseId },
     include: { user: true, orders: { where: { status: "SHIPPED" } } }
@@ -52,6 +59,7 @@ export default async function WarehousePage() {
       warehouse={staffRecord.warehouse} 
       inboundOrders={inboundOrders}
       atHubOrders={atHubOrders}
+      outboundOrders={outboundOrders}
       localAgents={localAgents} 
       allWarehouses={allWarehouses}
       analytics={analytics}

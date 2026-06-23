@@ -19,6 +19,7 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
         },
         include: {
           user: true,
+          trackingHistory: { orderBy: { timestamp: "desc" } },
           items: {
             include: {
               variant: {
@@ -163,6 +164,35 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
               ))}
             </div>
           </div>
+
+          {/* Tracking History Timeline */}
+          {order.trackingHistory && order.trackingHistory.length > 0 && (
+            <div className="bg-light p-4 rounded-4 border-light mt-4">
+              <h6 className="fw-bold mb-4 text-dark"><i className="bi bi-clock-history text-danger me-2"></i> Detailed Tracking Updates</h6>
+              <div className="position-relative ms-2">
+                {/* Vertical Line */}
+                <div className="position-absolute bg-secondary bg-opacity-25" style={{ width: "2px", top: "10px", bottom: "10px", left: "6px" }}></div>
+                
+                <div className="d-flex flex-column gap-4">
+                  {order.trackingHistory.map((history: any, i: number) => (
+                    <div key={i} className="position-relative ps-4">
+                      {/* Timeline Dot */}
+                      <div className="position-absolute bg-white border border-danger border-2 rounded-circle" style={{ width: "14px", height: "14px", left: "0", top: "4px" }}></div>
+                      
+                      <div className="d-flex flex-column">
+                        <span className="fw-bold text-dark">{history.status}</span>
+                        <div className="d-flex align-items-center text-muted small gap-2 mt-1">
+                          {history.location && <><i className="bi bi-geo-alt-fill text-secondary"></i> {history.location}</>}
+                          <span className="text-secondary opacity-50">&bull;</span>
+                          <span>{new Date(history.timestamp).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

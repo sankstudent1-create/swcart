@@ -25,12 +25,18 @@ export default async function DeliveryPage() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const completedOrders = await prisma.order.findMany({
+      where: { deliveryPersonId: deliveryPerson.id, status: "DELIVERED", updatedAt: { gte: today } },
+      include: { shippingAddress: true, user: true },
+      orderBy: { updatedAt: "desc" }
+    });
+
     const driverAnalytics = {
-      completedToday: await prisma.order.count({ where: { deliveryPersonId: deliveryPerson.id, status: "DELIVERED", updatedAt: { gte: today } } }),
+      completedToday: completedOrders.length,
       pendingTotal: deliveryPerson.orders.length
     };
 
-    return <DeliveryDashboard deliveryPerson={deliveryPerson} analytics={driverAnalytics} />;
+    return <DeliveryDashboard deliveryPerson={deliveryPerson} completedOrders={completedOrders} analytics={driverAnalytics} />;
   } catch (error: any) {
     if (error.message === "NEXT_REDIRECT") throw error;
     return (

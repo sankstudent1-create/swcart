@@ -48,14 +48,38 @@ export async function placeOrderAction(formData: FormData) {
   try {
     const cart = await prisma.cart.findUnique({
       where: { userId },
-      include: { items: { include: { variant: true } } }
+      include: { items: { include: { variant: { include: { product: true } } } } }
     });
 
     if (!cart || cart.items.length === 0) {
       return { success: false, message: "Cart is empty" };
     }
 
-    const subtotal = cart.items.reduce((acc: number, item: any) => acc + (item.variant.price * item.quantity), 0);
+    const couponCode = formData.get("couponCode") as string;
+    let couponId = null;
+
+    let subtotal = cart.items.reduce((acc: number, item: any) => {
+      const discount = item.variant.product.discountPercent || 0;
+      const price = item.variant.price * (1 - (discount / 100));
+      return acc + (price * item.quantity);
+    }, 0);
+
+    if (couponCode) {
+      const coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
+      if (coupon && coupon.validUntil >= new Date() && (!coupon.usageLimit || coupon.usedCount < coupon.usageLimit)) {
+        couponId = coupon.id;
+        if (coupon.discountType === "PERCENTAGE") {
+          subtotal = subtotal * (1 - (coupon.discountVal / 100));
+        } else {
+          subtotal = Math.max(0, subtotal - coupon.discountVal);
+        }
+        await prisma.coupon.update({
+          where: { id: coupon.id },
+          data: { usedCount: { increment: 1 } }
+        });
+      }
+    }
+
     const taxAmount = Math.round(subtotal * 0.18);
     const totalAmount = subtotal + taxAmount;
 
@@ -86,12 +110,17 @@ export async function placeOrderAction(formData: FormData) {
         totalAmount,
         taxAmount,
         status: "PROCESSING",
+        couponId,
         items: {
-          create: cart.items.map(item => ({
-            variantId: item.variantId,
-            quantity: item.quantity,
-            priceAtBuy: item.variant.price
-          }))
+          create: cart.items.map(item => {
+            const discount = item.variant.product.discountPercent || 0;
+            const price = item.variant.price * (1 - (discount / 100));
+            return {
+              variantId: item.variantId,
+              quantity: item.quantity,
+              priceAtBuy: price
+            };
+          })
         },
         payments: {
           create: [{
@@ -212,4 +241,13 @@ export async function addToWishlistAction(productId: string) {
     console.error(error);
     return { success: false, message: "Failed to add to wishlist." };
   }
+}
+
+export async function validateCouponAction(code: string) {
+  const coupon = await prisma.coupon.findUnique({ where: { code } });
+  if (!coupon) return { success: false, message: "Invalid coupon code" };
+  if (coupon.validUntil < new Date()) return { success: false, message: "Coupon has expired" };
+  if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) return { success: false, message: "Coupon usage limit reached" };
+  
+  return { success: true, coupon };
 }

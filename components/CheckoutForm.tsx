@@ -1,17 +1,60 @@
 "use client";
 
-import { useTransition } from "react";
-import { placeOrderAction } from "@/app/actions/shop";
+import { useTransition, useState, useMemo } from "react";
+import { placeOrderAction, validateCouponAction } from "@/app/actions/shop";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-export default function CheckoutForm({ items, subtotal, tax, total, savedAddress }: any) {
+export default function CheckoutForm({ items, savedAddress }: any) {
   const [isPending, startTransition] = useTransition();
+  const [couponCode, setCouponCode] = useState("");
+  const [coupon, setCoupon] = useState<{ discountType: string, discountVal: number, code: string } | null>(null);
   const router = useRouter();
+
+  // Dynamic calculations
+  const { subtotal, tax, total, totalDiscount } = useMemo(() => {
+    let baseSubtotal = items.reduce((acc: number, item: any) => {
+      const discount = item.variant.product.discountPercent || 0;
+      const price = item.variant.price * (1 - (discount / 100));
+      return acc + (price * item.quantity);
+    }, 0);
+
+    let finalSubtotal = baseSubtotal;
+    let totalDiscountAmount = 0;
+
+    if (coupon) {
+      if (coupon.discountType === "PERCENTAGE") {
+        totalDiscountAmount = baseSubtotal * (coupon.discountVal / 100);
+      } else {
+        totalDiscountAmount = Math.min(baseSubtotal, coupon.discountVal); // Can't discount more than subtotal
+      }
+      finalSubtotal = Math.max(0, baseSubtotal - totalDiscountAmount);
+    }
+
+    const calculatedTax = Math.round(finalSubtotal * 0.18);
+    const calculatedTotal = finalSubtotal + calculatedTax;
+
+    return { subtotal: baseSubtotal, tax: calculatedTax, total: calculatedTotal, totalDiscount: totalDiscountAmount };
+  }, [items, coupon]);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    const res = await validateCouponAction(couponCode);
+    if (res.success) {
+      setCoupon(res.coupon);
+      toast.success("Coupon applied!");
+    } else {
+      setCoupon(null);
+      toast.error(res.message);
+    }
+  };
 
   const handlePlaceOrder = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    if (coupon) {
+      formData.append("couponCode", coupon.code);
+    }
     startTransition(async () => {
       const res = await placeOrderAction(formData);
       if (res.success) {
@@ -67,14 +110,30 @@ export default function CheckoutForm({ items, subtotal, tax, total, savedAddress
       <div className="col-lg-5">
         <div className="summary-card sticky-top" style={{ top: '100px' }}>
           <h2>Order Summary</h2>
-          {items.map((item: any) => (
-            <div className="d-flex justify-content-between mb-2 text-muted" key={item.id} style={{fontSize: ".9rem"}}>
-              <span className="text-truncate" style={{maxWidth: "200px"}}>{item.quantity}x {item.variant.product.title}</span>
-              <span>₹{(item.variant.price * item.quantity).toLocaleString('en-IN')}</span>
-            </div>
-          ))}
+          {items.map((item: any) => {
+            const productDiscount = item.variant.product.discountPercent || 0;
+            const price = item.variant.price * (1 - (productDiscount / 100));
+            return (
+              <div className="d-flex justify-content-between mb-2 text-muted" key={item.id} style={{fontSize: ".9rem"}}>
+                <span className="text-truncate" style={{maxWidth: "200px"}}>{item.quantity}x {item.variant.product.title}</span>
+                <span>₹{(price * item.quantity).toLocaleString('en-IN')}</span>
+              </div>
+            );
+          })}
+          
+          <div className="mt-4 mb-3 d-flex gap-2">
+            <input type="text" className="form-control" placeholder="Promo code" value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} disabled={isPending} />
+            <button type="button" className="btn btn-dark px-3" onClick={handleApplyCoupon} disabled={!couponCode || isPending}>Apply</button>
+          </div>
+
           <hr />
           <div className="s-row"><span>Subtotal</span> <span>₹{subtotal.toLocaleString('en-IN')}</span></div>
+          {coupon && (
+            <div className="s-row text-success fw-bold">
+              <span>Coupon ({coupon.code})</span> 
+              <span>-₹{totalDiscount.toLocaleString('en-IN')}</span>
+            </div>
+          )}
           <div className="s-row"><span>Shipping</span> <span className="text-success">Free</span></div>
           <div className="s-row"><span>Taxes (18%)</span> <span>₹{tax.toLocaleString('en-IN')}</span></div>
           <div className="s-total mt-3"><span>Total</span> <span>₹{total.toLocaleString('en-IN')}</span></div>
