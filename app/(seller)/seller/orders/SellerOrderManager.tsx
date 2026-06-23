@@ -142,7 +142,7 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
     </head><body>
       <div class="label">
         <div class="hdr">
-          <div class="brand">Swcart.</div>
+          <div class="brand"><img src="https://tools.swinfosystems.online/icon-192.png" style="width:28px;height:28px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.2);margin-right:8px;vertical-align:middle;"/>Swcart.</div>
           <div class="type">Expedited</div>
         </div>
         <div class="from-to">
@@ -230,7 +230,7 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
       <div class="invoice">
         <div class="hdr">
           <div>
-            <div class="brand">Swcart<span class="dot">.</span></div>
+            <div class="brand"><img src="https://tools.swinfosystems.online/icon-192.png" style="width:36px;height:36px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.3);margin-right:8px;"/>Swcart<span class="dot">.</span></div>
             <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:6px;font-weight:600;letter-spacing:1px;text-transform:uppercase;">Marketplace Tax Invoice</div>
           </div>
           <div class="hdr-info">
@@ -261,7 +261,15 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
             <tbody>
               ${items.map((i: any, idx: number) => `<tr>
                 <td style="color:#adb5bd;font-weight:600">${idx + 1}</td>
-                <td><strong style="color:#111;display:block;margin-bottom:4px;font-size:14px">${i.variant.product.title}</strong><span style="color:#6c757d;font-size:11px;background:#f8f9fa;padding:2px 8px;border-radius:10px;">${i.variant.size ? `Size: ${i.variant.size}` : ""} ${i.variant.color ? `Color: ${i.variant.color}` : ""}</span></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    ${i.variant.product.images?.[0] ? `<img src="${i.variant.product.images[0]}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.05);"/>` : ''}
+                    <div>
+                      <strong style="color:#111;display:block;margin-bottom:4px;font-size:14px">${i.variant.product.title}</strong>
+                      <span style="color:#6c757d;font-size:11px;background:#f8f9fa;padding:2px 8px;border-radius:10px;">${i.variant.size ? `Size: ${i.variant.size}` : ""} ${i.variant.color ? `Color: ${i.variant.color}` : ""}</span>
+                    </div>
+                  </div>
+                </td>
                 <td style="font-family:monospace;font-size:12px;color:#6c757d">${i.variant.sku}</td>
                 <td class="qty"><span style="background:rgba(230,57,70,0.1);color:#e63946;font-weight:800;padding:4px 10px;border-radius:12px;">${i.quantity}</span></td>
                 <td class="right fw-semibold text-secondary">₹${i.priceAtBuy.toLocaleString("en-IN")}</td>
