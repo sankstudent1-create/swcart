@@ -47,10 +47,10 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
     <>
       {/* ── Global print override ── hides everything except .inv-root */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
         .inv-root {
-          font-family: 'Inter', sans-serif;
+          font-family: 'Plus Jakarta Sans', sans-serif;
           max-width: 860px;
           margin: 0 auto;
           padding: 1rem 1rem 2rem;
@@ -107,7 +107,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                 style={{ width: "52px", height: "52px", borderRadius: "12px", background: "#fff", padding: "4px", objectFit: "contain" }}
               />
               <div>
-                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: "1.9rem", fontWeight: 900, color: "#e63946", letterSpacing: "-1.5px", lineHeight: 1 }}>
+                <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "1.9rem", fontWeight: 900, color: "#e63946", letterSpacing: "-1.5px", lineHeight: 1 }}>
                   Swcart<span style={{ color: "#fff" }}>.</span>
                 </div>
                 <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.7rem", marginTop: "3px", letterSpacing: "1.5px", textTransform: "uppercase" }}>
@@ -117,7 +117,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             </div>
             <div style={{ textAlign: "right" }}>
               <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.65rem", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "6px" }}>Tax Invoice</div>
-              <div style={{ fontFamily: "'Poppins', sans-serif", color: "#fff", fontSize: "1.5rem", fontWeight: 800, letterSpacing: "-0.5px" }}>
+              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#fff", fontSize: "1.5rem", fontWeight: 800, letterSpacing: "-0.5px" }}>
                 #{order.id.slice(-8).toUpperCase()}
               </div>
               <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.8rem", marginTop: "4px" }}>
@@ -136,13 +136,13 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", marginBottom: "1.5rem", paddingBottom: "1.5rem", borderBottom: "1px solid #f0f0f0" }}>
               <div>
                 <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "#e63946", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "0.75rem" }}>Billed To</div>
-                <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: "1.05rem", color: "#1a1a2e", marginBottom: "4px" }}>{order.user.name}</div>
+                <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: "1.05rem", color: "#1a1a2e", marginBottom: "4px" }}>{order.user.name}</div>
                 <div style={{ color: "#666", fontSize: "0.85rem" }}>{order.user.email}</div>
                 {order.user.phone && <div style={{ color: "#666", fontSize: "0.85rem" }}>{order.user.phone}</div>}
               </div>
               <div>
                 <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "#e63946", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "0.75rem" }}>Delivered To</div>
-                <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: "1.05rem", color: "#1a1a2e", marginBottom: "4px" }}>{order.user.name}</div>
+                <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: "1.05rem", color: "#1a1a2e", marginBottom: "4px" }}>{order.user.name}</div>
                 <div style={{ color: "#666", fontSize: "0.85rem", lineHeight: 1.6 }}>
                   {order.shippingAddress.street}<br />
                   {order.shippingAddress.city}, {order.shippingAddress.state} – {order.shippingAddress.postalCode}<br />
@@ -217,8 +217,8 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                   background: "linear-gradient(135deg, #1a1a2e, #16213e)",
                   borderRadius: "0.75rem"
                 }}>
-                  <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, color: "#fff", fontSize: "1rem" }}>Total Payable</span>
-                  <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 800, color: "#e63946", fontSize: "1.25rem" }}>₹{total.toLocaleString("en-IN")}</span>
+                  <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, color: "#fff", fontSize: "1rem" }}>Total Payable</span>
+                  <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800, color: "#e63946", fontSize: "1.25rem" }}>₹{total.toLocaleString("en-IN")}</span>
                 </div>
               </div>
             </div>
@@ -234,7 +234,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
 
           {/* Footer Strip */}
           <div style={{ background: "#f8f9fa", padding: "1rem 2.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #e9ecef", flexWrap: "wrap", gap: "0.5rem" }}>
-            <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 900, color: "#e63946", fontSize: "1.1rem" }}>Swcart.</div>
+            <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 900, color: "#e63946", fontSize: "1.1rem" }}>Swcart.</div>
             <div style={{ color: "#aaa", fontSize: "0.75rem" }}>swcart.com · support@swcart.com</div>
             <div style={{ color: "#aaa", fontSize: "0.75rem" }}>© {new Date().getFullYear()} Swcart. All rights reserved.</div>
           </div>
