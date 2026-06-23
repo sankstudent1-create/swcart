@@ -10,7 +10,7 @@ html, body{overflow-x:hidden;}
 *{box-sizing:border-box;}
 body{font-family:'Inter',sans-serif;color:var(--body);background:#fff;margin:0;}
 input, button, select, textarea{font-family:'Inter',sans-serif;}
-h1,h2,h3,h4,.display{font-family:'Poppins',sans-serif;color:var(--ink);}
+h1,h2,h3,h4,.display{font-family:'Plus Jakarta Sans',sans-serif;color:var(--ink);}
 a, a:hover, a:focus {text-decoration:none !important; color:inherit;}
 button {cursor: pointer;}
 
@@ -22,7 +22,7 @@ button {cursor: pointer;}
   .site-header{background:#fff;border-bottom:1px solid var(--line);padding:16px 0;position:sticky;top:0;z-index:50;}
   .brand{display:flex;align-items:center;gap:10px;}
   .brand img{height:42px;width:42px;border-radius:10px;}
-  .brand .name{font-family:'Poppins',sans-serif;font-weight:800;font-size:1.6rem;color:var(--ink);line-height:1;}
+  .brand .name{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.6rem;color:var(--ink);line-height:1;}
   .brand .name span{color:var(--red);}
   .brand .tagline{font-size:.68rem;letter-spacing:.06em;color:#9a8f86;text-transform:uppercase;}
 
@@ -83,9 +83,9 @@ button {cursor: pointer;}
   .prod-link{color:inherit;text-decoration:none !important;}
   .prod-link:hover{color:inherit;}
   .prod-cat{font-size:.68rem;color:#b1a499;text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
-  .prod-name{font-family:'Poppins', sans-serif;font-size:0.95rem;font-weight:600;color:var(--ink);margin:4px 0 6px;min-height:44px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:color 0.2s;}
+  .prod-name{font-family:'Plus Jakarta Sans', sans-serif;font-size:0.95rem;font-weight:600;color:var(--ink);margin:4px 0 6px;min-height:44px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:color 0.2s;}
   .prod-card:hover .prod-name{color:var(--red);}
-  .prod-price{font-weight:800;color:var(--red);font-size:1.15rem;font-family:'Poppins', sans-serif;display:flex;align-items:center;flex-wrap:wrap;}
+  .prod-price{font-weight:800;color:var(--red);font-size:1.15rem;font-family:'Plus Jakarta Sans', sans-serif;display:flex;align-items:center;flex-wrap:wrap;}
   .prod-price .old{color:#bbb;font-weight:600;text-decoration:line-through;font-size:.85rem;margin-left:6px;}
   
   .deal-banner{background:linear-gradient(120deg,#FFE6D6,#FFF1E8);border-radius:24px;padding:46px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;}
@@ -107,7 +107,7 @@ button {cursor: pointer;}
   footer a:hover{color:var(--orange);}
   .footer-brand{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
   .footer-brand img{height:36px;width:36px;border-radius:8px;}
-  .footer-brand span{font-family:'Poppins',sans-serif;font-weight:800;font-size:1.3rem;color:#fff;}
+  .footer-brand span{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.3rem;color:#fff;}
   .app-badges img{height:42px;margin-right:8px;}
   .social-row a{display:inline-flex;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);align-items:center;justify-content:center;margin-right:8px;}
   .footer-bottom{border-top:1px solid rgba(255,255,255,.1);margin-top:36px;padding-top:20px;font-size:.8rem;color:#8a7e74;}
