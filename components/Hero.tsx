@@ -14,7 +14,7 @@ export default function Hero() {
 
   const itemVariants = {
     hidden: { y: 25, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 90, damping: 15 } }
+    visible: { y: 0, opacity: 1, transition: { type: "spring" as const, stiffness: 90, damping: 15 } }
   };
 
   return (
