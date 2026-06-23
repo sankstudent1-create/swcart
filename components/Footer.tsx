@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer>
+    <footer className="font-jakarta">
       <div className="container">
         <div className="row g-4">
           <div className="col-md-3">

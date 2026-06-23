@@ -50,7 +50,7 @@ export default async function Header() {
         </div>
       </div>
 
-      <header className="site-header">
+      <header className="site-header font-jakarta">
         <div className="container">
           <div className="row align-items-center g-3">
             <div className="col-6 col-lg-2 d-flex align-items-center gap-2">

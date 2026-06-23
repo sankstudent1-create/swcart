@@ -13,6 +13,7 @@ input, button, select, textarea{font-family:'Plus Jakarta Sans',sans-serif;}
 h1,h2,h3,h4,.display{font-family:'Plus Jakarta Sans',sans-serif;color:var(--ink);}
 a, a:hover, a:focus {text-decoration:none !important; color:inherit;}
 button {cursor: pointer;}
+.font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif !important; }
 
 /* Components */
 .glass-panel {
