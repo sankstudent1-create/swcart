@@ -1,3 +1,5 @@
+"use client";
+
 export default function ContactPage() {
   return (
     <div className="container py-5" style={{ minHeight: "60vh", maxWidth: "800px" }}>
