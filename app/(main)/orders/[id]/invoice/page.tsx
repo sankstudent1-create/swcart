@@ -228,7 +228,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           </div>
 
           {/* Footer Strip */}
-          <div style={{ background: "#f8f9fa", padding: "1rem 2.5rem", display: "flex", justify-content: "space-between", alignItems: "center", borderTop: "1px solid #e9ecef", flexWrap: "wrap", gap: "0.5rem" }}>
+          <div style={{ background: "#f8f9fa", padding: "1rem 2.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #e9ecef", flexWrap: "wrap", gap: "0.5rem" }}>
             <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 900, color: "#e63946", fontSize: "1.1rem" }}>Swcart.</div>
             <div style={{ color: "#aaa", fontSize: "0.75rem" }}>swcart.com · support@swcart.com</div>
             <div style={{ color: "#aaa", fontSize: "0.75rem" }}>© {new Date().getFullYear()} Swcart. All rights reserved.</div>
