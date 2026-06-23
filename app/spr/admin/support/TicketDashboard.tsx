@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { sendTicketMessageAction, updateTicketStatusAction } from "@/app/actions/tickets";
+import { addTicketMessageAction, updateTicketStatusAction } from "@/app/actions/support";
 import { toast } from "sonner";
 
 interface Message {
@@ -83,7 +83,7 @@ export default function TicketDashboard({ tickets, activeTicket }: TicketDashboa
     if (!activeTicket || !replyText.trim()) return;
 
     startTransition(async () => {
-      const res = await sendTicketMessageAction(activeTicket.id, replyText);
+      const res = await addTicketMessageAction(activeTicket.id, replyText);
       if (res.success) {
         setReplyText("");
         toast.success(res.message);

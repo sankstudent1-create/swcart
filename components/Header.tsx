@@ -129,7 +129,7 @@ export default async function Header() {
               </div>
             ) : (
               <div className="text-center py-2">
-                <a href="/login" className="btn btn-danger w-100 rounded-pill py-2 fw-bold shadow-sm" data-bs-dismiss="offcanvas">
+                <a href="/login" className="btn btn-danger w-100 rounded-pill py-2 fw-bold shadow-sm">
                   <i className="bi bi-box-arrow-in-right me-1"></i> Log In / Sign Up
                 </a>
               </div>
