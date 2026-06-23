@@ -112,58 +112,67 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
     win.document.write(`<!DOCTYPE html><html><head>
       <title>Shipping Label — #${order.id.slice(-8).toUpperCase()}</title>
       <style>
+        @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+39&family=Inter:wght@400;600;700;800&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Courier New', monospace; background: #fff; color: #000; padding: 24px; }
-        .label { width: 500px; margin: auto; border: 3px solid #000; border-radius: 8px; overflow: hidden; }
-        .hdr { background: #000; color: #fff; text-align: center; padding: 14px; letter-spacing: 4px; font-size: 18px; font-weight: 900; }
-        .body { padding: 20px; }
-        .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-        .section { border: 1px solid #ddd; border-radius: 6px; padding: 12px; }
-        .section-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 6px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
-        .barcode-area { text-align: center; background: #f9f9f9; border: 1px solid #ddd; border-radius: 6px; padding: 14px; margin-bottom: 16px; }
-        .bars { font-size: 36px; letter-spacing: 3px; line-height: 1; }
-        .trk { font-size: 11px; letter-spacing: 2px; margin-top: 6px; font-weight: 700; }
-        .items-list { font-size: 11px; }
-        .item-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed #eee; }
-        .footer { background: #f5f5f5; padding: 10px 20px; display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
-        @media print { body { padding: 0; } }
+        body { font-family: 'Inter', sans-serif; background: #e0e0e0; display: flex; justify-content: center; padding: 2rem; }
+        .label { width: 4in; min-height: 6in; background: #fff; color: #000; display: flex; flex-direction: column; }
+        .hdr { padding: 12px; border-bottom: 3px solid #000; display: flex; justify-content: space-between; align-items: center; }
+        .hdr .brand { font-size: 24px; font-weight: 800; letter-spacing: -1px; }
+        .hdr .type { font-weight: 700; font-size: 16px; border: 2px solid #000; padding: 2px 8px; border-radius: 4px; }
+        .from-to { display: flex; flex-direction: column; border-bottom: 2px solid #000; }
+        .addr-box { padding: 12px; font-size: 14px; }
+        .addr-box.from { border-bottom: 1px solid #ccc; background: #f9f9f9; padding-bottom: 8px; }
+        .box-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #555; margin-bottom: 4px; letter-spacing: 1px; }
+        .to-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .routing { border-bottom: 3px solid #000; padding: 16px; text-align: center; }
+        .routing h1 { font-size: 42px; font-weight: 800; letter-spacing: 2px; }
+        .barcode-area { padding: 20px; text-align: center; border-bottom: 2px solid #000; flex-grow: 1; }
+        .barcode { font-family: 'Libre Barcode 39', cursive; font-size: 64px; line-height: 1; margin-bottom: 8px; font-weight: 400; }
+        .trk { font-size: 16px; font-weight: 700; letter-spacing: 1px; }
+        .carrier { font-size: 12px; color: #444; font-weight: 600; text-transform: uppercase; margin-top: 4px; }
+        .items { padding: 12px; font-size: 11px; }
+        .item-line { display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; padding: 4px 0; }
+        .footer { padding: 8px; text-align: center; font-size: 10px; font-weight: 600; background: #000; color: #fff; }
+        @media print { body { background: #fff; padding: 0; } .label { border: none; width: 100%; height: 100%; } }
       </style>
     </head><body>
       <div class="label">
-        <div class="hdr">⚡ SWCART PRIORITY MAIL</div>
-        <div class="body">
-          <div class="row2">
-            <div class="section">
-              <div class="section-label">📦 Ship From</div>
-              <strong>Swcart Fulfillment</strong><br/>
-              Warehouse Hub 1A<br/>
-              India
-            </div>
-            <div class="section">
-              <div class="section-label">📍 Ship To</div>
-              <strong>${order.user.name}</strong><br/>
-              ${addr ? `${addr.street}<br/>${addr.city}, ${addr.state} ${addr.postalCode}<br/>${addr.country}` : "Address not available"}<br/>
-              📞 ${order.user.phone || "N/A"}
-            </div>
+        <div class="hdr">
+          <div class="brand">Swcart.</div>
+          <div class="type">STANDARD</div>
+        </div>
+        <div class="from-to">
+          <div class="addr-box from">
+            <div class="box-title">Ship From</div>
+            <strong>Swcart Fulfillment Center</strong><br/>
+            Sector 62, Industrial Area<br/>
+            New Delhi, India 110062
           </div>
-          <div class="barcode-area">
-            <div class="bars">|||||||||||||||||||||</div>
-            <div class="trk">TRK: ${order.trackingNumber || "PENDING ASSIGNMENT"}</div>
-          </div>
-          <div class="section" style="margin-bottom:16px">
-            <div class="section-label">🛍 Items</div>
-            <div class="items-list">
-              ${items.map((i: any) => `<div class="item-row"><span>${i.variant.product.title} (×${i.quantity})</span><span>₹${(i.quantity * i.priceAtBuy).toLocaleString("en-IN")}</span></div>`).join("")}
-            </div>
+          <div class="addr-box to">
+            <div class="box-title">Ship To</div>
+            <div class="to-name">${order.user.name}</div>
+            ${addr ? `${addr.street}<br/>${addr.city}, ${addr.state} ${addr.postalCode}<br/>${addr.country}` : "Address not available"}<br/>
+            <div style="margin-top: 6px;"><strong>Ph:</strong> ${order.user.phone || "N/A"}</div>
           </div>
         </div>
-        <div class="footer">
-          <span>ORDER: #${order.id.slice(-8).toUpperCase()}</span>
-          <span>DATE: ${new Date(order.createdAt).toLocaleDateString("en-IN")}</span>
-          <span>CARRIER: ${order.shippingProvider || "STANDARD"}</span>
+        <div class="routing">
+          <h1>${addr?.postalCode || "000000"}</h1>
+          <strong>${addr?.city?.toUpperCase() || "CITY"}</strong>
         </div>
+        <div class="barcode-area">
+          <div class="box-title">Tracking #</div>
+          <div class="barcode">*${order.trackingNumber || order.id.slice(-8).toUpperCase()}*</div>
+          <div class="trk">${order.trackingNumber || "PENDING ASSIGNMENT"}</div>
+          <div class="carrier">Carrier: ${order.shippingProvider || "Internal"}</div>
+        </div>
+        <div class="items">
+          <div class="box-title">Package Contents (${items.length} items)</div>
+          ${items.map((i: any) => `<div class="item-line"><span>${i.variant.product.title.substring(0, 30)}...</span><span>Qty: ${i.quantity}</span></div>`).join("")}
+          <div class="item-line" style="border:none;margin-top:4px"><strong>Order ID:</strong> ${order.id.slice(-8).toUpperCase()}</div>
+        </div>
+        <div class="footer">Do Not Drop • Keep Dry</div>
       </div>
-      <script>window.onload = () => { window.print(); setTimeout(() => window.close(), 600); }</script>
+      <script>window.onload = () => { window.print(); setTimeout(() => window.close(), 1000); }</script>
     </body></html>`);
     win.document.close();
   };
@@ -174,44 +183,94 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
     const win = window.open("", "_blank");
     if (!win) { toast.error("Allow popups to print invoices."); return; }
     win.document.write(`<!DOCTYPE html><html><head>
-      <title>Invoice — #${order.id.slice(-8).toUpperCase()}</title>
+      <title>Tax Invoice — #${order.id.slice(-8).toUpperCase()}</title>
       <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; padding: 40px; color: #111; }
-        .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
-        .brand { font-size: 24px; font-weight: 900; }
-        .brand span { color: #e8472a; }
-        .invoice-meta { text-align: right; font-size: 13px; color: #555; }
-        .invoice-meta h2 { font-size: 28px; color: #e8472a; letter-spacing: 2px; }
-        .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; }
-        .section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-bottom: 8px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-        th { background: #f5f5f5; padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #666; }
-        td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
-        .total-row { font-weight: 700; font-size: 15px; }
-        .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #aaa; }
-        @media print { body { padding: 20px; } }
+        body { font-family: 'Inter', sans-serif; background: #e0e0e0; display: flex; justify-content: center; padding: 2rem; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .invoice { width: 860px; max-width: 100%; background: #fff; box-shadow: 0 8px 40px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; }
+        .hdr { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 2rem 2.5rem; display: flex; justify-content: space-between; align-items: center; color: #fff; }
+        .brand { font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 900; color: #e63946; letter-spacing: -1px; }
+        .brand span { color: #fff; }
+        .hdr-right { text-align: right; }
+        .hdr-right .lbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+        .hdr-right h2 { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 800; margin: 0; }
+        .accent { height: 4px; background: linear-gradient(to right, #e63946, #ff6b6b, #ffd166); }
+        .body-sec { padding: 2.5rem; }
+        .row-addr { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; border-bottom: 1px solid #eee; padding-bottom: 24px; margin-bottom: 24px; }
+        .addr-box .lbl { font-size: 10px; font-weight: 700; color: #e63946; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .addr-box strong { font-family: 'Poppins', sans-serif; font-size: 16px; color: #1a1a2e; display: block; margin-bottom: 4px; }
+        .addr-box div { font-size: 13px; color: #555; line-height: 1.5; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+        th { background: #f8f9ff; padding: 12px; text-align: left; font-size: 11px; font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #eee; }
+        td { padding: 14px 12px; font-size: 13px; color: #333; border-bottom: 1px solid #f5f5f5; }
+        .qty { text-align: center; }
+        .right { text-align: right; }
+        .totals { display: flex; justify-content: flex-end; margin-bottom: 32px; }
+        .tot-box { width: 300px; }
+        .tot-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; color: #555; }
+        .tot-row.bold { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 700; color: #1a1a2e; border-top: 2px solid #eee; padding-top: 12px; margin-top: 6px; }
+        .tot-row.bold span:last-child { color: #e63946; font-size: 20px; font-weight: 800; }
+        .footer { background: #f8f9fa; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; font-size: 11px; color: #888; }
+        .footer .brand-sm { font-family: 'Poppins', sans-serif; font-weight: 800; color: #e63946; font-size: 16px; }
+        @media print { body { padding: 0; background: #fff; } .invoice { border-radius: 0; box-shadow: none; border: none; } }
       </style>
     </head><body>
-      <div class="header">
-        <div><div class="brand">Sw<span>cart</span></div><div style="font-size:12px;color:#999;margin-top:4px">Online Marketplace</div></div>
-        <div class="invoice-meta"><h2>INVOICE</h2><div>Order: #${order.id.slice(-8).toUpperCase()}</div><div>Date: ${new Date(order.createdAt).toLocaleDateString("en-IN")}</div></div>
+      <div class="invoice">
+        <div class="hdr">
+          <div>
+            <div class="brand">Swcart<span>.</span></div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px;letter-spacing:1px;text-transform:uppercase">Marketplace Invoice</div>
+          </div>
+          <div class="hdr-right">
+            <div class="lbl">Tax Invoice</div>
+            <h2>#${order.id.slice(-8).toUpperCase()}</h2>
+            <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px">${new Date(order.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}</div>
+          </div>
+        </div>
+        <div class="accent"></div>
+        <div class="body-sec">
+          <div class="row-addr">
+            <div class="addr-box">
+              <div class="lbl">Billed To</div>
+              <strong>${order.user.name}</strong>
+              <div>${order.user.email}</div>
+              <div>${order.user.phone || ""}</div>
+            </div>
+            <div class="addr-box">
+              <div class="lbl">Shipped To</div>
+              <strong>${order.user.name}</strong>
+              <div>${addr ? `${addr.street}<br/>${addr.city}, ${addr.state} — ${addr.postalCode}<br/>${addr.country}` : "—"}</div>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>#</th><th>Item Description</th><th>SKU</th><th class="qty">Qty</th><th class="right">Unit Price</th><th class="right">Amount</th></tr></thead>
+            <tbody>
+              ${items.map((i: any, idx: number) => `<tr>
+                <td style="color:#aaa">${idx + 1}</td>
+                <td><strong style="color:#1a1a2e;display:block;margin-bottom:2px">${i.variant.product.title}</strong><span style="color:#888;font-size:11px">${i.variant.size ? `Size: ${i.variant.size}` : ""} ${i.variant.color ? `Color: ${i.variant.color}` : ""}</span></td>
+                <td style="font-family:monospace;font-size:11px;color:#777">${i.variant.sku}</td>
+                <td class="qty"><strong>${i.quantity}</strong></td>
+                <td class="right">₹${i.priceAtBuy.toLocaleString("en-IN")}</td>
+                <td class="right"><strong style="color:#1a1a2e">₹${(i.quantity * i.priceAtBuy).toLocaleString("en-IN")}</strong></td>
+              </tr>`).join("")}
+            </tbody>
+          </table>
+          <div class="totals">
+            <div class="tot-box">
+              <div class="tot-row"><span>Subtotal</span><strong>₹${totalEarnings.toLocaleString("en-IN")}</strong></div>
+              <div class="tot-row"><span>Tax (18% GST)</span><strong>₹${Math.round(totalEarnings * 0.18).toLocaleString("en-IN")}</strong></div>
+              <div class="tot-row bold"><span>Total Payable</span><span>₹${(totalEarnings + Math.round(totalEarnings * 0.18)).toLocaleString("en-IN")}</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="footer">
+          <div class="brand-sm">Swcart.</div>
+          <div>Thank you for your business.</div>
+          <div>support@swcart.com · www.swcart.com</div>
+        </div>
       </div>
-      <div class="row2">
-        <div><div class="section-title">Bill To</div><strong>${order.user.name}</strong><br/>${order.user.email}<br/>${order.user.phone || ""}</div>
-        <div><div class="section-title">Ship To</div>${addr ? `${addr.street}<br/>${addr.city}, ${addr.state} ${addr.postalCode}<br/>${addr.country}` : "—"}</div>
-      </div>
-      <table>
-        <thead><tr><th>#</th><th>Product</th><th>SKU</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
-        <tbody>
-          ${items.map((i: any, idx: number) => `<tr><td>${idx + 1}</td><td>${i.variant.product.title}${i.variant.size ? ` (${i.variant.size})` : ""}</td><td style="font-family:monospace;font-size:11px">${i.variant.sku}</td><td>${i.quantity}</td><td>₹${i.priceAtBuy.toLocaleString("en-IN")}</td><td>₹${(i.quantity * i.priceAtBuy).toLocaleString("en-IN")}</td></tr>`).join("")}
-          <tr class="total-row"><td colspan="5" style="text-align:right;padding-right:14px">Subtotal</td><td>₹${totalEarnings.toLocaleString("en-IN")}</td></tr>
-          <tr><td colspan="5" style="text-align:right;padding-right:14px;font-size:13px;color:#555">Tax (18% GST)</td><td style="font-size:13px;color:#555">₹${Math.round(totalEarnings * 0.18).toLocaleString("en-IN")}</td></tr>
-          <tr class="total-row" style="font-size:16px"><td colspan="5" style="text-align:right;padding-right:14px">Grand Total</td><td style="color:#e8472a">₹${(totalEarnings + Math.round(totalEarnings * 0.18)).toLocaleString("en-IN")}</td></tr>
-        </tbody>
-      </table>
-      <div class="footer">Thank you for shopping with Swcart · support@swcart.in · www.swcart.in</div>
-      <script>window.onload = () => { window.print(); setTimeout(() => window.close(), 600); }</script>
+      <script>window.onload = () => { window.print(); setTimeout(() => window.close(), 1000); }</script>
     </body></html>`);
     win.document.close();
   };

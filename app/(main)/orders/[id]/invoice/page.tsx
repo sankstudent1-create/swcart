@@ -48,7 +48,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           font-family: 'Inter', sans-serif;
           max-width: 860px;
           margin: 0 auto;
-          padding: 2rem 1rem 4rem;
+          padding: 1rem 1rem 2rem;
         }
 
         @media print {
@@ -94,7 +94,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
         <div className="inv-card bg-white rounded-4 overflow-hidden shadow" style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.1)" }}>
 
           {/* Dark Header */}
-          <div style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)", padding: "2.5rem 3rem", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)", padding: "2rem 2.5rem", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
               <img
                 src="https://tools.swinfosystems.online/icon-192.png"
@@ -125,10 +125,10 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           <div style={{ height: "4px", background: "linear-gradient(to right, #e63946, #ff6b6b, #ffd166)" }} />
 
           {/* Body */}
-          <div style={{ padding: "2.5rem 3rem" }}>
+          <div style={{ padding: "2rem 2.5rem" }}>
 
             {/* Addresses */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", marginBottom: "2.5rem", paddingBottom: "2rem", borderBottom: "1px solid #f0f0f0" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", marginBottom: "1.5rem", paddingBottom: "1.5rem", borderBottom: "1px solid #f0f0f0" }}>
               <div>
                 <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "#e63946", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "0.75rem" }}>Billed To</div>
                 <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: "1.05rem", color: "#1a1a2e", marginBottom: "4px" }}>{order.user.name}</div>
@@ -147,7 +147,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Status Badges */}
-            <div style={{ display: "flex", gap: "0.75rem", marginBottom: "2rem", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
               <span style={{ padding: "0.35rem 1rem", borderRadius: "2rem", fontSize: "0.78rem", fontWeight: 700, background: "#fff3cd", color: "#856404", border: "1px solid #ffeeba" }}>
                 Status: {order.status}
               </span>
@@ -160,12 +160,12 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Items Table */}
-            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "2rem" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "1.5rem" }}>
               <thead>
                 <tr style={{ background: "#f8f9ff" }}>
                   {["#", "Item Description", "Qty", "Unit Price", "Amount"].map((h, i) => (
                     <th key={h} style={{
-                      padding: "0.9rem 1rem",
+                      padding: "0.6rem 0.75rem",
                       textAlign: i === 1 ? "left" : i <= 1 ? "left" : i === 2 ? "center" : "right",
                       fontSize: "0.68rem", fontWeight: 700, color: "#888",
                       letterSpacing: "1.5px", textTransform: "uppercase",
@@ -177,16 +177,16 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               <tbody>
                 {order.items.map((item, i) => (
                   <tr key={item.id} style={{ borderBottom: "1px solid #f5f5f5" }}>
-                    <td style={{ padding: "1rem 1rem", color: "#bbb", fontSize: "0.85rem" }}>{i + 1}</td>
-                    <td style={{ padding: "1rem 1rem" }}>
+                    <td style={{ padding: "0.75rem 0.75rem", color: "#bbb", fontSize: "0.85rem" }}>{i + 1}</td>
+                    <td style={{ padding: "0.75rem 0.75rem" }}>
                       <div style={{ fontWeight: 600, color: "#1a1a2e", fontSize: "0.95rem", marginBottom: "2px" }}>{item.variant.product.title}</div>
                       <div style={{ color: "#aaa", fontSize: "0.78rem" }}>
                         {[item.variant.size && `Size: ${item.variant.size}`, item.variant.color && `Color: ${item.variant.color}`].filter(Boolean).join(" · ")}
                       </div>
                     </td>
-                    <td style={{ padding: "1rem 1rem", textAlign: "center", fontWeight: 600, color: "#555" }}>{item.quantity}</td>
-                    <td style={{ padding: "1rem 1rem", textAlign: "right", color: "#888", fontSize: "0.9rem" }}>₹{item.priceAtBuy.toLocaleString("en-IN")}</td>
-                    <td style={{ padding: "1rem 1rem", textAlign: "right", fontWeight: 700, color: "#1a1a2e" }}>₹{(item.priceAtBuy * item.quantity).toLocaleString("en-IN")}</td>
+                    <td style={{ padding: "0.75rem 0.75rem", textAlign: "center", fontWeight: 600, color: "#555" }}>{item.quantity}</td>
+                    <td style={{ padding: "0.75rem 0.75rem", textAlign: "right", color: "#888", fontSize: "0.9rem" }}>₹{item.priceAtBuy.toLocaleString("en-IN")}</td>
+                    <td style={{ padding: "0.75rem 0.75rem", textAlign: "right", fontWeight: 700, color: "#1a1a2e" }}>₹{(item.priceAtBuy * item.quantity).toLocaleString("en-IN")}</td>
                   </tr>
                 ))}
               </tbody>
@@ -219,7 +219,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Thank you note */}
-            <div style={{ marginTop: "2.5rem", padding: "1.25rem 1.5rem", background: "#f8f9ff", borderRadius: "0.75rem", borderLeft: "4px solid #e63946" }}>
+            <div style={{ marginTop: "1.5rem", padding: "1rem 1.25rem", background: "#f8f9ff", borderRadius: "0.75rem", borderLeft: "4px solid #e63946" }}>
               <div style={{ fontWeight: 600, color: "#1a1a2e", marginBottom: "4px", fontSize: "0.9rem" }}>Thank you for shopping with Swcart!</div>
               <div style={{ color: "#888", fontSize: "0.8rem", lineHeight: 1.6 }}>
                 This is a system-generated invoice and does not require a signature. For support, email support@swcart.com.
@@ -228,7 +228,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           </div>
 
           {/* Footer Strip */}
-          <div style={{ background: "#f8f9fa", padding: "1rem 3rem", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #e9ecef", flexWrap: "wrap", gap: "0.5rem" }}>
+          <div style={{ background: "#f8f9fa", padding: "1rem 2.5rem", display: "flex", justify-content: "space-between", alignItems: "center", borderTop: "1px solid #e9ecef", flexWrap: "wrap", gap: "0.5rem" }}>
             <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 900, color: "#e63946", fontSize: "1.1rem" }}>Swcart.</div>
             <div style={{ color: "#aaa", fontSize: "0.75rem" }}>swcart.com · support@swcart.com</div>
             <div style={{ color: "#aaa", fontSize: "0.75rem" }}>© {new Date().getFullYear()} Swcart. All rights reserved.</div>
