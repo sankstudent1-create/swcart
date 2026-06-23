@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { deleteAddressAction, updateProfileAvatarAction } from "@/app/actions/profile";
 import AddressForm from "@/components/AddressForm";
 import ProfileSupportManager from "./ProfileSupportManager";
+import RequestReturnBtn from "./RequestReturnBtn";
 import "./profile.css"; // Import the premium profile styles
 
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ tab?: string, success?: string }> }) {
@@ -19,7 +20,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       rewardPoints: true,
       orders: {
         orderBy: { createdAt: "desc" },
-        include: { sellerOrders: { include: { items: { include: { variant: { include: { product: true } } } } } } }
+        include: { sellerOrders: { include: { seller: true, items: { include: { variant: { include: { product: true } } } } } } }
       }
     }
   });
@@ -167,20 +168,28 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                           </div>
                           
                           <div className="order-items-scroll bg-light bg-opacity-50">
-                            {order.sellerOrders.flatMap((so: any) => so.items).map((item: any) => (
-                              <div key={item.id} className="order-item-chip d-flex align-items-center gap-3">
-                                {item.variant.product.images?.[0] ? (
-                                  <img src={item.variant.product.images[0]} alt={item.variant.product.title} className="rounded-3 object-fit-cover shadow-sm" style={{width: "60px", height: "60px"}} />
-                                ) : (
-                                  <div className="bg-light rounded-3 d-flex align-items-center justify-content-center border" style={{width: "60px", height: "60px"}}>
-                                    <i className="bi bi-image text-muted"></i>
-                                  </div>
-                                )}
-                                <div className="text-truncate flex-grow-1">
-                                  <div className="fw-bold text-dark font-jakarta text-truncate" title={item.variant.product.title}>{item.variant.product.title}</div>
-                                  <div className="text-muted small mt-1">Qty: <span className="fw-bold text-dark">{item.quantity}</span> &bull; {item.variant.size} {item.variant.color}</div>
-                                  <div className="text-danger fw-bold mt-1">₹{item.priceAtBuy.toLocaleString('en-IN')}</div>
+                            {order.sellerOrders.map((so: any) => (
+                              <div key={so.id} className="mb-3">
+                                <div className="d-flex justify-content-between align-items-center mb-2 px-3 pt-3">
+                                  <div className="text-muted small fw-bold">Package from {so.seller?.companyName || "Seller"}</div>
+                                  <RequestReturnBtn sellerOrderId={so.id} currentStatus={so.status} />
                                 </div>
+                                {so.items.map((item: any) => (
+                                  <div key={item.id} className="order-item-chip d-flex align-items-center gap-3 border-0 rounded-0 border-bottom border-light mx-3">
+                                    {item.variant.product.images?.[0] ? (
+                                      <img src={item.variant.product.images[0]} alt={item.variant.product.title} className="rounded-3 object-fit-cover shadow-sm" style={{width: "50px", height: "50px"}} />
+                                    ) : (
+                                      <div className="bg-light rounded-3 d-flex align-items-center justify-content-center border" style={{width: "50px", height: "50px"}}>
+                                        <i className="bi bi-image text-muted"></i>
+                                      </div>
+                                    )}
+                                    <div className="text-truncate flex-grow-1">
+                                      <div className="fw-bold text-dark font-jakarta text-truncate" title={item.variant.product.title}>{item.variant.product.title}</div>
+                                      <div className="text-muted small mt-1">Qty: <span className="fw-bold text-dark">{item.quantity}</span> &bull; {item.variant.size} {item.variant.color}</div>
+                                    </div>
+                                    <div className="text-danger fw-bold ms-auto">₹{item.priceAtBuy.toLocaleString('en-IN')}</div>
+                                  </div>
+                                ))}
                               </div>
                             ))}
                           </div>

@@ -269,3 +269,46 @@ export async function validateCouponAction(code: string) {
   
   return { success: true, coupon };
 }
+
+export async function requestRefundAction(sellerOrderId: string, reason: string) {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, message: "Unauthorized" };
+
+  try {
+    const sellerOrder = await prisma.sellerOrder.findUnique({
+      where: { id: sellerOrderId },
+      include: { order: true, items: true }
+    });
+
+    if (!sellerOrder || sellerOrder.order.userId !== userId) {
+      return { success: false, message: "Order not found" };
+    }
+
+    if (sellerOrder.status !== "DELIVERED") {
+      return { success: false, message: "Only delivered orders can be refunded" };
+    }
+
+    const amount = sellerOrder.items.reduce((acc, item) => acc + (item.priceAtBuy * item.quantity), 0);
+
+    await prisma.$transaction([
+      prisma.sellerOrder.update({
+        where: { id: sellerOrderId },
+        data: { status: "RETURN_REQUESTED" }
+      }),
+      prisma.refund.create({
+        data: {
+          orderId: sellerOrder.orderId,
+          amount,
+          reason,
+          status: "PENDING"
+        }
+      })
+    ]);
+
+    revalidatePath("/profile");
+    return { success: true, message: "Return requested successfully" };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: "Failed to request return" };
+  }
+}

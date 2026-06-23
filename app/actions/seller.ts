@@ -437,3 +437,98 @@ export async function updateSellerOrderLogisticsAction(
     return { success: false, message: error.message || "Failed to update order logistics" };
   }
 }
+
+export async function processReturnAction(sellerOrderId: string, action: "APPROVE" | "REJECT", reason?: string) {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, message: "Unauthorized" };
+
+  try {
+    const seller = await prisma.seller.findUnique({ where: { userId } });
+    if (!seller) return { success: false, message: "Seller profile not found" };
+
+    const sellerOrder = await prisma.sellerOrder.findUnique({ 
+      where: { id: sellerOrderId },
+      include: { order: true, items: true }
+    });
+    
+    if (!sellerOrder || sellerOrder.sellerId !== seller.id) {
+      return { success: false, message: "Order not found or unauthorized access" };
+    }
+
+    if (sellerOrder.status !== "RETURN_REQUESTED") {
+      return { success: false, message: "Order is not in RETURN_REQUESTED status" };
+    }
+
+    if (action === "APPROVE") {
+      // Approve logic and Financial Settlement (Wallet Credit)
+      await prisma.$transaction(async (tx) => {
+        await tx.sellerOrder.update({
+          where: { id: sellerOrderId },
+          data: { status: "RETURN_APPROVED" }
+        });
+        
+        await tx.refund.updateMany({
+          where: { orderId: sellerOrder.orderId, status: "PENDING" },
+          data: { status: "COMPLETED" }
+        });
+
+        await tx.trackingHistory.create({
+          data: {
+            orderId: sellerOrder.orderId,
+            status: "Return Approved & Refund Processed",
+            location: "Refunded to Swcart Wallet",
+            timestamp: new Date()
+          }
+        });
+
+        const amountToRefund = sellerOrder.items.reduce((acc: number, item: any) => acc + (item.priceAtBuy * item.quantity), 0);
+        
+        let wallet = await tx.wallet.findUnique({ where: { userId: sellerOrder.order.userId } });
+        if (!wallet) {
+          wallet = await tx.wallet.create({ data: { userId: sellerOrder.order.userId, balance: 0 } });
+        }
+
+        await tx.wallet.update({
+          where: { id: wallet.id },
+          data: { balance: { increment: amountToRefund } }
+        });
+
+        await tx.walletTransaction.create({
+          data: {
+            walletId: wallet.id,
+            amount: amountToRefund,
+            type: "CREDIT",
+            reason: `Refund for Order #${sellerOrder.orderId.slice(-8).toUpperCase()}`
+          }
+        });
+      });
+
+      revalidatePath("/seller/returns");
+      return { success: true, message: "Return approved and amount refunded to customer wallet" };
+    } else {
+      // Reject logic
+      await prisma.$transaction([
+        prisma.sellerOrder.update({
+          where: { id: sellerOrderId },
+          data: { status: "DELIVERED" } // Revert back
+        }),
+        prisma.refund.updateMany({
+          where: { orderId: sellerOrder.orderId, status: "PENDING" },
+          data: { status: "REJECTED", reason: reason || "Rejected by seller" }
+        }),
+        prisma.trackingHistory.create({
+          data: {
+            orderId: sellerOrder.orderId,
+            status: "Return Rejected",
+            location: reason || "Contact Support",
+            timestamp: new Date()
+          }
+        })
+      ]);
+      revalidatePath("/seller/returns");
+      return { success: true, message: "Return request rejected" };
+    }
+  } catch (error: any) {
+    return { success: false, message: error.message || "Failed to process return" };
+  }
+}
