@@ -183,7 +183,7 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
                       <td>{v.type}</td>
                       <td>{v.capacity}</td>
                       <td className="text-end">
-                        <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => startTransition(() => deleteVehicleAction(v.id))}>Remove</button>
+                        <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => startTransition(async () => { const res = await deleteVehicleAction(v.id); if (res.success) toast.success(res.message); else toast.error(res.message); })}>Remove</button>
                       </td>
                     </tr>
                   ))}
@@ -216,7 +216,7 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
                       <td className="fw-bold">{w.name}</td>
                       <td>{w.location}</td>
                       <td className="text-end">
-                        <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => startTransition(() => deleteWarehouseAction(w.id))}>Remove</button>
+                        <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => startTransition(async () => { const res = await deleteWarehouseAction(w.id); if (res.success) toast.success(res.message); else toast.error(res.message); })}>Remove</button>
                       </td>
                     </tr>
                   ))}
