@@ -21,6 +21,8 @@ export default async function Header() {
   }
 
   const isSeller = user?.roles?.some((r: any) => r.role.name === "SELLER") || false;
+  const isWarehouseManager = user?.roles?.some((r: any) => r.role.name === "WAREHOUSE_MANAGER") || false;
+  const isDeliveryAgent = user?.roles?.some((r: any) => r.role.name === "DELIVERY") || false;
 
   return (
     <>
@@ -180,6 +182,18 @@ export default async function Header() {
               {isSeller && (
                 <a href="/seller/dashboard" className="text-warning text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all fw-bold mt-2" style={{ background: "rgba(255, 193, 7, 0.05)", border: "1px solid rgba(255, 193, 7, 0.15)" }}>
                   <i className="bi bi-shop fs-5"></i> Seller Dashboard
+                </a>
+              )}
+
+              {isWarehouseManager && (
+                <a href="/warehouse" className="text-info text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all fw-bold mt-2" style={{ background: "rgba(13, 202, 240, 0.05)", border: "1px solid rgba(13, 202, 240, 0.15)" }}>
+                  <i className="bi bi-building fs-5"></i> Hub Manager Portal
+                </a>
+              )}
+
+              {isDeliveryAgent && (
+                <a href="/delivery" className="text-success text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all fw-bold mt-2" style={{ background: "rgba(25, 135, 84, 0.05)", border: "1px solid rgba(25, 135, 84, 0.15)" }}>
+                  <i className="bi bi-truck fs-5"></i> Driver App
                 </a>
               )}
 
