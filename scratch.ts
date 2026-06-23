@@ -1,4 +1,15 @@
-import { Prisma } from '@prisma/client';
+import { config } from 'dotenv';
+config();
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
-console.log(Object.keys(Prisma.dmmf));
-console.log(Prisma.dmmf.datamodel.models.map(m => m.name).join(", "));
+async function main() {
+  const users = await prisma.user.findMany({
+    include: {
+      roles: { include: { role: true } }
+    }
+  });
+  console.dir(users, { depth: null });
+}
+
+main().catch(console.error).finally(() => prisma.$disconnect());
