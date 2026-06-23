@@ -6,7 +6,7 @@ export default async function AdminDashboard() {
   const isSuperAdmin = await checkSuperAdmin();
   if (!isSuperAdmin) redirect("/");
 
-  const [userCount, orderCount, totalRevenue, recentOrders, newUsers] = await Promise.all([
+  const [userCount, orderCount, totalRevenue, recentOrders, newUsers, pendingKycCount] = await Promise.all([
     prisma.user.count(),
     prisma.order.count(),
     prisma.order.aggregate({
@@ -21,7 +21,8 @@ export default async function AdminDashboard() {
     prisma.user.findMany({
       take: 5,
       orderBy: { createdAt: "desc" }
-    })
+    }),
+    prisma.seller.count({ where: { kycStatus: "PENDING" } })
   ]);
 
   const revenue = totalRevenue._sum.totalAmount || 0;
@@ -139,6 +140,15 @@ export default async function AdminDashboard() {
 
         {/* Sidebar Widgets */}
         <div className="col-lg-4 d-flex flex-column gap-4">
+
+          <div className="bg-white p-4 rounded-4 shadow-sm border-0 position-relative overflow-hidden glass-card" style={{ borderLeft: "4px solid #ff3b30 !important" }}>
+            <h6 className="text-muted fw-bold text-uppercase mb-2" style={{ letterSpacing: "1.5px", fontSize: "0.75rem" }}>Pending KYC Approvals</h6>
+            <h2 className="fw-black mb-0 display-5 text-danger" style={{ letterSpacing: "-2px" }}>{pendingKycCount}</h2>
+            {pendingKycCount > 0 && (
+              <a href="/spr/admin/kyc" className="btn btn-sm btn-danger rounded-pill px-3 mt-3 fw-bold">Review Now</a>
+            )}
+          </div>
+
           {/* New Signups */}
           <div className="bg-white p-4 p-md-5 rounded-4 shadow-sm border-0 flex-grow-1 glass-card">
             <h5 className="fw-bold mb-4">Latest Signups</h5>

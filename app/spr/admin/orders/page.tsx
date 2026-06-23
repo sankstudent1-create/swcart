@@ -9,7 +9,15 @@ export default async function AdminOrdersPage() {
 
   const orders = await prisma.order.findMany({
     orderBy: { createdAt: "desc" },
-    include: { user: true, items: { include: { variant: { include: { product: true } } } } }
+    include: { 
+      user: true, 
+      sellerOrders: { 
+        include: { 
+          seller: { include: { user: true } },
+          items: { include: { variant: { include: { product: true } } } } 
+        } 
+      } 
+    }
   });
 
   return (
@@ -39,7 +47,14 @@ export default async function AdminOrdersPage() {
             <tbody className="border-top-0">
               {orders.map(order => (
                 <tr key={order.id} className="hover-bg-light transition-all">
-                  <td className="fw-bold text-dark py-3">#{order.id.slice(-8).toUpperCase()}</td>
+                  <td className="py-3">
+                    <div className="fw-bold text-dark mb-1">#{order.id.slice(-8).toUpperCase()}</div>
+                    {order.sellerOrders.length > 1 && (
+                      <span className="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 rounded-pill" style={{ fontSize: "0.65rem" }}>
+                        Multi-Vendor Split ({order.sellerOrders.length})
+                      </span>
+                    )}
+                  </td>
                   <td className="py-3">
                     <div className="fw-bold text-dark">{order.user.name}</div>
                     <div className="text-muted small" style={{ fontSize: "0.75rem" }}>{order.user.email}</div>

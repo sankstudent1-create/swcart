@@ -289,6 +289,7 @@ model SellerOrder {
   orderId          String
   sellerId         String
   status           String   @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  payoutStatus     String   @default("UNPAID")  // UNPAID, PAID
   shippingProvider String?
   trackingNumber   String?
   createdAt        DateTime @default(now())
@@ -487,6 +488,7 @@ model SiteSetting {
   deliveryFee        Float @default(50.0)
   codFee             Float @default(0.0)
   freeShippingThresh Float @default(499.0)
+  platformCommission Float @default(10.0) // Percentage cut the platform takes from sellers
 
   // API Keys (Encrypted/Hidden in production app layer)
   razorpayKeyId  String?

@@ -54,6 +54,10 @@ export default async function SettingsPage() {
               <label className="form-label text-muted small fw-bold text-uppercase">Free Shipping Threshold (₹)</label>
               <input type="number" name="freeShippingThresh" className="form-control rounded-3" defaultValue={settings.freeShippingThresh} required />
             </div>
+            <div className="col-md-4">
+              <label className="form-label text-muted small fw-bold text-uppercase text-danger">Platform Commission (%)</label>
+              <input type="number" name="platformCommission" step="0.1" className="form-control rounded-3 border-danger bg-danger bg-opacity-10" defaultValue={settings.platformCommission} required />
+            </div>
           </div>
 
           <div className="mt-5 d-flex justify-content-end">

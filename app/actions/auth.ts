@@ -115,15 +115,7 @@ export async function checkSession() {
 export async function getSessionUserId() {
   const cookieStore = await cookies();
   const token = cookieStore.get("swcart_session")?.value;
-  if (!token) return null;
-  
-  try {
-    const { data, error } = await supabase.auth.getUser(token);
-    if (error || !data.user) return null;
-    return data.user.id;
-  } catch (err) {
-    return null;
-  }
+  return token || null;
 }
 
 export async function checkSuperAdmin() {

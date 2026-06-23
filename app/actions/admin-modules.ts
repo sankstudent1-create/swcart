@@ -105,6 +105,7 @@ export async function updateSettingsAction(data: any) {
         defaultGst: Number(data.defaultGst),
         deliveryFee: Number(data.deliveryFee),
         freeShippingThresh: Number(data.freeShippingThresh),
+        platformCommission: Number(data.platformCommission),
       },
       create: {
         id: "GLOBAL",
@@ -114,6 +115,7 @@ export async function updateSettingsAction(data: any) {
         defaultGst: Number(data.defaultGst),
         deliveryFee: Number(data.deliveryFee),
         freeShippingThresh: Number(data.freeShippingThresh),
+        platformCommission: Number(data.platformCommission),
       }
     });
     revalidatePath("/spr/admin/settings");
@@ -169,5 +171,33 @@ export async function removeRoleAction(userId: string, roleId: string) {
     return { success: true, message: "Role removed" };
   } catch (err: any) {
     return { success: false, message: err.message || "Failed to remove role" };
+  }
+}
+
+// --- KYC & PAYOUTS ---
+export async function updateKycStatusAction(sellerId: string, status: string) {
+  const isSuperAdmin = await checkSuperAdmin();
+  if (!isSuperAdmin) return { success: false, message: "Unauthorized" };
+
+  try {
+    await prisma.seller.update({ where: { id: sellerId }, data: { kycStatus: status, isVerified: status === "APPROVED" } });
+    revalidatePath("/spr/admin/kyc");
+    revalidatePath("/spr/admin");
+    return { success: true, message: `KYC Status updated to ${status}` };
+  } catch (err: any) {
+    return { success: false, message: err.message || "Failed to update KYC status" };
+  }
+}
+
+export async function updatePayoutStatusAction(sellerOrderId: string) {
+  const isSuperAdmin = await checkSuperAdmin();
+  if (!isSuperAdmin) return { success: false, message: "Unauthorized" };
+
+  try {
+    await prisma.sellerOrder.update({ where: { id: sellerOrderId }, data: { payoutStatus: "PAID" } });
+    revalidatePath("/spr/admin/payouts");
+    return { success: true, message: "Marked as Paid" };
+  } catch (err: any) {
+    return { success: false, message: err.message || "Failed to update payout status" };
   }
 }

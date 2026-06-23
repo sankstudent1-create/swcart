@@ -10,7 +10,11 @@ export default async function SellersPage() {
   const sellers = await prisma.seller.findMany({
     include: {
       user: true,
-      products: { include: { variants: { include: { orderItems: true } } } }
+      _count: { select: { products: true } },
+      sellerOrders: {
+        where: { status: "DELIVERED" },
+        include: { items: true }
+      }
     },
     orderBy: { user: { createdAt: "desc" } }
   });
@@ -19,17 +23,13 @@ export default async function SellersPage() {
     totalSellers: sellers.length,
     activeSellers: sellers.filter(s => s.isVerified).length,
     pendingApplications: sellers.filter(s => !s.isVerified).length,
-    totalProducts: sellers.reduce((acc, s) => acc + s.products.length, 0),
+    totalProducts: sellers.reduce((acc, s) => acc + s._count.products, 0),
     totalRevenue: sellers.reduce((acc, s) => {
-      let revenue = 0;
-      s.products.forEach(p => {
-        p.variants.forEach(v => {
-          v.orderItems.forEach(oi => {
-            revenue += oi.quantity * oi.priceAtBuy;
-          });
-        });
-      });
-      return acc + revenue;
+      const sellerRev = s.sellerOrders.reduce((sum: number, so: any) => {
+        const soTotal = so.items.reduce((itemSum: number, item: any) => itemSum + (item.quantity * item.priceAtBuy), 0);
+        return sum + soTotal;
+      }, 0);
+      return acc + sellerRev;
     }, 0)
   };
 
