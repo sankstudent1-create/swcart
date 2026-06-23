@@ -9,6 +9,8 @@ interface SellerProfile {
   companyName: string;
   gstNumber: string | null;
   bankDetails: any;
+  pickupAddress?: any;
+  pickupPincode?: string | null;
   isVerified: boolean;
 }
 
@@ -24,6 +26,10 @@ export default function SellerSettingsForm({ seller }: SellerSettingsFormProps) 
   const [panNumber, setPanNumber] = useState("");
   const [bankAccount, setBankAccount] = useState(seller.bankDetails?.bankAccount || "");
   const [bankIfsc, setBankIfsc] = useState(seller.bankDetails?.bankIfsc || "");
+  const [pickupStreet, setPickupStreet] = useState(seller.pickupAddress?.street || "");
+  const [pickupCity, setPickupCity] = useState(seller.pickupAddress?.city || "");
+  const [pickupState, setPickupState] = useState(seller.pickupAddress?.state || "");
+  const [pickupPincode, setPickupPincode] = useState(seller.pickupPincode || "");
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +42,9 @@ export default function SellerSettingsForm({ seller }: SellerSettingsFormProps) 
       const res = await updateSellerSettingsAction(
         companyName,
         gstNumber || null,
-        { bankAccount, bankIfsc }
+        { bankAccount, bankIfsc },
+        { street: pickupStreet, city: pickupCity, state: pickupState },
+        pickupPincode
       );
       if (res.success) {
         toast.success(res.message);
@@ -137,6 +145,54 @@ export default function SellerSettingsForm({ seller }: SellerSettingsFormProps) 
               onChange={e => setBankIfsc(e.target.value)}
               placeholder="e.g. IFSC0001234"
             />
+          </div>
+
+          <hr className="my-4 border-secondary border-opacity-50" />
+          <h5 className="fw-bold mb-3 text-white">Store Pickup Address</h5>
+          <p className="text-muted small mb-4">Required for automated Internal Delivery routing to our Hubs.</p>
+
+          <div className="mb-3">
+            <label className="form-label text-muted small text-uppercase fw-bold mb-1">Street Address</label>
+            <input 
+              type="text" 
+              className="form-control bg-dark border-secondary text-white rounded-3 shadow-sm"
+              value={pickupStreet}
+              onChange={e => setPickupStreet(e.target.value)}
+              placeholder="e.g. 123 Industrial Estate"
+            />
+          </div>
+
+          <div className="row g-3 mb-4">
+            <div className="col-md-4">
+              <label className="form-label text-muted small text-uppercase fw-bold mb-1">City</label>
+              <input 
+                type="text" 
+                className="form-control bg-dark border-secondary text-white rounded-3 shadow-sm"
+                value={pickupCity}
+                onChange={e => setPickupCity(e.target.value)}
+                placeholder="City"
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label text-muted small text-uppercase fw-bold mb-1">State</label>
+              <input 
+                type="text" 
+                className="form-control bg-dark border-secondary text-white rounded-3 shadow-sm"
+                value={pickupState}
+                onChange={e => setPickupState(e.target.value)}
+                placeholder="State"
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label text-muted small text-uppercase fw-bold mb-1">Pincode</label>
+              <input 
+                type="text" 
+                className="form-control bg-dark border-secondary text-white rounded-3 shadow-sm"
+                value={pickupPincode}
+                onChange={e => setPickupPincode(e.target.value)}
+                placeholder="e.g. 400001"
+              />
+            </div>
           </div>
 
           <button 

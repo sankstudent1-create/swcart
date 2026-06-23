@@ -131,3 +131,71 @@ export async function dispatchOrderAction(orderId: string, assignedWarehouseId: 
     return { success: false, message: err.message || "Failed to dispatch order" };
   }
 }
+
+export async function autoRouteLogisticsAction(sellerOrderId: string) {
+  try {
+    const sellerOrder = await prisma.sellerOrder.findUnique({
+      where: { id: sellerOrderId },
+      include: { seller: true, order: true }
+    });
+
+    if (!sellerOrder) return { success: false, message: "Order not found" };
+
+    const pickupPincode = sellerOrder.seller.pickupPincode;
+    if (!pickupPincode) {
+      return { success: false, message: "Store Pickup Pincode not set. Please update your Seller Settings." };
+    }
+
+    // 1. Hub Identification
+    const warehouses = await prisma.warehouse.findMany();
+    const nearestWarehouse = warehouses.find(w => w.pincodes.includes(pickupPincode));
+
+    if (!nearestWarehouse) {
+      return { success: false, message: "No Swcart Hub available for your pincode area." };
+    }
+
+    // 2. First-Mile Assignment
+    const availableAgent = await prisma.deliveryPerson.findFirst({
+      where: { warehouseId: nearestWarehouse.id },
+      include: { user: true }
+    });
+
+    if (!availableAgent) {
+      return { success: false, message: "No delivery agents currently available at the assigned hub." };
+    }
+
+    // 3. Status Update
+    await prisma.$transaction([
+      prisma.sellerOrder.update({
+        where: { id: sellerOrderId },
+        data: { 
+          status: "READY_FOR_PICKUP",
+          shippingProvider: "Internal Logistics",
+          trackingNumber: `SW-${sellerOrderId.slice(-6).toUpperCase()}`
+        }
+      }),
+      prisma.trackingHistory.create({
+        data: {
+          orderId: sellerOrder.orderId,
+          status: "Pickup Assigned",
+          location: `Agent (${availableAgent.user.name}) assigned from ${nearestWarehouse.name}`,
+          timestamp: new Date()
+        }
+      }),
+      // Also update parent Order
+      prisma.order.update({
+        where: { id: sellerOrder.orderId },
+        data: {
+          assignedWarehouseId: nearestWarehouse.id,
+          deliveryPersonId: availableAgent.id,
+          status: "PROCESSING"
+        }
+      })
+    ]);
+
+    revalidatePath("/seller/orders");
+    return { success: true, message: `Routed to ${nearestWarehouse.name}. Agent assigned for pickup.` };
+  } catch (error: any) {
+    return { success: false, message: error.message || "Routing failed" };
+  }
+}

@@ -119,7 +119,7 @@ export async function getSellerProfileAction() {
   return await prisma.seller.findUnique({ where: { userId } });
 }
 
-export async function updateSellerSettingsAction(companyName: string, gstNumber: string | null, bankDetails: any) {
+export async function updateSellerSettingsAction(companyName: string, gstNumber: string | null, bankDetails: any, pickupAddress?: any, pickupPincode?: string | null) {
   const userId = await getSessionUserId();
   if (!userId) return { success: false, message: "Unauthorized" };
 
@@ -134,7 +134,9 @@ export async function updateSellerSettingsAction(companyName: string, gstNumber:
       data: {
         companyName,
         gstNumber,
-        bankDetails
+        bankDetails,
+        pickupAddress: pickupAddress || null,
+        pickupPincode: pickupPincode || null
       }
     });
 

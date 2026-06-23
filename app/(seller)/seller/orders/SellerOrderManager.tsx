@@ -3,6 +3,7 @@
 import React, { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { updateSellerOrderLogisticsAction } from "@/app/actions/seller";
+import { autoRouteLogisticsAction } from "@/app/actions/logistics";
 import { toast } from "sonner";
 
 interface OrderItem {
@@ -101,6 +102,21 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
       });
       if (res.success) { toast.success(res.message); setSelectedOrder(null); router.refresh(); }
       else toast.error(res.message);
+    });
+  };
+
+  const handleAutoRoute = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!selectedOrder) return;
+    startTransition(async () => {
+      const res = await autoRouteLogisticsAction(selectedOrder.order.id);
+      if (res.success) { 
+        toast.success(res.message); 
+        setSelectedOrder(null); 
+        router.refresh(); 
+      } else {
+        toast.error(res.message);
+      }
     });
   };
 
@@ -555,9 +571,15 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
                         )}
                       </div>
 
-                      <button type="submit" className="btn btn-danger rounded-pill fw-bold py-2 w-100 mt-auto" disabled={isPending}>
-                        {isPending ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</> : <><i className="bi bi-check-lg me-2"></i>Save Changes</>}
-                      </button>
+                      {logisticsForm.shippingProvider === "Internal Delivery" && logisticsForm.status === "PROCESSING" ? (
+                        <button type="button" onClick={handleAutoRoute} className="btn rounded-pill fw-bold py-2 w-100 mt-auto shadow" style={{ background: "linear-gradient(135deg, #007aff, #5856d6)", color: "white", border: "none" }} disabled={isPending}>
+                          {isPending ? <><span className="spinner-border spinner-border-sm me-2"></span>Routing...</> : <><i className="bi bi-robot me-2"></i>Auto-Route to Hub</>}
+                        </button>
+                      ) : (
+                        <button type="submit" className="btn btn-danger rounded-pill fw-bold py-2 w-100 mt-auto shadow" disabled={isPending}>
+                          {isPending ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</> : <><i className="bi bi-check-lg me-2"></i>Save Changes</>}
+                        </button>
+                      )}
                     </form>
                   </div>
                 </div>

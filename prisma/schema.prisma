@@ -92,21 +92,23 @@ model Address {
 // -------------------------------------
 
 model Seller {
-  id           String              @id @default(cuid())
-  userId       String              @unique
-  companyName  String
-  gstNumber    String?
-  taxId        String?
-  bankDetails  Json?
-  isVerified   Boolean             @default(false)
-  kycStatus    String              @default("PENDING") // PENDING, APPROVED, REJECTED
-  deletedAt    DateTime?
+  id              String              @id @default(cuid())
+  userId          String              @unique
+  companyName     String
+  gstNumber       String?
+  taxId           String?
+  bankDetails     Json?
+  pickupAddress   Json?
+  pickupPincode   String?
+  isVerified      Boolean             @default(false)
+  kycStatus       String              @default("PENDING") // PENDING, APPROVED, REJECTED
+  deletedAt       DateTime?
   
-  user         User                @relation(fields: [userId], references: [id])
-  products     Product[]
-  subscription SellerSubscription?
-  followers    SellerFollower[]
-  sellerOrders SellerOrder[]
+  user            User                @relation(fields: [userId], references: [id])
+  products        Product[]
+  subscription    SellerSubscription?
+  followers       SellerFollower[]
+  sellerOrders    SellerOrder[]
 }
 
 model Category {
