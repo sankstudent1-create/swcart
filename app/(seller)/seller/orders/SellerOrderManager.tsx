@@ -114,33 +114,36 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&family=Libre+Barcode+39&family=Inter:wght@400;500;600;700;800&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #e0e0e0; display: flex; justify-content: center; padding: 2rem; }
-        .label { width: 4in; min-height: 6in; background: #fff; color: #000; display: flex; flex-direction: column; border: 1px solid #ccc; }
-        .hdr { padding: 12px 16px; border-bottom: 4px solid #000; display: flex; justify-content: space-between; align-items: center; }
+        body { font-family: 'Inter', sans-serif; background: #f8f9fa; display: flex; justify-content: center; padding: 2rem; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .label { width: 4in; min-height: 6in; background: #fff; color: #111; display: flex; flex-direction: column; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 2px solid #e9ecef; overflow: hidden; }
+        .hdr { padding: 16px; background: linear-gradient(135deg, #e63946 0%, #c1121f 100%); display: flex; justify-content: space-between; align-items: center; color: white; }
         .hdr .brand { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -1px; }
-        .hdr .type { font-weight: 800; font-size: 18px; border: 3px solid #000; padding: 4px 10px; border-radius: 6px; }
-        .from-to { display: flex; border-bottom: 4px solid #000; }
-        .addr-box { padding: 12px 16px; font-size: 13px; width: 50%; }
-        .addr-box.from { border-right: 2px solid #000; }
-        .box-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #000; margin-bottom: 6px; letter-spacing: 1px; }
-        .to-name { font-size: 16px; font-weight: 800; margin-bottom: 4px; text-transform: uppercase; }
-        .routing { border-bottom: 4px solid #000; padding: 16px; text-align: center; display: flex; align-items: center; justify-content: space-around; }
-        .routing h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 48px; font-weight: 800; letter-spacing: 2px; }
-        .routing .city { font-weight: 800; font-size: 24px; text-transform: uppercase; }
-        .barcode-area { padding: 20px 16px; text-align: center; border-bottom: 4px solid #000; flex-grow: 1; }
-        .barcode { font-family: 'Libre Barcode 39', cursive; font-size: 72px; line-height: 1; margin-bottom: 12px; font-weight: 400; }
+        .hdr .type { font-weight: 800; font-size: 14px; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .from-to { display: flex; border-bottom: 2px solid #e9ecef; }
+        .addr-box { padding: 16px; font-size: 13px; width: 50%; }
+        .addr-box.from { border-right: 2px solid #e9ecef; background: #fafafa; }
+        .addr-box.to { position: relative; }
+        .addr-box.to::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #e63946; }
+        .box-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #adb5bd; margin-bottom: 6px; letter-spacing: 1px; }
+        .box-title.red { color: #e63946; }
+        .to-name { font-size: 16px; font-weight: 800; margin-bottom: 4px; text-transform: uppercase; color: #111; }
+        .routing { border-bottom: 2px solid #e9ecef; padding: 16px; text-align: center; display: flex; align-items: center; justify-content: space-around; background: rgba(230,57,70,0.02); }
+        .routing h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 42px; font-weight: 800; letter-spacing: 2px; color: #c1121f; }
+        .routing .city { font-weight: 800; font-size: 20px; text-transform: uppercase; color: #495057; }
+        .barcode-area { padding: 20px 16px; text-align: center; border-bottom: 2px solid #e9ecef; flex-grow: 1; }
+        .barcode { font-family: 'Libre Barcode 39', cursive; font-size: 72px; line-height: 1; margin-bottom: 12px; font-weight: 400; color: #111; }
         .trk { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 1.5px; }
-        .carrier { font-size: 14px; color: #000; font-weight: 700; text-transform: uppercase; margin-top: 8px; border: 1px solid #000; display: inline-block; padding: 4px 12px; border-radius: 20px; }
-        .items { padding: 12px 16px; font-size: 11px; }
-        .item-line { display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; padding: 6px 0; font-weight: 500; }
-        .footer { padding: 10px; text-align: center; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 800; background: #000; color: #fff; text-transform: uppercase; letter-spacing: 2px; }
-        @media print { body { background: #fff; padding: 0; } .label { border: none; width: 100%; height: 100%; } }
+        .carrier { font-size: 12px; color: #e63946; font-weight: 800; text-transform: uppercase; margin-top: 8px; background: rgba(230,57,70,0.1); display: inline-block; padding: 6px 16px; border-radius: 20px; letter-spacing: 1px; }
+        .items { padding: 16px; font-size: 11px; }
+        .item-line { display: flex; justify-content: space-between; border-bottom: 1px dashed #e9ecef; padding: 8px 0; font-weight: 500; color: #495057; }
+        .footer { padding: 12px; text-align: center; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 800; background: #212529; color: #fff; text-transform: uppercase; letter-spacing: 2px; }
+        @media print { body { background: #fff; padding: 0; } .label { border-radius: 0; box-shadow: none; border: 1px solid #000; } .addr-box.to::before { display: none; } }
       </style>
     </head><body>
       <div class="label">
         <div class="hdr">
           <div class="brand">Swcart.</div>
-          <div class="type">EXPEDITED</div>
+          <div class="type">Expedited</div>
         </div>
         <div class="from-to">
           <div class="addr-box from">
@@ -150,10 +153,12 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
             New Delhi, India 110062
           </div>
           <div class="addr-box to">
-            <div class="box-title">Ship To</div>
+            <div class="box-title red">Deliver To</div>
             <div class="to-name">${order.user.name}</div>
-            ${addr ? `${addr.street}<br/>${addr.city}, ${addr.state} ${addr.postalCode}<br/>${addr.country}` : "Address not available"}<br/>
-            <div style="margin-top: 8px;"><strong>Ph:</strong> ${order.user.phone || "N/A"}</div>
+            <div style="color: #495057;">
+              ${addr ? `${addr.street}<br/>${addr.city}, ${addr.state} ${addr.postalCode}<br/>${addr.country}` : "Address not available"}
+            </div>
+            <div style="margin-top: 8px; color: #111;"><strong>Ph:</strong> ${order.user.phone || "N/A"}</div>
           </div>
         </div>
         <div class="routing">
@@ -164,14 +169,14 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
           <div class="box-title">Tracking Number</div>
           <div class="barcode">*${order.trackingNumber || order.id.slice(-8).toUpperCase()}*</div>
           <div class="trk">${order.trackingNumber || "PENDING ASSIGNMENT"}</div>
-          <div class="carrier">Carrier: ${order.shippingProvider || "Internal Logistics"}</div>
+          <div class="carrier">${order.shippingProvider || "Internal Logistics"}</div>
         </div>
         <div class="items">
           <div class="box-title">Package Contents (${items.length} items)</div>
-          ${items.map((i: any) => `<div class="item-line"><span>${i.variant.product.title.substring(0, 35)}...</span><strong>Qty: ${i.quantity}</strong></div>`).join("")}
-          <div class="item-line" style="border:none;margin-top:6px"><strong>Order Ref:</strong> #${order.id.slice(-8).toUpperCase()}</div>
+          ${items.map((i: any) => `<div class="item-line"><span>${i.variant.product.title.substring(0, 35)}...</span><strong style="color:#111">Qty: ${i.quantity}</strong></div>`).join("")}
+          <div class="item-line" style="border:none;margin-top:6px;color:#111"><strong>Order Ref:</strong> #${order.id.slice(-8).toUpperCase()}</div>
         </div>
-        <div class="footer">Do Not Drop &bull; Keep Dry</div>
+        <div class="footer">Handle With Care</div>
       </div>
       <script>window.onload = () => { window.print(); setTimeout(() => window.close(), 1000); }</script>
     </body></html>`);
@@ -186,50 +191,57 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
     win.document.write(`<!DOCTYPE html><html><head>
       <title>Tax Invoice — #${order.id.slice(-8).toUpperCase()}</title>
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Inter:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800;900&family=Inter:wght@400;500;600&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #e0e0e0; display: flex; justify-content: center; padding: 2rem; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: #111; }
-        .invoice { width: 800px; max-width: 100%; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .hdr { padding: 40px 40px 20px; border-bottom: 2px solid #111; display: flex; justify-content: space-between; align-items: flex-start; }
-        .brand { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 32px; font-weight: 800; color: #111; letter-spacing: -1px; display: flex; align-items: center; gap: 8px; }
+        .invoice { width: 850px; max-width: 100%; background: #f8f9fa; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 50px rgba(0,0,0,0.1); border: 1px solid #fff; }
+        .hdr { padding: 40px 48px 30px; background: linear-gradient(135deg, #1A1A24 0%, #2B2B3C 100%); color: white; display: flex; justify-content: space-between; align-items: flex-start; position: relative; overflow: hidden; }
+        .hdr::after { content: ""; position: absolute; right: -50px; top: -50px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(230,57,70,0.2) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+        .brand { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 36px; font-weight: 900; color: #fff; letter-spacing: -1px; display: flex; align-items: center; gap: 8px; position: relative; z-index: 1; }
         .brand .dot { color: #e63946; }
-        .hdr-info { text-align: right; }
-        .hdr-info .title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 800; color: #111; text-transform: uppercase; letter-spacing: 1px; }
-        .hdr-info .meta { font-size: 12px; color: #666; margin-top: 8px; }
-        .body-sec { padding: 32px 40px; }
-        .row-addr { display: flex; gap: 40px; margin-bottom: 32px; }
-        .addr-box { flex: 1; }
-        .addr-box .lbl { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
-        .addr-box strong { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: #111; display: block; margin-bottom: 4px; }
-        .addr-box div { font-size: 12px; color: #444; line-height: 1.5; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-        th { background: #111; padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 1px; border: 1px solid #111; }
-        td { padding: 12px; font-size: 12px; color: #222; border-bottom: 1px solid #eee; border-left: 1px solid #eee; border-right: 1px solid #eee; }
+        .hdr-info { text-align: right; position: relative; z-index: 1; }
+        .hdr-info .title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 28px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .hdr-info .meta { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 10px; }
+        .accent-bar { height: 6px; background: linear-gradient(90deg, #e63946 0%, #ffb703 100%); }
+        .body-sec { padding: 40px 48px; background: #fff; margin: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .row-addr { display: flex; gap: 40px; margin-bottom: 40px; }
+        .addr-box { flex: 1; background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e9ecef; }
+        .addr-box .lbl { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 800; color: #e63946; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .addr-box strong { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; color: #111; display: block; margin-bottom: 6px; }
+        .addr-box div { font-size: 13px; color: #495057; line-height: 1.6; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 32px; }
+        th { background: rgba(230,57,70,0.05); padding: 14px 16px; text-align: left; font-size: 11px; font-weight: 800; color: #c1121f; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(230,57,70,0.1); }
+        th:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+        th:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+        td { padding: 16px; font-size: 13px; color: #212529; border-bottom: 1px dashed #e9ecef; }
         .qty { text-align: center; }
         .right { text-align: right; }
-        .totals-sec { display: flex; justify-content: space-between; border-top: 2px solid #111; padding-top: 24px; margin-bottom: 24px; }
-        .notes { font-size: 11px; color: #666; width: 50%; line-height: 1.5; }
-        .tot-box { width: 40%; }
-        .tot-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; color: #444; }
-        .tot-row.bold { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 800; color: #111; border-top: 2px solid #111; padding-top: 12px; margin-top: 6px; }
-        .footer { padding: 20px 40px; text-align: center; font-size: 11px; color: #666; border-top: 1px solid #eee; background: #fafafa; }
-        @media print { body { padding: 0; background: #fff; } .invoice { border-radius: 0; box-shadow: none; border: none; } }
+        .totals-sec { display: flex; justify-content: space-between; align-items: flex-start; padding-top: 16px; }
+        .notes { font-size: 11px; color: #6c757d; width: 45%; line-height: 1.6; background: #f8f9fa; padding: 16px; border-radius: 12px; border-left: 4px solid #e9ecef; }
+        .tot-box { width: 45%; background: #fff; }
+        .tot-row { display: flex; justify-content: space-between; padding: 8px 16px; font-size: 14px; color: #495057; }
+        .tot-row.bold { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 800; color: #111; background: rgba(230,57,70,0.05); border-radius: 12px; padding: 16px; margin-top: 8px; border: 1px solid rgba(230,57,70,0.1); }
+        .tot-row.bold span:last-child { color: #e63946; }
+        .footer { padding: 24px 48px; text-align: center; font-size: 12px; color: #adb5bd; background: #1A1A24; color: rgba(255,255,255,0.6); }
+        .footer strong { color: white; font-family: 'Plus Jakarta Sans', sans-serif; }
+        @media print { body { padding: 0; background: #fff; } .invoice { border-radius: 0; box-shadow: none; border: none; margin: 0; } .body-sec { margin: 0; border-radius: 0; box-shadow: none; } .hdr { background: #111 !important; color: white !important; -webkit-print-color-adjust: exact; } .accent-bar { display: none; } }
       </style>
     </head><body>
       <div class="invoice">
         <div class="hdr">
           <div>
             <div class="brand">Swcart<span class="dot">.</span></div>
-            <div style="font-size:11px;color:#666;margin-top:4px;font-weight:500;">Marketplace Tax Invoice</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:6px;font-weight:600;letter-spacing:1px;text-transform:uppercase;">Marketplace Tax Invoice</div>
           </div>
           <div class="hdr-info">
             <div class="title">INVOICE</div>
             <div class="meta">
               <strong>Order Ref:</strong> #${order.id.slice(-8).toUpperCase()}<br/>
-              <strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+              <strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}
             </div>
           </div>
         </div>
+        <div class="accent-bar"></div>
         <div class="body-sec">
           <div class="row-addr">
             <div class="addr-box">
@@ -248,20 +260,21 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
             <thead><tr><th>#</th><th>Description</th><th>SKU</th><th class="qty">Qty</th><th class="right">Unit Price</th><th class="right">Total</th></tr></thead>
             <tbody>
               ${items.map((i: any, idx: number) => `<tr>
-                <td style="color:#888">${idx + 1}</td>
-                <td><strong style="color:#111;display:block;margin-bottom:2px">${i.variant.product.title}</strong><span style="color:#666;font-size:10px">${i.variant.size ? `Size: ${i.variant.size}` : ""} ${i.variant.color ? `Color: ${i.variant.color}` : ""}</span></td>
-                <td style="font-family:monospace;font-size:11px;color:#555">${i.variant.sku}</td>
-                <td class="qty fw-bold text-dark">${i.quantity}</td>
-                <td class="right">₹${i.priceAtBuy.toLocaleString("en-IN")}</td>
-                <td class="right"><strong style="color:#111">₹${(i.quantity * i.priceAtBuy).toLocaleString("en-IN")}</strong></td>
+                <td style="color:#adb5bd;font-weight:600">${idx + 1}</td>
+                <td><strong style="color:#111;display:block;margin-bottom:4px;font-size:14px">${i.variant.product.title}</strong><span style="color:#6c757d;font-size:11px;background:#f8f9fa;padding:2px 8px;border-radius:10px;">${i.variant.size ? `Size: ${i.variant.size}` : ""} ${i.variant.color ? `Color: ${i.variant.color}` : ""}</span></td>
+                <td style="font-family:monospace;font-size:12px;color:#6c757d">${i.variant.sku}</td>
+                <td class="qty"><span style="background:rgba(230,57,70,0.1);color:#e63946;font-weight:800;padding:4px 10px;border-radius:12px;">${i.quantity}</span></td>
+                <td class="right fw-semibold text-secondary">₹${i.priceAtBuy.toLocaleString("en-IN")}</td>
+                <td class="right"><strong style="color:#111;font-size:14px;">₹${(i.quantity * i.priceAtBuy).toLocaleString("en-IN")}</strong></td>
               </tr>`).join("")}
             </tbody>
           </table>
           <div class="totals-sec">
             <div class="notes">
-              <strong>Terms & Conditions</strong><br/>
+              <strong style="color:#495057">Terms & Conditions</strong><br/>
               1. All claims must be made within 7 days of delivery.<br/>
-              2. This is a computer generated invoice and does not require a physical signature.
+              2. This is a computer generated invoice and does not require a physical signature.<br/>
+              3. Returns are subject to seller approval.
             </div>
             <div class="tot-box">
               <div class="tot-row"><span>Subtotal</span><strong>₹${totalEarnings.toLocaleString("en-IN")}</strong></div>
