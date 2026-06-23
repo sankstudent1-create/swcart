@@ -1,87 +1,66 @@
 import { checkSuperAdmin } from "@/app/actions/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { updateSettingsAction } from "@/app/actions/admin";
+import { updateSettingsAction } from "@/app/actions/admin-modules";
 
-export default async function AdminSettingsPage() {
+export default async function SettingsPage() {
   const isSuperAdmin = await checkSuperAdmin();
   if (!isSuperAdmin) redirect("/");
 
-  const settings = await prisma.siteSetting.findUnique({ where: { id: "GLOBAL" } });
+  let settings = await prisma.siteSetting.findUnique({ where: { id: "GLOBAL" } });
+  if (!settings) {
+    settings = await prisma.siteSetting.create({
+      data: { id: "GLOBAL", brandName: "Swcart", defaultGst: 18, deliveryFee: 50, freeShippingThresh: 499 }
+    });
+  }
 
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 className="fw-bold mb-1 text-dark">Global Settings</h2>
-          <p className="text-muted mb-0">Configure your store's core parameters.</p>
-        </div>
+        <h2 className="fw-bold mb-0 text-dark">Global Settings</h2>
       </div>
       
-      <div className="row g-4">
-        <div className="col-lg-8">
-          <div className="bg-white p-4 p-md-5 rounded-4 shadow-sm border-0">
-            <form action={updateSettingsAction as any}>
-              <h5 className="fw-bold mb-4 d-flex align-items-center"><i className="bi bi-truck fs-4 me-2 text-primary"></i> Shipping & Delivery</h5>
-              <div className="row g-4 mb-5">
-                <div className="col-md-6">
-                  <label className="form-label fw-bold text-muted small text-uppercase" style={{ letterSpacing: "0.5px" }}>Base Delivery Fee (₹)</label>
-                  <input type="number" name="deliveryFee" className="form-control form-control-lg bg-light border-0 shadow-sm fw-semibold" defaultValue={settings?.deliveryFee || 50} required />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label fw-bold text-muted small text-uppercase" style={{ letterSpacing: "0.5px" }}>Free Shipping Threshold (₹)</label>
-                  <input type="number" name="freeShippingThresh" className="form-control form-control-lg bg-light border-0 shadow-sm fw-semibold" defaultValue={settings?.freeShippingThresh || 499} required />
-                </div>
-              </div>
+      <div className="bg-white p-4 p-md-5 rounded-4 shadow-sm border-0">
+        <form action={updateSettingsAction as any}>
+          <div className="row g-4">
+            <div className="col-12">
+              <h5 className="fw-bold mb-3 border-bottom pb-2">Brand Identity</h5>
+            </div>
+            <div className="col-md-4">
+              <label className="form-label text-muted small fw-bold text-uppercase">Brand Name</label>
+              <input type="text" name="brandName" className="form-control rounded-3" defaultValue={settings.brandName} required />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label text-muted small fw-bold text-uppercase">Support Email</label>
+              <input type="email" name="contactEmail" className="form-control rounded-3" defaultValue={settings.contactEmail || ""} />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label text-muted small fw-bold text-uppercase">Support Phone</label>
+              <input type="text" name="contactPhone" className="form-control rounded-3" defaultValue={settings.contactPhone || ""} />
+            </div>
 
-              <h5 className="fw-bold mb-4 d-flex align-items-center"><i className="bi bi-receipt fs-4 me-2 text-success"></i> Taxes & Support</h5>
-              <div className="row g-4 mb-5">
-                <div className="col-md-6">
-                  <label className="form-label fw-bold text-muted small text-uppercase" style={{ letterSpacing: "0.5px" }}>Default GST (%)</label>
-                  <input type="number" name="defaultGst" className="form-control form-control-lg bg-light border-0 shadow-sm fw-semibold" defaultValue={settings?.defaultGst || 18} required />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label fw-bold text-muted small text-uppercase" style={{ letterSpacing: "0.5px" }}>Support Email</label>
-                  <input type="email" name="contactEmail" className="form-control form-control-lg bg-light border-0 shadow-sm fw-semibold" defaultValue={settings?.contactEmail || "support@swcart.com"} required />
-                </div>
-              </div>
-
-              <h5 className="fw-bold mb-4 d-flex align-items-center"><i className="bi bi-shop fs-4 me-2 text-warning"></i> Sellers & Vendors</h5>
-              <div className="row g-4 mb-5">
-                <div className="col-12">
-                  <div className="form-check form-switch bg-light p-3 rounded-3 shadow-sm d-flex align-items-center justify-content-between">
-                    <div className="ms-2">
-                      <label className="form-check-label fw-bold text-dark" htmlFor="autoApproveSellers">Auto-Approve Seller Applications</label>
-                      <div className="text-muted small">Immediately grant seller accounts and roles upon submission without manual approval.</div>
-                    </div>
-                    <input className="form-check-input me-2" type="checkbox" name="autoApproveSellers" id="autoApproveSellers" value="true" defaultChecked={settings?.autoApproveSellers !== false} style={{ width: "3em", height: "1.5em", cursor: "pointer" }} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="d-flex justify-content-end pt-3 border-top">
-                <button type="submit" className="btn btn-dark btn-lg rounded-pill px-5 shadow-sm fw-bold hover-scale transition-all">Save Changes</button>
-              </div>
-            </form>
+            <div className="col-12 mt-5">
+              <h5 className="fw-bold mb-3 border-bottom pb-2">Fees & Logistics</h5>
+            </div>
+            <div className="col-md-4">
+              <label className="form-label text-muted small fw-bold text-uppercase">Default GST (%)</label>
+              <input type="number" name="defaultGst" step="0.1" className="form-control rounded-3" defaultValue={settings.defaultGst} required />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label text-muted small fw-bold text-uppercase">Base Delivery Fee (₹)</label>
+              <input type="number" name="deliveryFee" className="form-control rounded-3" defaultValue={settings.deliveryFee} required />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label text-muted small fw-bold text-uppercase">Free Shipping Threshold (₹)</label>
+              <input type="number" name="freeShippingThresh" className="form-control rounded-3" defaultValue={settings.freeShippingThresh} required />
+            </div>
           </div>
-        </div>
 
-        <div className="col-lg-4">
-          <div className="bg-primary bg-opacity-10 p-4 rounded-4 border border-primary border-opacity-25 h-100">
-            <h5 className="fw-bold text-primary mb-3"><i className="bi bi-info-circle-fill me-2"></i> How it works</h5>
-            <p className="text-muted small">These settings instantly apply to the live storefront.</p>
-            <ul className="text-muted small ps-3">
-              <li className="mb-2"><strong>Base Delivery Fee</strong>: Added to all carts below the free shipping threshold.</li>
-              <li className="mb-2"><strong>Free Shipping Threshold</strong>: Carts above this amount will not be charged the delivery fee.</li>
-              <li className="mb-2"><strong>Default GST</strong>: The tax rate applied to products if no specific category tax is defined.</li>
-            </ul>
+          <div className="mt-5 d-flex justify-content-end">
+            <button type="submit" className="btn btn-danger rounded-pill px-5 fw-bold shadow-sm">Save Settings</button>
           </div>
-        </div>
+        </form>
       </div>
-      <style>{`
-        .hover-scale:hover { transform: scale(1.02); }
-        .transition-all { transition: all 0.2s ease-in-out; }
-      `}</style>
     </div>
   );
 }

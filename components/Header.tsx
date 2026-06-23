@@ -13,12 +13,14 @@ export default async function Header() {
     const [cart, wish, dbUser] = await Promise.all([
       prisma.cart.findUnique({ where: { userId }, include: { items: true } }),
       prisma.wishlist.findUnique({ where: { userId }, include: { items: true } }),
-      prisma.user.findUnique({ where: { id: userId } })
+      prisma.user.findUnique({ where: { id: userId }, include: { roles: { include: { role: true } } } })
     ]);
     cartCount = cart?.items.reduce((acc, item) => acc + item.quantity, 0) || 0;
     wishCount = wish?.items.length || 0;
     user = dbUser;
   }
+
+  const isSeller = user?.roles?.some((r: any) => r.role.name === "SELLER") || false;
 
   return (
     <>
@@ -174,6 +176,12 @@ export default async function Header() {
               <a href="/help" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all">
                 <i className="bi bi-question-circle fs-5 text-danger"></i> Help Center
               </a>
+
+              {isSeller && (
+                <a href="/seller/dashboard" className="text-warning text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all fw-bold mt-2" style={{ background: "rgba(255, 193, 7, 0.05)", border: "1px solid rgba(255, 193, 7, 0.15)" }}>
+                  <i className="bi bi-shop fs-5"></i> Seller Dashboard
+                </a>
+              )}
 
               {isSuperAdmin && (
                 <a href="/spr/admin" className="text-danger text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all fw-bold mt-2" style={{ background: "rgba(232, 71, 42, 0.05)", border: "1px solid rgba(232, 71, 42, 0.15)" }}>
