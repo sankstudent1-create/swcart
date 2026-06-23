@@ -37,6 +37,16 @@ export default async function WarehousePage() {
     where: { id: { not: warehouseId } }
   });
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const analytics = {
+    outForDelivery: await prisma.order.count({ where: { assignedWarehouseId: warehouseId, status: "SHIPPED", deliveryPersonId: { not: null } } }),
+    deliveredToday: await prisma.order.count({ where: { assignedWarehouseId: warehouseId, status: "DELIVERED", updatedAt: { gte: today } } }),
+    inTransitToHere: inboundOrders.length,
+    readyForSort: atHubOrders.length
+  };
+
   return (
     <WarehouseDashboard 
       warehouse={staffRecord.warehouse} 
@@ -44,6 +54,7 @@ export default async function WarehousePage() {
       atHubOrders={atHubOrders}
       localAgents={localAgents} 
       allWarehouses={allWarehouses}
+      analytics={analytics}
     />
   );
 }

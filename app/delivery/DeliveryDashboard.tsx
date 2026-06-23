@@ -4,7 +4,7 @@ import React, { useTransition } from "react";
 import { updateDeliveryStatusAction } from "@/app/actions/delivery";
 import { toast } from "sonner";
 
-export default function DeliveryDashboard({ deliveryPerson }: { deliveryPerson: any }) {
+export default function DeliveryDashboard({ deliveryPerson, analytics }: { deliveryPerson: any, analytics?: any }) {
   const [isPending, startTransition] = useTransition();
 
   const handleUpdate = (orderId: string, status: string, location: string) => {
@@ -25,6 +25,21 @@ export default function DeliveryDashboard({ deliveryPerson }: { deliveryPerson: 
         <div>
           <div className="text-muted small text-uppercase fw-bold" style={{ letterSpacing: "1px" }}>On Duty</div>
           <div className="fw-bold fs-5">{deliveryPerson.vehicle ? `${deliveryPerson.vehicle.type} (${deliveryPerson.vehicle.licensePlate})` : "No Vehicle"}</div>
+        </div>
+      </div>
+
+      <div className="row g-3 mb-4">
+        <div className="col-6">
+          <div className="bg-white text-dark p-3 rounded-4 shadow-sm border text-center h-100 d-flex flex-column justify-content-center" style={{ borderBottom: "4px solid var(--bs-warning) !important" }}>
+            <div className="text-muted small fw-bold text-uppercase mb-1">Pending</div>
+            <div className="fs-3 fw-bold text-warning">{analytics?.pendingTotal || 0}</div>
+          </div>
+        </div>
+        <div className="col-6">
+          <div className="bg-white text-dark p-3 rounded-4 shadow-sm border text-center h-100 d-flex flex-column justify-content-center" style={{ borderBottom: "4px solid var(--bs-success) !important" }}>
+            <div className="text-muted small fw-bold text-uppercase mb-1">Delivered Today</div>
+            <div className="fs-3 fw-bold text-success">{analytics?.completedToday || 0}</div>
+          </div>
         </div>
       </div>
 

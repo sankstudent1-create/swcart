@@ -13,7 +13,7 @@ export default async function DeliveryPage() {
       include: {
         vehicle: true,
         orders: {
-          where: { status: { not: "DELIVERED" } },
+          where: { status: { in: ["SHIPPED", "PROCESSING"] } }, // OUT_FOR_DELIVERY is represented by SHIPPED in our app basically, processing is failed attempt
           include: { shippingAddress: true, user: true },
           orderBy: { createdAt: "asc" }
         }
@@ -22,7 +22,15 @@ export default async function DeliveryPage() {
 
     if (!deliveryPerson) redirect("/");
 
-    return <DeliveryDashboard deliveryPerson={deliveryPerson} />;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const driverAnalytics = {
+      completedToday: await prisma.order.count({ where: { deliveryPersonId: deliveryPerson.id, status: "DELIVERED", updatedAt: { gte: today } } }),
+      pendingTotal: deliveryPerson.orders.length
+    };
+
+    return <DeliveryDashboard deliveryPerson={deliveryPerson} analytics={driverAnalytics} />;
   } catch (error: any) {
     if (error.message === "NEXT_REDIRECT") throw error;
     return (
