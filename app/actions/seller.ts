@@ -528,9 +528,42 @@ export async function processReturnAction(sellerOrderId: string, action: "APPROV
         })
       ]);
       revalidatePath("/seller/returns");
-      return { success: true, message: "Return request rejected" };
+      return { success: true, message: "Return rejected" };
     }
   } catch (error: any) {
     return { success: false, message: error.message || "Failed to process return" };
+  }
+}
+
+export async function replyToReviewAction(reviewId: string, reply: string) {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, message: "Unauthorized" };
+
+  try {
+    const seller = await prisma.seller.findUnique({ where: { userId } });
+    if (!seller) return { success: false, message: "Seller profile not found" };
+
+    const review = await prisma.review.findUnique({
+      where: { id: reviewId },
+      include: { product: true }
+    });
+
+    if (!review || review.product.sellerId !== seller.id) {
+      return { success: false, message: "Review not found or unauthorized" };
+    }
+
+    await prisma.review.update({
+      where: { id: reviewId },
+      data: {
+        sellerReply: reply.trim() || null,
+        replyCreatedAt: new Date()
+      }
+    });
+
+    revalidatePath("/seller/reviews");
+    revalidatePath(`/product/${review.productId}`);
+    return { success: true, message: "Reply submitted successfully!" };
+  } catch (error: any) {
+    return { success: false, message: error.message || "Failed to submit reply" };
   }
 }

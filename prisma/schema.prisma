@@ -240,13 +240,15 @@ model WishlistItem {
 }
 
 model Review {
-  id        String   @id @default(cuid())
-  userId    String
-  productId String
-  rating    Int
-  comment   String?
-  mediaUrls String[]
-  createdAt DateTime @default(now())
+  id             String    @id @default(cuid())
+  userId         String
+  productId      String
+  rating         Int
+  comment        String?
+  sellerReply    String?
+  replyCreatedAt DateTime?
+  mediaUrls      String[]
+  createdAt      DateTime  @default(now())
 
   user    User    @relation(fields: [userId], references: [id])
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)

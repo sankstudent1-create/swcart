@@ -23,6 +23,8 @@ export default async function SellerLayout({ children }: { children: React.React
     { href: "/seller/dashboard", label: "Dashboard", icon: "bi-speedometer2" },
     { href: "/seller/products", label: "Products Catalog", icon: "bi-box-seam" },
     { href: "/seller/orders", label: "Logistics ERP", icon: "bi-receipt" },
+    { href: "/seller/returns", label: "Returns Center", icon: "bi-arrow-return-left" },
+    { href: "/seller/reviews", label: "Customer Reviews", icon: "bi-star-half" },
     { href: "/seller/settings", label: "Store Settings", icon: "bi-gear" },
   ];
 

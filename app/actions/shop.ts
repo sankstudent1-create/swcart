@@ -306,9 +306,53 @@ export async function requestRefundAction(sellerOrderId: string, reason: string)
     ]);
 
     revalidatePath("/profile");
-    return { success: true, message: "Return requested successfully" };
-  } catch (error) {
-    console.error(error);
-    return { success: false, message: "Failed to request return" };
+    return { success: true, message: "Refund requested successfully" };
+  } catch (error: any) {
+    return { success: false, message: error.message || "Failed to request refund" };
+  }
+}
+
+export async function submitReviewAction(productId: string, rating: number, comment: string) {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, message: "Please log in to leave a review." };
+
+  try {
+    // Verify purchase
+    const purchased = await prisma.orderItem.findFirst({
+      where: {
+        variant: { productId },
+        sellerOrder: {
+          order: { userId },
+          status: "DELIVERED"
+        }
+      }
+    });
+
+    if (!purchased) {
+      return { success: false, message: "You can only review products that you have successfully purchased and received." };
+    }
+
+    // Check if already reviewed
+    const existing = await prisma.review.findFirst({
+      where: { userId, productId }
+    });
+
+    if (existing) {
+      return { success: false, message: "You have already reviewed this product." };
+    }
+
+    await prisma.review.create({
+      data: {
+        userId,
+        productId,
+        rating,
+        comment: comment.trim() || null
+      }
+    });
+
+    revalidatePath(`/product/${productId}`);
+    return { success: true, message: "Review submitted successfully!" };
+  } catch (err: any) {
+    return { success: false, message: err.message || "Failed to submit review" };
   }
 }

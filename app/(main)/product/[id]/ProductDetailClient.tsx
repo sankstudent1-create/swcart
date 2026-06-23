@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import ProductActions from "@/components/ProductActions";
+import ReviewForm from "./ReviewForm";
 
 interface ProductVariant {
   id: string;
@@ -21,6 +22,8 @@ interface Review {
   userName: string;
   userAvatar: string | null;
   createdAt: string;
+  sellerReply?: string | null;
+  replyCreatedAt?: string | null;
 }
 
 interface ProductQuestion {
@@ -310,10 +313,13 @@ export default function ProductDetailClient({ product: p }: { product: Product }
         )}
 
         {/* Reviews Section */}
-        {p.reviews.length > 0 && (
-          <div className="mt-5 pt-5 border-top">
-            <h3 className="fw-bold mb-4">Customer Reviews</h3>
-            <div className="row g-4">
+        <div className="mt-5 pt-5 border-top" id="reviews">
+          <h3 className="fw-bold mb-4">Customer Reviews</h3>
+          
+          <ReviewForm productId={p.id} />
+
+          {p.reviews.length > 0 ? (
+            <div className="row g-4 mt-2">
               {p.reviews.map(review => (
                 <div key={review.id} className="col-md-6">
                   <div className="border rounded-4 p-4">
@@ -358,12 +364,33 @@ export default function ProductDetailClient({ product: p }: { product: Product }
                         ))}
                       </div>
                     )}
+
+                    {/* Seller Reply */}
+                    {review.sellerReply && (
+                      <div className="mt-3 p-3 rounded-3" style={{ background: "rgba(230, 57, 70, 0.05)", borderLeft: "4px solid var(--red)" }}>
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                          <span className="fw-bold" style={{ color: "var(--red)", fontSize: ".85rem" }}>
+                            <i className="bi bi-shop me-1"></i> Response from Seller
+                          </span>
+                          {review.replyCreatedAt && (
+                            <span className="text-muted" style={{ fontSize: ".7rem" }}>
+                              {new Date(review.replyCreatedAt).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mb-0" style={{ fontSize: ".9rem", color: "#444" }}>
+                          {review.sellerReply}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-muted text-center py-5">No reviews yet. Be the first to review!</div>
+          )}
+        </div>
       </section>
     </main>
   );
