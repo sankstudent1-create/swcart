@@ -53,13 +53,13 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       <div className="profile-hero">
         <div className="container text-center pt-4 pb-2">
           <h1 className="font-jakarta fw-bolder text-dark mb-2">My Profile</h1>
-          <p className="font-inter text-muted">Manage your account, orders, and preferences.</p>
+          <p className="font-jakarta text-muted">Manage your account, orders, and preferences.</p>
         </div>
       </div>
 
-      <div className="container pb-5 font-inter" style={{ minHeight: "60vh", marginTop: "-1rem" }}>
+      <div className="container pb-5 font-jakarta" style={{ minHeight: "60vh", marginTop: "-1rem" }}>
         {params.success === "true" && (
-          <div className="alert alert-success mb-4 rounded-4 shadow-sm border-0 d-flex align-items-center font-inter" style={{background: "#e8f7ec", color: "#1c7430"}}>
+          <div className="alert alert-success mb-4 rounded-4 shadow-sm border-0 d-flex align-items-center font-jakarta" style={{background: "#e8f7ec", color: "#1c7430"}}>
             <i className="bi bi-check-circle-fill me-3 fs-4"></i> 
             <strong>Success!</strong>&nbsp;Your order has been placed successfully.
           </div>
@@ -157,7 +157,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                             <div className="text-md-end">
                               <div className="fw-bold font-jakarta text-dark fs-4">₹{order.totalAmount.toLocaleString('en-IN')}</div>
                               <div className="d-flex align-items-center gap-2 mt-2 flex-wrap">
-                                <span className={`badge rounded-pill px-3 py-2 border font-inter ${order.status === 'PAID' || order.status === 'DELIVERED' ? 'bg-success bg-opacity-10 text-success border-success border-opacity-25' : 'bg-warning bg-opacity-10 text-warning border-warning border-opacity-50'}`}>
+                                <span className={`badge rounded-pill px-3 py-2 border font-jakarta ${order.status === 'PAID' || order.status === 'DELIVERED' ? 'bg-success bg-opacity-10 text-success border-success border-opacity-25' : 'bg-warning bg-opacity-10 text-warning border-warning border-opacity-50'}`}>
                                   {order.status}
                                 </span>
                                 <Link href={`/track-order?id=${order.id}`} className="btn btn-sm btn-dark rounded-pill px-3 fw-semibold"><i className="bi bi-geo-alt-fill me-1 text-danger"></i> Track</Link>
