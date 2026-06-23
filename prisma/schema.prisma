@@ -24,6 +24,7 @@ model User {
   customerProfile   CustomerProfile?
   sellerProfile     Seller?
   deliveryProfile   DeliveryPerson?
+  warehouseStaff    WarehouseStaff?
 
   orders            Order[]
   reviews           Review[]
@@ -239,6 +240,8 @@ model Order {
   coupon           Coupon?     @relation(fields: [couponId], references: [id])
   deliveryPersonId String?
   deliveryPerson   DeliveryPerson? @relation(fields: [deliveryPersonId], references: [id])
+  assignedWarehouseId String?
+  assignedWarehouse   Warehouse?  @relation(fields: [assignedWarehouseId], references: [id])
 }
 
 model OrderItem {
@@ -284,6 +287,17 @@ model Warehouse {
   name      String
   location  String
   inventory Inventory[]
+  staff     WarehouseStaff[]
+  deliveryPersons DeliveryPerson[]
+  orders    Order[]
+}
+
+model WarehouseStaff {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  warehouseId String
+  user        User      @relation(fields: [userId], references: [id])
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
 }
 
 model ShippingProvider {
@@ -303,7 +317,9 @@ model DeliveryPerson {
   id        String   @id @default(cuid())
   userId    String   @unique
   vehicleId String?
+  warehouseId String?
   user      User     @relation(fields: [userId], references: [id])
+  warehouse Warehouse? @relation(fields: [warehouseId], references: [id])
   routes    Route[]
   orders    Order[]
 }

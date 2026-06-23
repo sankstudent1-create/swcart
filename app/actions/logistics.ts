@@ -52,7 +52,7 @@ export async function deleteVehicleAction(id: string) {
   }
 }
 
-export async function assignDeliveryAgentAction(userId: string, vehicleId: string | null) {
+export async function assignDeliveryAgentAction(userId: string, vehicleId: string | null, warehouseId: string | null) {
   const isSuperAdmin = await checkSuperAdmin();
   if (!isSuperAdmin) return { success: false, message: "Unauthorized" };
   try {
@@ -67,8 +67,8 @@ export async function assignDeliveryAgentAction(userId: string, vehicleId: strin
     // Upsert DeliveryPerson profile
     await prisma.deliveryPerson.upsert({
       where: { userId },
-      update: { vehicleId: vehicleId || null },
-      create: { userId, vehicleId: vehicleId || null }
+      update: { vehicleId: vehicleId || null, warehouseId: warehouseId || null },
+      create: { userId, vehicleId: vehicleId || null, warehouseId: warehouseId || null }
     });
     
     revalidatePath("/spr/admin/logistics");
@@ -78,16 +78,40 @@ export async function assignDeliveryAgentAction(userId: string, vehicleId: strin
   }
 }
 
-export async function dispatchOrderAction(orderId: string, deliveryPersonId: string) {
+export async function assignWarehouseStaffAction(userId: string, warehouseId: string) {
+  const isSuperAdmin = await checkSuperAdmin();
+  if (!isSuperAdmin) return { success: false, message: "Unauthorized" };
+  try {
+    let role = await prisma.role.findUnique({ where: { name: "WAREHOUSE_MANAGER" } });
+    if (!role) role = await prisma.role.create({ data: { name: "WAREHOUSE_MANAGER" } });
+    await prisma.userRole.upsert({
+      where: { userId_roleId: { userId, roleId: role.id } },
+      update: {}, create: { userId, roleId: role.id }
+    });
+
+    await prisma.warehouseStaff.upsert({
+      where: { userId },
+      update: { warehouseId },
+      create: { userId, warehouseId }
+    });
+
+    revalidatePath("/spr/admin/logistics");
+    return { success: true, message: "Warehouse Manager assigned" };
+  } catch (err: any) {
+    return { success: false, message: err.message || "Failed to assign warehouse manager" };
+  }
+}
+
+export async function dispatchOrderAction(orderId: string, assignedWarehouseId: string) {
   const isSuperAdmin = await checkSuperAdmin();
   if (!isSuperAdmin) return { success: false, message: "Unauthorized" };
   try {
     await prisma.order.update({
       where: { id: orderId },
       data: {
-        deliveryPersonId,
+        assignedWarehouseId,
         shippingProvider: "Internal Delivery",
-        status: "SHIPPED",
+        status: "PROCESSING", // Still processing at hub
         trackingNumber: "SW-" + Date.now().toString().slice(-8)
       }
     });
@@ -95,8 +119,8 @@ export async function dispatchOrderAction(orderId: string, deliveryPersonId: str
     await prisma.trackingHistory.create({
       data: {
         orderId,
-        status: "Shipped",
-        location: "Warehouse Dispatch",
+        status: "Routed to Hub",
+        location: "Central Sortation",
       }
     });
     revalidatePath("/spr/admin/logistics");
