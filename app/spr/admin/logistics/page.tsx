@@ -13,7 +13,7 @@ export default async function LogisticsPage() {
     include: { user: true, orders: { where: { status: "SHIPPED" } } }
   });
   const users = await prisma.user.findMany({
-    where: { roleMappings: { none: { role: { name: "DELIVERY" } } } }
+    where: { roles: { none: { role: { name: "DELIVERY" } } } }
   });
   
   // Orders pending dispatch (Internal Delivery, but no deliveryPersonId assigned)
