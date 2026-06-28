@@ -74,12 +74,33 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
       map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: false });
       leafletMapRef.current = map;
 
-      // OpenStreetMap tiles (free, no API key)
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 18,
-      }).addTo(map);
+      // -------------------------------------------------------
+      // TILE LAYER: MapmyIndia Mappls (India's official map)
+      // Shows correct political boundaries as per Survey of India.
+      // Requires NEXT_PUBLIC_MAPPLS_KEY env var.
+      // Falls back to OpenStreetMap if key not configured.
+      // -------------------------------------------------------
+      const mapplsKey = process.env.NEXT_PUBLIC_MAPPLS_KEY;
+
+      if (mapplsKey) {
+        // Mappls REST Maps tile layer — official Indian map authority
+        L.tileLayer(
+          `https://apis.mapmyindia.com/advancedmaps/v1/${mapplsKey}/still_m/{z}/{x}/{y}.png`,
+          {
+            attribution:
+              '&copy; <a href="https://www.mappls.com" target="_blank">MapmyIndia</a> | &copy; <a href="https://www.surveyofindia.gov.in" target="_blank">Survey of India</a>',
+            maxZoom: 18,
+            minZoom: 4,
+          }
+        ).addTo(map);
+      } else {
+        // Fallback — OpenStreetMap (note: uses disputed borders in some regions)
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 18,
+        }).addTo(map);
+      }
 
       // Fit map to all markers
       const bounds = L.latLngBounds(positions);
