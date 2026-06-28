@@ -46,7 +46,25 @@ export async function POST(req: NextRequest) {
       },
     });
     if (!enrollment) {
-      return NextResponse.json({ error: "Not enrolled" }, { status: 403 });
+      // Fallback: check if they bought it via a paid/delivered order
+      const paidOrder = await prisma.order.findFirst({
+        where: {
+          userId,
+          status: { in: ["DELIVERED", "COMPLETED"] },
+          sellerOrders: {
+            some: {
+              items: {
+                some: {
+                  variant: { product: { id: lesson.chapter.productId } }
+                }
+              }
+            }
+          }
+        }
+      });
+      if (!paidOrder) {
+        return NextResponse.json({ error: "Not enrolled" }, { status: 403 });
+      }
     }
   }
 

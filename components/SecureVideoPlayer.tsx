@@ -191,7 +191,7 @@ export default function SecureVideoPlayer({
     let id = "";
     if (url.includes("youtu.be/")) id = url.split("youtu.be/")[1]?.split("?")[0];
     else if (url.includes("v=")) id = url.split("v=")[1]?.split("&")[0];
-    return `https://www.youtube.com/embed/${id}?autoplay=0&rel=0`;
+    return `https://www.youtube.com/embed/${id}?autoplay=0&rel=0&modestbranding=1&showinfo=0&iv_load_policy=3`;
   };
 
   return (
