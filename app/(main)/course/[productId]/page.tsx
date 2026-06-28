@@ -207,8 +207,6 @@ export default async function CoursePage({ params }: Props) {
                       href={`/course/${productId}/lesson/${nextLesson.id}`}
                       className="btn btn-danger btn-lg px-4 py-2 shadow-sm d-inline-flex align-items-center gap-2"
                       style={{ borderRadius: 14, fontWeight: 700, transition: "transform 0.2s ease" }}
-                      onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
-                      onMouseOut={(e) => (e.currentTarget.style.transform = "none")}
                     >
                       <PlayCircle size={20} />
                       {totalCompleted === 0 ? "Start Course" : "Continue Learning"}
@@ -219,8 +217,6 @@ export default async function CoursePage({ params }: Props) {
                     href={`/product/${productId}`}
                     className="btn btn-warning btn-lg px-4 py-2 shadow-sm d-inline-flex align-items-center gap-2 text-dark"
                     style={{ borderRadius: 14, fontWeight: 800, transition: "transform 0.2s ease" }}
-                    onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
-                    onMouseOut={(e) => (e.currentTarget.style.transform = "none")}
                   >
                     <Lock size={18} />
                     Enroll Now
@@ -300,12 +296,6 @@ export default async function CoursePage({ params }: Props) {
                             gap: 16,
                             transition: "all 0.2s ease",
                             background: done ? "rgba(42,157,143,0.02)" : "transparent",
-                          }}
-                          onMouseOver={(e) => {
-                            if (canAccess) e.currentTarget.style.background = "#f8f9fa";
-                          }}
-                          onMouseOut={(e) => {
-                            e.currentTarget.style.background = done ? "rgba(42,157,143,0.02)" : "transparent";
                           }}
                         >
                           {/* Status Icon */}
