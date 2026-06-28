@@ -1,6 +1,34 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import "./track.css"; // We'll add this below for custom animations
+const pincodeToLatLng = (pincode: string | null | undefined): [number, number] => {
+  if (!pincode) return [0, 0];
+  const map: Record<string, [number, number]> = {
+    "560001": [12.9716, 77.5946], // Bangalore
+    "110001": [28.6139, 77.2090], // Delhi
+    "400001": [18.9388, 72.8355], // Mumbai
+    "600001": [13.0827, 80.2707], // Chennai
+    // Add more mappings as needed
+  };
+  return map[pincode] || [0, 0];
+};
+
+
+const checkpoints = order ? [
+  {
+    name: order.sellerOrders?.[0]?.seller?.companyName || "Seller Dispatch",
+    position: pincodeToLatLng(order.sellerOrders?.[0]?.seller?.pickupPincode),
+  },
+  {
+    name: "Hub",
+    position: pincodeToLatLng(order.assignedWarehouse?.pincodes?.[0]),
+  },
+  {
+    name: "Delivery Address",
+    position: pincodeToLatLng(order.shippingAddress?.postalCode),
+  },
+] : [];
+
+
 import PrintTrackingBtn from "./PrintTrackingBtn";
 
 export default async function TrackOrderPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
@@ -9,6 +37,7 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
 
   let order = null;
   let errorMsg = "";
+  
 
   if (orderId) {
     try {
@@ -36,7 +65,8 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
                 }
               }
             }
-          }
+          },
+          assignedWarehouse: { select: { pincodes: true, location: true } },
         }
       });
       if (!order) {
@@ -231,7 +261,24 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
               </div>
             </div>
 
-            <div className="row g-4">
+{/* Map Section */}
+<div className="my-5">
+  <TrackingMap
+    checkpoints={[
+      {
+        name: order.sellerOrders?.[0]?.seller?.companyName || "Seller Dispatch",
+        position: [40.7128, -74.0060],
+      },
+      { name: "Sorting Center", position: [41.8781, -87.6298] },
+      { name: "In Transit", position: [39.9526, -75.1652] },
+      {
+        name: order.shippingAddress?.city || "Delivery Address",
+        position: [34.0522, -118.2437],
+      },
+    ]}
+  />
+</div>
+<div className="row g-4">
               {/* Package Details */}
               <div className="col-md-6">
                 <div className="glass-panel p-4 h-100 shadow-sm border-0">
