@@ -41,29 +41,54 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
     const mapplsKey = process.env.NEXT_PUBLIC_MAPPLS_KEY || "e5287c2e8e625032961522666d3693e7";
 
     const loadMapplsScript = () => {
+      const candidateUrls = [
+        `https://apis.mapmyindia.com/advancedmaps/api/${mapplsKey}/map_sdk.min.js`,
+        `https://apis.mappls.com/advancedmaps/api/${mapplsKey}/map_sdk.min.js`,
+        `https://apis.mappls.com/advancedmaps/api/${mapplsKey}/map_sdk?v=3.0&layer=vector`,
+        `https://apis.mapmyindia.com/advancedmaps/api/${mapplsKey}/map_sdk?v=3.0&layer=vector`
+      ];
+
       return new Promise<void>((resolve, reject) => {
-        if ((window as any).mappls) {
+        if ((window as any).mappls || (window as any).MapmyIndia) {
           resolve();
           return;
         }
 
-        // Check if script is already added
-        const existingScript = document.querySelector(
-          'script[src*="apis.mappls.com/advancedmaps/api"]'
-        );
-        if (existingScript) {
-          existingScript.addEventListener("load", () => resolve());
-          existingScript.addEventListener("error", (e) => reject(e));
-          return;
-        }
+        let attempt = 0;
 
-        const script = document.createElement("script");
-        script.src = `https://apis.mappls.com/advancedmaps/api/${mapplsKey}/map_sdk?v=3.0&layer=vector`;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => resolve();
-        script.onerror = (e) => reject(e);
-        document.head.appendChild(script);
+        const tryNext = () => {
+          if (attempt >= candidateUrls.length) {
+            reject(new Error("All Mappls script URLs failed to load"));
+            return;
+          }
+
+          const url = candidateUrls[attempt];
+          attempt++;
+
+          // Remove any previous failed script with the same src prefix
+          const oldScript = document.querySelector(`script[src^="${url.split('?')[0]}"]`);
+          if (oldScript) {
+            oldScript.remove();
+          }
+
+          const script = document.createElement("script");
+          script.src = url;
+          script.async = true;
+          script.defer = true;
+          script.onload = () => {
+            if ((window as any).mappls || (window as any).MapmyIndia) {
+              resolve();
+            } else {
+              tryNext();
+            }
+          };
+          script.onerror = () => {
+            tryNext();
+          };
+          document.head.appendChild(script);
+        };
+
+        tryNext();
       });
     };
 
@@ -74,12 +99,12 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
         // Try to load MapmyIndia Mappls SDK
         await loadMapplsScript();
 
-        const mappls = (window as any).mappls;
-        if (mappls && mappls.Map) {
+        const sdk = (window as any).mappls || (window as any).MapmyIndia;
+        if (sdk && sdk.Map) {
           // Initialize via official MapmyIndia Mappls SDK
           const centerPos = validCheckpoints[validCheckpoints.length - 1].position!;
           
-          const map = new mappls.Map(mapRef.current, {
+          const map = new sdk.Map(mapRef.current, {
             center: [centerPos[0], centerPos[1]],
             zoom: 6,
             zoomControl: true,
@@ -91,7 +116,7 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
             const pos = cp.position!;
             
             // Custom HTML/CSS styled marker using Mappls custom icon
-            const marker = new mappls.Marker({
+            const marker = new sdk.Marker({
               map: map,
               position: { lat: pos[0], lng: pos[1] },
               popupHtml: `
@@ -117,7 +142,7 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
               lng: cp.position![1],
             }));
 
-            new mappls.Polyline({
+            new sdk.Polyline({
               map: map,
               coordinates: pathCoords,
               strokeColor: "#e63946",
