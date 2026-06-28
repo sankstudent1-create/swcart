@@ -53,6 +53,28 @@ export default async function WarehousePage() {
     orderBy: { licensePlate: "asc" }
   });
 
+  const pendingPickups = await prisma.order.findMany({
+    where: { assignedWarehouseId: warehouseId, status: "PROCESSING", deliveryPersonId: { not: null } },
+    include: {
+      user: true,
+      deliveryPerson: { include: { user: true } },
+      sellerOrders: {
+        include: {
+          seller: true,
+          items: { include: { variant: { include: { product: true } } } }
+        }
+      }
+    },
+    orderBy: { createdAt: "desc" }
+  });
+
+  const trackingLogs = await prisma.trackingHistory.findMany({
+    where: { order: { assignedWarehouseId: warehouseId } },
+    include: { order: true },
+    orderBy: { timestamp: "desc" },
+    take: 20
+  });
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -74,6 +96,8 @@ export default async function WarehousePage() {
       analytics={analytics}
       users={users}
       vehicles={vehicles}
+      pendingPickups={pendingPickups}
+      trackingLogs={trackingLogs}
     />
   );
 }

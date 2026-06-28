@@ -10,6 +10,14 @@ export default function CheckoutForm({ items, savedAddress, walletBalance = 0 }:
   const [couponCode, setCouponCode] = useState("");
   const [coupon, setCoupon] = useState<{ discountType: string, discountVal: number, code: string } | null>(null);
   const [useWallet, setUseWallet] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+  const [shippingForm, setShippingForm] = useState({
+    firstName: "",
+    lastName: "",
+    address: savedAddress?.street || "",
+    city: savedAddress?.city || "",
+    zip: savedAddress?.postalCode || ""
+  });
   const router = useRouter();
 
   // Dynamic calculations
@@ -63,6 +71,48 @@ export default function CheckoutForm({ items, savedAddress, walletBalance = 0 }:
     }
   };
 
+  const handleAutofillLocation = () => {
+    if (!navigator.geolocation) {
+      return toast.error("Geolocation is not supported by your browser");
+    }
+    setIsLocating(true);
+    toast.loading("Locating your position...", { id: "locate" });
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+          const data = await res.json();
+          if (data && data.address) {
+            const addr = data.address;
+            const street = addr.road || addr.suburb || addr.neighbourhood || addr.amenity || "";
+            const city = addr.city || addr.town || addr.village || addr.state_district || "";
+            const zip = addr.postcode || "";
+            
+            setShippingForm(prev => ({
+              ...prev,
+              address: street,
+              city: city,
+              zip: zip
+            }));
+            toast.success("Location autofilled successfully!", { id: "locate" });
+          } else {
+            toast.error("Could not resolve address details", { id: "locate" });
+          }
+        } catch (e) {
+          toast.error("Failed to fetch address from location", { id: "locate" });
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        toast.error("Location access denied or timed out", { id: "locate" });
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   const handlePlaceOrder = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -86,32 +136,86 @@ export default function CheckoutForm({ items, savedAddress, walletBalance = 0 }:
       <div className="col-lg-7">
         {/* Shipping details */}
         <div className="card border-0 rounded-4 shadow-sm p-4 mb-4" style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(10px)" }}>
-          <h4 className="fw-bold text-dark mb-4 d-flex align-items-center">
-            <div className="bg-danger bg-opacity-10 text-danger rounded-3 p-2 me-3 d-inline-flex">
-              <i className="bi bi-geo-alt-fill fs-5"></i>
-            </div>
-            Shipping Details
-          </h4>
+          <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h4 className="fw-bold text-dark m-0 d-flex align-items-center">
+              <div className="bg-danger bg-opacity-10 text-danger rounded-3 p-2 me-3 d-inline-flex">
+                <i className="bi bi-geo-alt-fill fs-5"></i>
+              </div>
+              Shipping Details
+            </h4>
+            <button 
+              type="button" 
+              className="btn btn-sm btn-outline-danger rounded-pill fw-bold"
+              onClick={handleAutofillLocation}
+              disabled={isLocating}
+            >
+              {isLocating ? (
+                <><span className="spinner-border spinner-border-sm me-1"></span> Locating...</>
+              ) : (
+                <><i className="bi bi-geo-alt-fill me-1"></i> Use Current Location</>
+              )}
+            </button>
+          </div>
           <div className="row g-3">
             <div className="col-md-6">
               <label className="form-label small fw-bold text-muted text-uppercase mb-1">First Name</label>
-              <input type="text" name="firstName" className="form-control rounded-3 border-light shadow-sm" placeholder="John" required />
+              <input 
+                type="text" 
+                name="firstName" 
+                className="form-control rounded-3 border-light shadow-sm" 
+                placeholder="John" 
+                value={shippingForm.firstName} 
+                onChange={(e) => setShippingForm({ ...shippingForm, firstName: e.target.value })} 
+                required 
+              />
             </div>
             <div className="col-md-6">
               <label className="form-label small fw-bold text-muted text-uppercase mb-1">Last Name</label>
-              <input type="text" name="lastName" className="form-control rounded-3 border-light shadow-sm" placeholder="Doe" required />
+              <input 
+                type="text" 
+                name="lastName" 
+                className="form-control rounded-3 border-light shadow-sm" 
+                placeholder="Doe" 
+                value={shippingForm.lastName} 
+                onChange={(e) => setShippingForm({ ...shippingForm, lastName: e.target.value })} 
+                required 
+              />
             </div>
             <div className="col-12">
               <label className="form-label small fw-bold text-muted text-uppercase mb-1">Street Address</label>
-              <input type="text" name="address" className="form-control rounded-3 border-light shadow-sm" defaultValue={savedAddress?.street || ""} placeholder="123 Shopping Avenue" required />
+              <input 
+                type="text" 
+                name="address" 
+                className="form-control rounded-3 border-light shadow-sm" 
+                placeholder="123 Shopping Avenue" 
+                value={shippingForm.address} 
+                onChange={(e) => setShippingForm({ ...shippingForm, address: e.target.value })} 
+                required 
+              />
             </div>
             <div className="col-md-6">
               <label className="form-label small fw-bold text-muted text-uppercase mb-1">City</label>
-              <input type="text" name="city" className="form-control rounded-3 border-light shadow-sm" defaultValue={savedAddress?.city || ""} placeholder="Mumbai" required />
+              <input 
+                type="text" 
+                name="city" 
+                className="form-control rounded-3 border-light shadow-sm" 
+                placeholder="Mumbai" 
+                value={shippingForm.city} 
+                onChange={(e) => setShippingForm({ ...shippingForm, city: e.target.value })} 
+                required 
+              />
             </div>
             <div className="col-md-6">
               <label className="form-label small fw-bold text-muted text-uppercase mb-1">Postal Code</label>
-              <input type="text" name="zip" className="form-control rounded-3 border-light shadow-sm" defaultValue={savedAddress?.postalCode || ""} placeholder="400001" required />
+              <input 
+                type="text" 
+                name="zip" 
+                className="form-control rounded-3 border-light shadow-sm" 
+                placeholder="400001" 
+                value={shippingForm.zip} 
+                onChange={(e) => setShippingForm({ ...shippingForm, zip: e.target.value })} 
+                required 
+              />
             </div>
           </div>
         </div>

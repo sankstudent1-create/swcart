@@ -20,7 +20,9 @@ export default function WarehouseDashboard({
   allWarehouses, 
   analytics,
   users = [],
-  vehicles = []
+  vehicles = [],
+  pendingPickups = [],
+  trackingLogs = []
 }: any) {
   const [isPending, startTransition] = useTransition();
   const [activeTab, setActiveTab] = useState("logistics");
@@ -103,7 +105,7 @@ export default function WarehouseDashboard({
   };
 
   return (
-    <div className="container-fluid max-w-7xl mx-auto">
+    <div className="container-fluid max-w-7xl mx-auto font-jakarta">
       {/* Header and Tabs */}
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
@@ -162,23 +164,24 @@ export default function WarehouseDashboard({
             </div>
           </div>
 
+          {/* Operational Grid */}
           <div className="row g-4">
-            {/* Inbound Freight */}
-            <div className="col-12 col-xl-4">
+            {/* 1. Inbound Freight */}
+            <div className="col-12 col-lg-6 col-xl-3">
               <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
                 <h5 className="fw-bold mb-4 d-flex justify-content-between align-items-center">
-                  <span><i className="bi bi-truck me-2 text-danger"></i> Inbound</span>
+                  <span><i className="bi bi-truck me-2 text-danger"></i> Inbound Queue</span>
                   <span className="badge bg-danger rounded-pill">{inboundOrders.length}</span>
                 </h5>
                 <div className="d-flex flex-column gap-3">
                   {inboundOrders.map((o: any) => (
                     <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2 bg-light">
                       <div className="d-flex justify-content-between">
-                        <div className="font-monospace fw-bold mb-1">{o.trackingNumber}</div>
+                        <div className="font-monospace fw-bold mb-1 text-dark">{o.trackingNumber}</div>
                         <span className="small text-muted">{o.shippingAddress?.postalCode}</span>
                       </div>
                       <div className="small text-muted">
-                        <strong>Cust:</strong> {o.user?.name} ({o.user?.phone || 'N/A'})
+                        <strong>Cust:</strong> {o.user?.name}
                       </div>
                       <button className="btn btn-sm btn-dark rounded-pill fw-bold px-3 shadow-sm mt-2" onClick={() => handleReceive(o.id)} disabled={isPending}>
                         <i className="bi bi-upc-scan me-1"></i> Receive / Scan
@@ -190,11 +193,11 @@ export default function WarehouseDashboard({
               </div>
             </div>
 
-            {/* Ready for Sortation */}
-            <div className="col-12 col-xl-4">
+            {/* 2. Ready for Sortation */}
+            <div className="col-12 col-lg-6 col-xl-3">
               <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
                 <h5 className="fw-bold mb-4 d-flex justify-content-between align-items-center">
-                  <span><i className="bi bi-box-seam me-2 text-warning"></i> Sortation</span>
+                  <span><i className="bi bi-box-seam me-2 text-warning"></i> Sorting Deck</span>
                   <span className="badge bg-warning text-dark rounded-pill">{atHubOrders.length}</span>
                 </h5>
                 <div className="d-flex flex-column gap-3">
@@ -205,11 +208,11 @@ export default function WarehouseDashboard({
                     return (
                       <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2">
                         <div className="d-flex justify-content-between">
-                          <div className="font-monospace fw-bold">{o.trackingNumber}</div>
+                          <div className="font-monospace fw-bold text-dark">{o.trackingNumber}</div>
                           <strong className="text-dark">{destPin}</strong>
                         </div>
                         <div className="small text-muted mb-2">
-                          <div className="fw-bold text-dark">{o.user?.name} <span className="fw-normal">({o.user?.phone || 'N/A'})</span></div>
+                          <div className="fw-bold text-dark">{o.user?.name}</div>
                           {o.shippingAddress?.street}, {o.shippingAddress?.city}
                         </div>
                         {isLocal ? (
@@ -229,8 +232,40 @@ export default function WarehouseDashboard({
               </div>
             </div>
 
-            {/* Outbound & Dispatched */}
-            <div className="col-12 col-xl-4">
+            {/* 3. Pending Seller Pickups */}
+            <div className="col-12 col-lg-6 col-xl-3">
+              <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
+                <h5 className="fw-bold mb-4 d-flex justify-content-between align-items-center">
+                  <span><i className="bi bi-arrow-down-left-square-fill me-2 text-primary"></i> Active Pickups</span>
+                  <span className="badge bg-primary rounded-pill">{pendingPickups.length}</span>
+                </h5>
+                <div className="d-flex flex-column gap-3">
+                  {pendingPickups.map((o: any) => {
+                    const seller = o.sellerOrders?.[0]?.seller;
+                    return (
+                      <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2 bg-light">
+                        <div className="d-flex justify-content-between align-items-center">
+                          <span className="badge bg-warning text-dark font-monospace">PICKUP</span>
+                          <span className="small font-monospace text-muted">{o.trackingNumber}</span>
+                        </div>
+                        <div className="small text-dark">
+                          <strong>Seller:</strong> {seller?.companyName || "Vendor"}<br />
+                          <strong>Pincode:</strong> {seller?.pickupPincode || "N/A"}<br />
+                          <strong>Agent:</strong> {o.deliveryPerson?.user?.name || "Unassigned"}
+                        </div>
+                        <div className="border-top pt-2 mt-1 bg-white bg-opacity-50 p-2 rounded small text-muted">
+                          <strong>Items:</strong> {o.sellerOrders?.[0]?.items?.map((item: any) => `${item.variant?.product?.title} (x${item.quantity})`).join(", ")}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {pendingPickups.length === 0 && <div className="text-muted text-center py-4 small">No pending pickups being collected.</div>}
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Outbound & Dispatched */}
+            <div className="col-12 col-lg-6 col-xl-3">
               <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
                 <h5 className="fw-bold mb-4 d-flex justify-content-between align-items-center">
                   <span><i className="bi bi-send me-2 text-success"></i> Dispatched</span>
@@ -240,7 +275,7 @@ export default function WarehouseDashboard({
                   {outboundOrders?.map((o: any) => (
                     <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2 bg-light">
                       <div className="d-flex justify-content-between">
-                        <div className="font-monospace fw-bold">{o.trackingNumber}</div>
+                        <div className="font-monospace fw-bold text-dark">{o.trackingNumber}</div>
                         <span className={`badge ${o.status === 'DELIVERED' ? 'bg-success' : 'bg-primary'}`}>{o.status}</span>
                       </div>
                       <div className="small">
@@ -253,6 +288,39 @@ export default function WarehouseDashboard({
                     </div>
                   ))}
                   {(!outboundOrders || outboundOrders.length === 0) && <div className="text-muted text-center py-4 small">No recent dispatches.</div>}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Hub Activity Timeline Log */}
+          <div className="row g-4 mt-3">
+            <div className="col-12">
+              <div className="bg-white p-4 rounded-4 shadow-sm border">
+                <h5 className="fw-bold mb-4 text-dark"><i className="bi bi-clock-history me-2 text-danger"></i> Hub Activity Log (Recent Operations)</h5>
+                <div className="d-flex flex-column gap-3" style={{ maxHeight: "350px", overflowY: "auto" }}>
+                  {trackingLogs.map((log: any) => (
+                    <div key={log.id} className="d-flex align-items-center gap-3 py-2 border-bottom border-light last-border-none">
+                      <div className="bg-light rounded-circle p-2 d-flex justify-content-center align-items-center flex-shrink-0" style={{ width: 40, height: 40 }}>
+                        <i className={`bi fs-5 ${
+                          log.status.includes("Arrived") ? "bi-check-circle-fill text-success" :
+                          log.status.includes("Forwarded") ? "bi-arrow-right-circle-fill text-primary" :
+                          log.status.includes("Pickup") ? "bi-box-seam-fill text-warning" : "bi-info-circle-fill text-muted"
+                        }`}></i>
+                      </div>
+                      <div className="flex-grow-1">
+                        <div className="small fw-bold text-dark">{log.status} <span className="text-muted font-monospace small">({log.order?.trackingNumber})</span></div>
+                        <div className="text-muted small" style={{ fontSize: "0.75rem" }}>{log.location || "Local Hub"}</div>
+                      </div>
+                      <div className="text-muted small font-monospace me-2">
+                        {new Date(log.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })}{" "}
+                        {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  ))}
+                  {trackingLogs.length === 0 && (
+                    <div className="text-muted text-center py-4 small">No recent activity logged at this hub.</div>
+                  )}
                 </div>
               </div>
             </div>
