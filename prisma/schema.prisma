@@ -274,7 +274,7 @@ model Review {
 model Order {
   id                String   @id @default(cuid())
   userId            String
-  shippingAddressId String
+  shippingAddressId String?
   totalAmount       Float
   taxAmount         Float    @default(0) // CGST + SGST
   shippingFee       Float    @default(0)
@@ -285,7 +285,7 @@ model Order {
   updatedAt         DateTime @updatedAt
 
   user                User              @relation(fields: [userId], references: [id])
-  shippingAddress     Address           @relation(fields: [shippingAddressId], references: [id])
+  shippingAddress     Address?          @relation(fields: [shippingAddressId], references: [id])
   sellerOrders        SellerOrder[]
   payments            Payment[]
   refunds             Refund[]

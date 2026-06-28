@@ -97,20 +97,29 @@ export async function placeOrderAction(formData: FormData) {
         customerProfile = await tx.customerProfile.create({ data: { userId } });
       }
 
-      const street = formData.get("address") as string || "123 Main St";
-      const city = formData.get("city") as string || "City";
-      const postalCode = formData.get("zip") as string || "000000";
+      const isDigitalOnly = cart.items.every((item: any) => 
+        item.variant.product.productType === "DIGITAL" || item.variant.product.productType === "EBOOK"
+      );
 
-      const address = await tx.address.create({
-        data: {
-          customerProfileId: customerProfile.id,
-          street,
-          city,
-          state: "State",
-          postalCode,
-          country: "IN"
-        }
-      });
+      let addressId = null;
+
+      if (!isDigitalOnly) {
+        const street = formData.get("address") as string || "123 Main St";
+        const city = formData.get("city") as string || "City";
+        const postalCode = formData.get("zip") as string || "000000";
+
+        const address = await tx.address.create({
+          data: {
+            customerProfileId: customerProfile.id,
+            street,
+            city,
+            state: "State",
+            postalCode,
+            country: "IN"
+          }
+        });
+        addressId = address.id;
+      }
 
       const useWallet = formData.get("useWallet") === "true";
       let walletPayAmount = 0;
@@ -149,7 +158,7 @@ export async function placeOrderAction(formData: FormData) {
       const order = await tx.order.create({
         data: {
           userId,
-          shippingAddressId: address.id,
+          shippingAddressId: addressId,
           totalAmount,
           taxAmount,
           status: "PROCESSING",

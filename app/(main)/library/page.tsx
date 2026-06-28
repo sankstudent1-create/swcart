@@ -71,10 +71,10 @@ export default async function LibraryPage() {
   // De-duplicate ebook products
   const ebookProducts = new Map<string, any>();
   for (const order of ebookOrders) {
-    for (const sellerOrder of order.sellerOrders) {
-      for (const item of sellerOrder.items) {
-        const p = item.variant.product;
-        if ((p.productType === "DIGITAL" || p.productType === "EBOOK") && !ebookProducts.has(p.id)) {
+    for (const sellerOrder of order?.sellerOrders || []) {
+      for (const item of sellerOrder?.items || []) {
+        const p = item?.variant?.product;
+        if (p && (p.productType === "DIGITAL" || p.productType === "EBOOK") && !ebookProducts.has(p.id)) {
           ebookProducts.set(p.id, p);
         }
       }
@@ -83,9 +83,9 @@ export default async function LibraryPage() {
   const ebooks = Array.from(ebookProducts.values());
 
   // Compute course progress
-  const courseItems = enrollments.map((e) => {
-    const allLessons = e.product.courseChapters.flatMap((c) => c.lessons);
-    const completedCount = allLessons.filter((l) => l.progress.some((p) => p.completed)).length;
+  const courseItems = enrollments.filter(e => e.product).map((e) => {
+    const allLessons = e.product.courseChapters?.flatMap((c) => c.lessons || []) || [];
+    const completedCount = allLessons.filter((l) => l.progress?.some((p) => p.completed)).length || 0;
     const total = allLessons.length;
     const pct = total > 0 ? Math.round((completedCount / total) * 100) : 0;
     return { enrollment: e, product: e.product, pct, total, completedCount };

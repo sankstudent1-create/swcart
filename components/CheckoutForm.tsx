@@ -59,6 +59,12 @@ export default function CheckoutForm({ items, savedAddress, walletBalance = 0 }:
     };
   }, [items, coupon, useWallet, walletBalance]);
 
+  const isDigitalOnly = useMemo(() => {
+    return items.every((item: any) => 
+      item.variant.product.productType === "DIGITAL" || item.variant.product.productType === "EBOOK"
+    );
+  }, [items]);
+
   const handleApplyCoupon = async () => {
     if (!couponCode) return;
     const res = await validateCouponAction(couponCode);
@@ -135,90 +141,92 @@ export default function CheckoutForm({ items, savedAddress, walletBalance = 0 }:
     <form onSubmit={handlePlaceOrder} className="row g-4 font-jakarta">
       <div className="col-lg-7">
         {/* Shipping details */}
-        <div className="card border-0 rounded-4 shadow-sm p-4 mb-4" style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(10px)" }}>
-          <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-            <h4 className="fw-bold text-dark m-0 d-flex align-items-center">
-              <div className="bg-danger bg-opacity-10 text-danger rounded-3 p-2 me-3 d-inline-flex">
-                <i className="bi bi-geo-alt-fill fs-5"></i>
+        {!isDigitalOnly && (
+          <div className="card border-0 rounded-4 shadow-sm p-4 mb-4" style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(10px)" }}>
+            <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+              <h4 className="fw-bold text-dark m-0 d-flex align-items-center">
+                <div className="bg-danger bg-opacity-10 text-danger rounded-3 p-2 me-3 d-inline-flex">
+                  <i className="bi bi-geo-alt-fill fs-5"></i>
+                </div>
+                Shipping Details
+              </h4>
+              <button 
+                type="button" 
+                className="btn btn-sm btn-outline-danger rounded-pill fw-bold"
+                onClick={handleAutofillLocation}
+                disabled={isLocating}
+              >
+                {isLocating ? (
+                  <><span className="spinner-border spinner-border-sm me-1"></span> Locating...</>
+                ) : (
+                  <><i className="bi bi-geo-alt-fill me-1"></i> Use Current Location</>
+                )}
+              </button>
+            </div>
+            <div className="row g-3">
+              <div className="col-md-6">
+                <label className="form-label small fw-bold text-muted text-uppercase mb-1">First Name</label>
+                <input 
+                  type="text" 
+                  name="firstName" 
+                  className="form-control rounded-3 border-light shadow-sm" 
+                  placeholder="John" 
+                  value={shippingForm.firstName} 
+                  onChange={(e) => setShippingForm({ ...shippingForm, firstName: e.target.value })} 
+                  required={!isDigitalOnly}
+                />
               </div>
-              Shipping Details
-            </h4>
-            <button 
-              type="button" 
-              className="btn btn-sm btn-outline-danger rounded-pill fw-bold"
-              onClick={handleAutofillLocation}
-              disabled={isLocating}
-            >
-              {isLocating ? (
-                <><span className="spinner-border spinner-border-sm me-1"></span> Locating...</>
-              ) : (
-                <><i className="bi bi-geo-alt-fill me-1"></i> Use Current Location</>
-              )}
-            </button>
-          </div>
-          <div className="row g-3">
-            <div className="col-md-6">
-              <label className="form-label small fw-bold text-muted text-uppercase mb-1">First Name</label>
-              <input 
-                type="text" 
-                name="firstName" 
-                className="form-control rounded-3 border-light shadow-sm" 
-                placeholder="John" 
-                value={shippingForm.firstName} 
-                onChange={(e) => setShippingForm({ ...shippingForm, firstName: e.target.value })} 
-                required 
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label small fw-bold text-muted text-uppercase mb-1">Last Name</label>
-              <input 
-                type="text" 
-                name="lastName" 
-                className="form-control rounded-3 border-light shadow-sm" 
-                placeholder="Doe" 
-                value={shippingForm.lastName} 
-                onChange={(e) => setShippingForm({ ...shippingForm, lastName: e.target.value })} 
-                required 
-              />
-            </div>
-            <div className="col-12">
-              <label className="form-label small fw-bold text-muted text-uppercase mb-1">Street Address</label>
-              <input 
-                type="text" 
-                name="address" 
-                className="form-control rounded-3 border-light shadow-sm" 
-                placeholder="123 Shopping Avenue" 
-                value={shippingForm.address} 
-                onChange={(e) => setShippingForm({ ...shippingForm, address: e.target.value })} 
-                required 
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label small fw-bold text-muted text-uppercase mb-1">City</label>
-              <input 
-                type="text" 
-                name="city" 
-                className="form-control rounded-3 border-light shadow-sm" 
-                placeholder="Mumbai" 
-                value={shippingForm.city} 
-                onChange={(e) => setShippingForm({ ...shippingForm, city: e.target.value })} 
-                required 
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label small fw-bold text-muted text-uppercase mb-1">Postal Code</label>
-              <input 
-                type="text" 
-                name="zip" 
-                className="form-control rounded-3 border-light shadow-sm" 
-                placeholder="400001" 
-                value={shippingForm.zip} 
-                onChange={(e) => setShippingForm({ ...shippingForm, zip: e.target.value })} 
-                required 
-              />
+              <div className="col-md-6">
+                <label className="form-label small fw-bold text-muted text-uppercase mb-1">Last Name</label>
+                <input 
+                  type="text" 
+                  name="lastName" 
+                  className="form-control rounded-3 border-light shadow-sm" 
+                  placeholder="Doe" 
+                  value={shippingForm.lastName} 
+                  onChange={(e) => setShippingForm({ ...shippingForm, lastName: e.target.value })} 
+                  required={!isDigitalOnly}
+                />
+              </div>
+              <div className="col-12">
+                <label className="form-label small fw-bold text-muted text-uppercase mb-1">Street Address</label>
+                <input 
+                  type="text" 
+                  name="address" 
+                  className="form-control rounded-3 border-light shadow-sm" 
+                  placeholder="123 Shopping Avenue" 
+                  value={shippingForm.address} 
+                  onChange={(e) => setShippingForm({ ...shippingForm, address: e.target.value })} 
+                  required={!isDigitalOnly}
+                />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label small fw-bold text-muted text-uppercase mb-1">City</label>
+                <input 
+                  type="text" 
+                  name="city" 
+                  className="form-control rounded-3 border-light shadow-sm" 
+                  placeholder="Mumbai" 
+                  value={shippingForm.city} 
+                  onChange={(e) => setShippingForm({ ...shippingForm, city: e.target.value })} 
+                  required={!isDigitalOnly}
+                />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label small fw-bold text-muted text-uppercase mb-1">Postal Code</label>
+                <input 
+                  type="text" 
+                  name="zip" 
+                  className="form-control rounded-3 border-light shadow-sm" 
+                  placeholder="400001" 
+                  value={shippingForm.zip} 
+                  onChange={(e) => setShippingForm({ ...shippingForm, zip: e.target.value })} 
+                  required={!isDigitalOnly}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Wallet payment option */}
         <div className="card border-0 rounded-4 shadow-sm p-4 mb-4" style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(10px)" }}>

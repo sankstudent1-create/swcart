@@ -150,9 +150,15 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                 <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "#e63946", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "0.75rem" }}>Delivered To</div>
                 <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: "1.05rem", color: "#1a1a2e", marginBottom: "4px" }}>{order.user.name}</div>
                 <div style={{ color: "#666", fontSize: "0.85rem", lineHeight: 1.6 }}>
-                  {order.shippingAddress.street}<br />
-                  {order.shippingAddress.city}, {order.shippingAddress.state} – {order.shippingAddress.postalCode}<br />
-                  {order.shippingAddress.country}
+                  {order.shippingAddress ? (
+                    <>
+                      {order.shippingAddress.street}<br />
+                      {order.shippingAddress.city}, {order.shippingAddress.state} – {order.shippingAddress.postalCode}<br />
+                      {order.shippingAddress.country}
+                    </>
+                  ) : (
+                    <span style={{ color: "#8b5cf6", fontWeight: 600 }}>Digital Delivery</span>
+                  )}
                 </div>
               </div>
             </div>

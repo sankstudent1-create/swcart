@@ -41,6 +41,7 @@ interface Product {
   price: number;
   old: number | null;
   tag: string | null;
+  productType?: string;
   description: string;
   image: string;
   images: string[];
@@ -73,6 +74,7 @@ export default function ProductDetailClient({ product: p, hasPurchasedAndDeliver
   const oldPrice = p.old;
   const stockCount = selectedVariant ? selectedVariant.stock : p.totalStock;
   const inStock = stockCount > 0;
+  const isDigital = p.productType === "DIGITAL" || p.productType === "EBOOK";
 
   const uniqueSizes = [...new Set(p.variants.map(v => v.size).filter(Boolean))];
   const uniqueColors = [...new Set(p.variants.map(v => v.color).filter(Boolean))];
@@ -179,22 +181,29 @@ export default function ProductDetailClient({ product: p, hasPurchasedAndDeliver
                     <span className="p-tag">{p.discountPercent}% OFF</span>
                   )}
                 </div>
-                <p className="mb-0 mt-2" style={{ fontSize: ".85rem", color: "#666", fontWeight: 500 }}>
-                  {inStock ? (
-                    <span style={{ color: "#2BA84A" }}>
-                      <i className="bi bi-check-circle-fill me-1"></i>
-                      In Stock {stockCount < 10 ? `(only ${stockCount} left!)` : ""}
-                    </span>
-                  ) : (
-                    <span style={{ color: "#E8472A" }}>
-                      <i className="bi bi-x-circle-fill me-1"></i> Out of Stock
-                    </span>
-                  )}
-                </p>
+                {!isDigital && (
+                  <p className="mb-0 mt-2" style={{ fontSize: ".85rem", color: "#666", fontWeight: 500 }}>
+                    {inStock ? (
+                      <span style={{ color: "#2BA84A" }}>
+                        <i className="bi bi-check-circle-fill me-1"></i>
+                        In Stock {stockCount < 10 ? `(only ${stockCount} left!)` : ""}
+                      </span>
+                    ) : (
+                      <span style={{ color: "#E8472A" }}>
+                        <i className="bi bi-x-circle-fill me-1"></i> Out of Stock
+                      </span>
+                    )}
+                  </p>
+                )}
+                {isDigital && (
+                  <p className="mb-0 mt-2" style={{ fontSize: ".85rem", color: "#8b5cf6", fontWeight: 700 }}>
+                    <i className="bi bi-lightning-charge-fill me-1"></i> Instant Digital Access
+                  </p>
+                )}
               </div>
 
               {/* Variant selectors */}
-              {uniqueSizes.length > 0 && (
+              {!isDigital && uniqueSizes.length > 0 && (
                 <div className="mb-3">
                   <div style={{ fontSize: ".85rem", fontWeight: 600, color: "var(--ink)", marginBottom: "8px" }}>
                     Size: <span style={{ color: "var(--red)" }}>{selectedSize}</span>
@@ -223,7 +232,7 @@ export default function ProductDetailClient({ product: p, hasPurchasedAndDeliver
                 </div>
               )}
 
-              {uniqueColors.length > 0 && (
+              {!isDigital && uniqueColors.length > 0 && (
                 <div className="mb-3">
                   <div style={{ fontSize: ".85rem", fontWeight: 600, color: "var(--ink)", marginBottom: "8px" }}>
                     Color: <span style={{ color: "var(--red)" }}>{selectedColor}</span>
@@ -257,26 +266,50 @@ export default function ProductDetailClient({ product: p, hasPurchasedAndDeliver
               <ProductActions
                 productId={p.id}
                 variantId={activeVariant?.id}
-                disabled={!inStock}
+                disabled={!isDigital && !inStock}
+                isDigital={isDigital}
               />
 
               <div className="features-grid mt-5">
-                <div className="f-item">
-                  <div className="f-icon bg-danger bg-opacity-10 text-danger"><i className="bi bi-truck"></i></div>
-                  <div className="f-text">Fast Delivery<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>Within 2-3 business days</span></div>
-                </div>
-                <div className="f-item">
-                  <div className="f-icon bg-success bg-opacity-10 text-success"><i className="bi bi-arrow-return-left"></i></div>
-                  <div className="f-text">Easy Returns<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>7 days hassle-free</span></div>
-                </div>
-                <div className="f-item">
-                  <div className="f-icon bg-primary bg-opacity-10 text-primary"><i className="bi bi-shield-check"></i></div>
-                  <div className="f-text">1 Year Warranty<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>Guaranteed protection</span></div>
-                </div>
-                <div className="f-item">
-                  <div className="f-icon bg-warning bg-opacity-10 text-warning"><i className="bi bi-lock"></i></div>
-                  <div className="f-text">Secure Checkout<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>256-bit encryption</span></div>
-                </div>
+                {!isDigital ? (
+                  <>
+                    <div className="f-item">
+                      <div className="f-icon bg-danger bg-opacity-10 text-danger"><i className="bi bi-truck"></i></div>
+                      <div className="f-text">Fast Delivery<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>Within 2-3 business days</span></div>
+                    </div>
+                    <div className="f-item">
+                      <div className="f-icon bg-success bg-opacity-10 text-success"><i className="bi bi-arrow-return-left"></i></div>
+                      <div className="f-text">Easy Returns<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>7 days hassle-free</span></div>
+                    </div>
+                    <div className="f-item">
+                      <div className="f-icon bg-primary bg-opacity-10 text-primary"><i className="bi bi-shield-check"></i></div>
+                      <div className="f-text">1 Year Warranty<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>Guaranteed protection</span></div>
+                    </div>
+                    <div className="f-item">
+                      <div className="f-icon bg-warning bg-opacity-10 text-warning"><i className="bi bi-lock"></i></div>
+                      <div className="f-text">Secure Checkout<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>256-bit encryption</span></div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="f-item">
+                      <div className="f-icon bg-primary bg-opacity-10 text-primary"><i className="bi bi-cloud-arrow-down"></i></div>
+                      <div className="f-text">Instant Access<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>Watch or download immediately</span></div>
+                    </div>
+                    <div className="f-item">
+                      <div className="f-icon bg-success bg-opacity-10 text-success"><i className="bi bi-infinity"></i></div>
+                      <div className="f-text">Lifetime Updates<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>Access future content for free</span></div>
+                    </div>
+                    <div className="f-item">
+                      <div className="f-icon bg-danger bg-opacity-10 text-danger"><i className="bi bi-laptop"></i></div>
+                      <div className="f-text">Anywhere Access<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>Learn on any device</span></div>
+                    </div>
+                    <div className="f-item">
+                      <div className="f-icon bg-warning bg-opacity-10 text-warning"><i className="bi bi-lock"></i></div>
+                      <div className="f-text">Secure Checkout<br /><span style={{ fontSize: ".75rem", color: "#9a8f86", fontWeight: 400 }}>256-bit encryption</span></div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
