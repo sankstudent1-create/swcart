@@ -194,6 +194,12 @@ export default function SecureVideoPlayer({
     return `https://www.youtube.com/embed/${id}?autoplay=0&rel=0&modestbranding=1&showinfo=0&iv_load_policy=3`;
   };
 
+  const isVimeo = src?.includes("vimeo.com");
+  const getVimeoEmbed = (url: string) => {
+    const id = url.split("vimeo.com/")[1]?.split("?")[0]?.split("/")[0];
+    return `https://player.vimeo.com/video/${id}?title=0&byline=0&portrait=0&badge=0&autopause=0&player_id=0&app_id=58479`;
+  };
+
   return (
     <div
       ref={containerRef}
@@ -210,6 +216,13 @@ export default function SecureVideoPlayer({
           src={getYouTubeEmbed(src)}
           style={{ width: "100%", height: 420, display: "block", border: "none" }}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      ) : isVimeo && src ? (
+        <iframe
+          src={getVimeoEmbed(src)}
+          style={{ width: "100%", height: 420, display: "block", border: "none" }}
+          allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
           allowFullScreen
         />
       ) : (
@@ -261,7 +274,7 @@ export default function SecureVideoPlayer({
       )}
 
       {/* Controls bar (only for native video) */}
-      {!loading && !isYouTube && (
+      {!loading && !isYouTube && !isVimeo && (
         <div
           style={{
             background: "linear-gradient(transparent,rgba(0,0,0,0.85))",
