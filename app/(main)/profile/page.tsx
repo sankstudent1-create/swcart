@@ -324,7 +324,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
               {tab === "support" && (
                 <div className="fade-in">
                   <h3 className="font-jakarta fw-bolder text-dark mb-4">Support Helpdesk</h3>
-                  <ProfileSupportManager tickets={serializedTickets} />
+                  <ProfileSupportManager tickets={serializedTickets} userId={userId} />
                 </div>
               )}
               
