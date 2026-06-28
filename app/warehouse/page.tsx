@@ -44,6 +44,15 @@ export default async function WarehousePage() {
     where: { id: { not: warehouseId } }
   });
 
+  const users = await prisma.user.findMany({
+    where: { roles: { none: { role: { name: "DELIVERY" } } } },
+    orderBy: { name: "asc" }
+  });
+
+  const vehicles = await prisma.vehicle.findMany({
+    orderBy: { licensePlate: "asc" }
+  });
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -63,6 +72,8 @@ export default async function WarehousePage() {
       localAgents={localAgents} 
       allWarehouses={allWarehouses}
       analytics={analytics}
+      users={users}
+      vehicles={vehicles}
     />
   );
 }

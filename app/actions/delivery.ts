@@ -22,6 +22,7 @@ export async function updateDeliveryStatusAction(orderId: string, status: string
     if (status === "Delivered") orderStatus = "DELIVERED";
     if (status === "Failed Attempt") orderStatus = "PROCESSING"; // Keep it processing or pending
     if (status === "Out for Delivery") orderStatus = "SHIPPED";
+    if (status === "Picked Up") orderStatus = "IN_TRANSIT_TO_HUB";
 
     await prisma.order.update({
       where: { id: orderId },

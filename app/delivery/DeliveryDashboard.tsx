@@ -50,7 +50,15 @@ export default function DeliveryDashboard({ deliveryPerson, completedOrders = []
 
       <div className="d-flex flex-column gap-3">
         {deliveryPerson.orders.map((order: any, idx: number) => {
+          const isPickup = order.status === "PROCESSING";
           const addr = order.shippingAddress;
+          const sellerOrder = order.sellerOrders?.[0];
+          const seller = sellerOrder?.seller;
+          const sellerAddressObj = seller?.pickupAddress as any;
+          const sellerAddressStr = sellerAddressObj
+            ? `${sellerAddressObj.street || ""}, ${sellerAddressObj.city || ""}, ${sellerAddressObj.state || ""} ${sellerAddressObj.pincode || seller.pickupPincode || ""}`
+            : (seller?.pickupPincode ? `Pincode Area: ${seller.pickupPincode}` : "Seller pickup address not set");
+
           return (
             <div key={order.id} className="rounded-4 overflow-hidden" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
               {/* Card Header */}
@@ -59,46 +67,82 @@ export default function DeliveryDashboard({ deliveryPerson, completedOrders = []
                   <span className="badge bg-white text-dark me-2">#{idx + 1}</span>
                   <span className="font-monospace text-muted small">TRK: {order.trackingNumber}</span>
                 </div>
-                <span className={`badge ${order.status === 'SHIPPED' ? 'bg-primary' : 'bg-warning text-dark'}`}>
-                  {order.status === 'SHIPPED' ? 'Ready' : order.status}
+                <span className={`badge ${isPickup ? 'bg-warning text-dark' : 'bg-primary'}`}>
+                  {isPickup ? 'First-Mile Pickup' : 'Last-Mile Delivery'}
                 </span>
               </div>
 
               {/* Card Body */}
               <div className="p-3">
-                <h6 className="fw-bold mb-1">{order.user.name}</h6>
-                <div className="text-muted small mb-3">
-                  <i className="bi bi-geo-alt text-danger me-1"></i> 
-                  {addr ? `${addr.street}, ${addr.city}, ${addr.state} ${addr.postalCode}` : "Address Unknown"}
-                </div>
-                
-                <a href={`tel:${order.user.phone}`} className="btn btn-sm btn-outline-light rounded-pill w-100 mb-4 fw-bold">
-                  <i className="bi bi-telephone me-2"></i> Call Customer
-                </a>
+                {isPickup ? (
+                  <>
+                    <div className="text-muted small text-uppercase fw-bold mb-1" style={{ letterSpacing: "0.5px" }}>Pick Up From Seller</div>
+                    <h6 className="fw-bold mb-1 text-warning">{seller?.companyName || "Vendor"}</h6>
+                    <div className="text-muted small mb-3">
+                      <i className="bi bi-geo-alt-fill text-warning me-1"></i> 
+                      {sellerAddressStr}
+                    </div>
 
-                <div className="d-flex flex-column gap-2">
-                  <button 
-                    className="btn btn-primary rounded-pill fw-bold py-2 shadow-sm"
-                    onClick={() => handleUpdate(order.id, "Out for Delivery", addr?.city || "Local Hub")}
-                    disabled={isPending || order.status === "SHIPPED" && false} // Just logic simplification
-                  >
-                    <i className="bi bi-truck me-2"></i> Mark Out for Delivery
-                  </button>
-                  <button 
-                    className="btn btn-success rounded-pill fw-bold py-2 shadow-sm"
-                    onClick={() => handleUpdate(order.id, "Delivered", addr?.city || "Destination")}
-                    disabled={isPending}
-                  >
-                    <i className="bi bi-check-circle me-2"></i> Mark Delivered
-                  </button>
-                  <button 
-                    className="btn btn-dark rounded-pill fw-bold py-2" style={{ border: "1px solid rgba(255,255,255,0.2)" }}
-                    onClick={() => handleUpdate(order.id, "Failed Attempt", addr?.city || "Local Hub")}
-                    disabled={isPending}
-                  >
-                    <i className="bi bi-x-circle me-2"></i> Failed Attempt
-                  </button>
-                </div>
+                    <a href={`tel:${seller?.user?.phone || ""}`} className="btn btn-sm btn-outline-warning rounded-pill w-100 mb-3 fw-bold">
+                      <i className="bi bi-telephone-fill me-2"></i> Call Seller ({seller?.user?.name || "Vendor"})
+                    </a>
+
+                    <div className="bg-white bg-opacity-5 p-3 rounded-4 mb-3 small" style={{ border: "1px solid rgba(255,255,255,0.05)" }}>
+                      <div className="fw-bold mb-2 text-white-50"><i className="bi bi-list-check me-1"></i> Items to Collect:</div>
+                      {sellerOrder?.items.map((item: any, i: number) => (
+                        <div key={i} className="d-flex justify-content-between py-1 border-bottom border-white border-opacity-10 last-border-none">
+                          <span className="text-white">{item.variant.product.title} {item.variant.size && `(${item.variant.size})`} {item.variant.color && `[${item.variant.color}]`}</span>
+                          <span className="fw-bold text-warning">x{item.quantity}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button 
+                      className="btn btn-warning rounded-pill fw-bold py-2 shadow-sm w-100 text-dark"
+                      onClick={() => handleUpdate(order.id, "Picked Up", sellerAddressObj?.city || "Seller Hub")}
+                      disabled={isPending}
+                    >
+                      <i className="bi bi-box-arrow-in-down me-2"></i> Confirm Picked Up from Seller
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-muted small text-uppercase fw-bold mb-1" style={{ letterSpacing: "0.5px" }}>Deliver To Customer</div>
+                    <h6 className="fw-bold mb-1 text-light">{order.user.name}</h6>
+                    <div className="text-muted small mb-3">
+                      <i className="bi bi-geo-alt text-danger me-1"></i> 
+                      {addr ? `${addr.street}, ${addr.city}, ${addr.state} ${addr.postalCode}` : "Address Unknown"}
+                    </div>
+                    
+                    <a href={`tel:${order.user.phone}`} className="btn btn-sm btn-outline-light rounded-pill w-100 mb-4 fw-bold">
+                      <i className="bi bi-telephone me-2"></i> Call Customer
+                    </a>
+
+                    <div className="d-flex flex-column gap-2">
+                      <button 
+                        className="btn btn-primary rounded-pill fw-bold py-2 shadow-sm"
+                        onClick={() => handleUpdate(order.id, "Out for Delivery", addr?.city || "Local Hub")}
+                        disabled={isPending}
+                      >
+                        <i className="bi bi-truck me-2"></i> Mark Out for Delivery
+                      </button>
+                      <button 
+                        className="btn btn-success rounded-pill fw-bold py-2 shadow-sm"
+                        onClick={() => handleUpdate(order.id, "Delivered", addr?.city || "Destination")}
+                        disabled={isPending}
+                      >
+                        <i className="bi bi-check-circle me-2"></i> Mark Delivered
+                      </button>
+                      <button 
+                        className="btn btn-dark rounded-pill fw-bold py-2" style={{ border: "1px solid rgba(255,255,255,0.2)" }}
+                        onClick={() => handleUpdate(order.id, "Failed Attempt", addr?.city || "Local Hub")}
+                        disabled={isPending}
+                      >
+                        <i className="bi bi-x-circle me-2"></i> Failed Attempt
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           );

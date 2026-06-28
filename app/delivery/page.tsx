@@ -14,7 +14,28 @@ export default async function DeliveryPage() {
         vehicle: true,
         orders: {
           where: { status: { in: ["SHIPPED", "PROCESSING"] } }, // OUT_FOR_DELIVERY is represented by SHIPPED in our app basically, processing is failed attempt
-          include: { shippingAddress: true, user: true },
+          include: { 
+            shippingAddress: true, 
+            user: true,
+            sellerOrders: {
+              include: {
+                seller: {
+                  include: {
+                    user: true
+                  }
+                },
+                items: {
+                  include: {
+                    variant: {
+                      include: {
+                        product: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
           orderBy: { createdAt: "asc" }
         }
       }

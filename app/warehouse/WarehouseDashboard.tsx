@@ -1,17 +1,41 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { assignAgentToOrderAction, receivePackageAction, forwardPackageAction } from "@/app/actions/warehouse";
+import { 
+  assignAgentToOrderAction, 
+  receivePackageAction, 
+  forwardPackageAction,
+  registerWarehouseAgentAction,
+  updateWarehouseAgentAction,
+  removeWarehouseAgentAction
+} from "@/app/actions/warehouse";
 import { toast } from "sonner";
 
-export default function WarehouseDashboard({ warehouse, inboundOrders, atHubOrders, outboundOrders, localAgents, allWarehouses, analytics }: any) {
+export default function WarehouseDashboard({ 
+  warehouse, 
+  inboundOrders, 
+  atHubOrders, 
+  outboundOrders, 
+  localAgents, 
+  allWarehouses, 
+  analytics,
+  users = [],
+  vehicles = []
+}: any) {
   const [isPending, startTransition] = useTransition();
+  const [activeTab, setActiveTab] = useState("logistics");
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignForm, setAssignForm] = useState({ orderId: "", deliveryPersonId: "" });
 
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [forwardForm, setForwardForm] = useState({ orderId: "", targetWarehouseId: "" });
+
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [registerForm, setRegisterForm] = useState({ userId: "", vehicleId: "" });
+
+  const [showEditAgentModal, setShowEditAgentModal] = useState(false);
+  const [editAgentForm, setEditAgentForm] = useState({ deliveryPersonId: "", vehicleId: "" });
 
   const handleReceive = (orderId: string) => {
     startTransition(async () => {
@@ -41,9 +65,47 @@ export default function WarehouseDashboard({ warehouse, inboundOrders, atHubOrde
     });
   };
 
+  const handleRegisterAgent = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!registerForm.userId) return toast.error("Please select a user");
+    startTransition(async () => {
+      const res = await registerWarehouseAgentAction(registerForm.userId, registerForm.vehicleId || null);
+      if (res.success) {
+        toast.success(res.message);
+        setShowRegisterModal(false);
+        setRegisterForm({ userId: "", vehicleId: "" });
+      } else {
+        toast.error(res.message);
+      }
+    });
+  };
+
+  const handleUpdateAgentVehicle = (e: React.FormEvent) => {
+    e.preventDefault();
+    startTransition(async () => {
+      const res = await updateWarehouseAgentAction(editAgentForm.deliveryPersonId, editAgentForm.vehicleId || null);
+      if (res.success) {
+        toast.success(res.message);
+        setShowEditAgentModal(false);
+      } else {
+        toast.error(res.message);
+      }
+    });
+  };
+
+  const handleRemoveAgent = (agentId: string) => {
+    if (!confirm("Are you sure you want to remove this agent from your hub?")) return;
+    startTransition(async () => {
+      const res = await removeWarehouseAgentAction(agentId);
+      if (res.success) toast.success(res.message);
+      else toast.error(res.message);
+    });
+  };
+
   return (
     <div className="container-fluid max-w-7xl mx-auto">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      {/* Header and Tabs */}
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
           <h2 className="fw-bold mb-1 text-dark">{warehouse.name}</h2>
           <div className="text-muted small">
@@ -51,131 +113,220 @@ export default function WarehouseDashboard({ warehouse, inboundOrders, atHubOrde
             <span className="ms-1 fw-bold">Pincodes:</span> {warehouse.pincodes?.join(', ') || 'Global'}
           </div>
         </div>
-      </div>
-
-      <div className="row g-3 mb-4">
-        <div className="col-6 col-md-3">
-          <div className="bg-white p-3 rounded-4 shadow-sm border text-center h-100 d-flex flex-column justify-content-center">
-            <div className="text-muted small fw-bold text-uppercase mb-1">Local Agents</div>
-            <div className="fs-3 fw-bold text-dark">{localAgents.length}</div>
-          </div>
-        </div>
-        <div className="col-6 col-md-3">
-          <div className="bg-white p-3 rounded-4 shadow-sm border text-center h-100 d-flex flex-column justify-content-center" style={{ borderBottom: "4px solid var(--bs-danger) !important" }}>
-            <div className="text-muted small fw-bold text-uppercase mb-1">Inbound Freight</div>
-            <div className="fs-3 fw-bold text-danger">{analytics?.inTransitToHere || 0}</div>
-          </div>
-        </div>
-        <div className="col-6 col-md-3">
-          <div className="bg-white p-3 rounded-4 shadow-sm border text-center h-100 d-flex flex-column justify-content-center" style={{ borderBottom: "4px solid var(--bs-warning) !important" }}>
-            <div className="text-muted small fw-bold text-uppercase mb-1">Ready for Sort</div>
-            <div className="fs-3 fw-bold text-warning">{analytics?.readyForSort || 0}</div>
-          </div>
-        </div>
-        <div className="col-6 col-md-3">
-          <div className="bg-white p-3 rounded-4 shadow-sm border text-center h-100 d-flex flex-column justify-content-center" style={{ borderBottom: "4px solid var(--bs-success) !important" }}>
-            <div className="text-muted small fw-bold text-uppercase mb-1">Delivered Today</div>
-            <div className="fs-3 fw-bold text-success">{analytics?.deliveredToday || 0}</div>
-          </div>
+        
+        {/* Navigation Tabs */}
+        <div className="btn-group rounded-pill p-1 bg-light border shadow-sm">
+          <button 
+            type="button" 
+            className={`btn rounded-pill px-4 fw-bold transition-all btn-sm ${activeTab === "logistics" ? "btn-dark shadow-sm text-white" : "btn-light text-muted border-0"}`}
+            onClick={() => setActiveTab("logistics")}
+          >
+            <i className="bi bi-box-seam me-2"></i> Logistics Hub
+          </button>
+          <button 
+            type="button" 
+            className={`btn rounded-pill px-4 fw-bold transition-all btn-sm ${activeTab === "agents" ? "btn-dark shadow-sm text-white" : "btn-light text-muted border-0"}`}
+            onClick={() => setActiveTab("agents")}
+          >
+            <i className="bi bi-people me-2"></i> Fleet & Agents
+          </button>
         </div>
       </div>
 
-      <div className="row g-4">
-        {/* Inbound Freight */}
-        <div className="col-12 col-xl-4">
-          <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
-            <h5 className="fw-bold mb-4 d-flex justify-content-between align-items-center">
-              <span><i className="bi bi-truck me-2 text-danger"></i> Inbound</span>
-              <span className="badge bg-danger rounded-pill">{inboundOrders.length}</span>
-            </h5>
-            <div className="d-flex flex-column gap-3">
-              {inboundOrders.map((o: any) => (
-                <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2 bg-light">
-                  <div className="d-flex justify-content-between">
-                    <div className="font-monospace fw-bold mb-1">{o.trackingNumber}</div>
-                    <span className="small text-muted">{o.shippingAddress?.postalCode}</span>
-                  </div>
-                  <div className="small text-muted">
-                    <strong>Cust:</strong> {o.user?.name} ({o.user?.phone || 'N/A'})
-                  </div>
-                  <button className="btn btn-sm btn-dark rounded-pill fw-bold px-3 shadow-sm mt-2" onClick={() => handleReceive(o.id)} disabled={isPending}>
-                    <i className="bi bi-upc-scan me-1"></i> Receive / Scan
-                  </button>
-                </div>
-              ))}
-              {inboundOrders.length === 0 && <div className="text-muted text-center py-4 small">No inbound freight at this time.</div>}
+      {activeTab === "logistics" ? (
+        <>
+          <div className="row g-3 mb-4">
+            <div className="col-6 col-md-3">
+              <div className="bg-white p-3 rounded-4 shadow-sm border text-center h-100 d-flex flex-column justify-content-center">
+                <div className="text-muted small fw-bold text-uppercase mb-1">Local Agents</div>
+                <div className="fs-3 fw-bold text-dark">{localAgents.length}</div>
+              </div>
+            </div>
+            <div className="col-6 col-md-3">
+              <div className="bg-white p-3 rounded-4 shadow-sm border text-center h-100 d-flex flex-column justify-content-center" style={{ borderBottom: "4px solid var(--bs-danger) !important" }}>
+                <div className="text-muted small fw-bold text-uppercase mb-1">Inbound Freight</div>
+                <div className="fs-3 fw-bold text-danger">{analytics?.inTransitToHere || 0}</div>
+              </div>
+            </div>
+            <div className="col-6 col-md-3">
+              <div className="bg-white p-3 rounded-4 shadow-sm border text-center h-100 d-flex flex-column justify-content-center" style={{ borderBottom: "4px solid var(--bs-warning) !important" }}>
+                <div className="text-muted small fw-bold text-uppercase mb-1">Ready for Sort</div>
+                <div className="fs-3 fw-bold text-warning">{analytics?.readyForSort || 0}</div>
+              </div>
+            </div>
+            <div className="col-6 col-md-3">
+              <div className="bg-white p-3 rounded-4 shadow-sm border text-center h-100 d-flex flex-column justify-content-center" style={{ borderBottom: "4px solid var(--bs-success) !important" }}>
+                <div className="text-muted small fw-bold text-uppercase mb-1">Delivered Today</div>
+                <div className="fs-3 fw-bold text-success">{analytics?.deliveredToday || 0}</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Ready for Sortation */}
-        <div className="col-12 col-xl-4">
-          <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
-            <h5 className="fw-bold mb-4 d-flex justify-content-between align-items-center">
-              <span><i className="bi bi-box-seam me-2 text-warning"></i> Sortation</span>
-              <span className="badge bg-warning text-dark rounded-pill">{atHubOrders.length}</span>
-            </h5>
-            <div className="d-flex flex-column gap-3">
-              {atHubOrders.map((o: any) => {
-                const destPin = o.shippingAddress?.postalCode;
-                const isLocal = warehouse.pincodes?.includes(destPin) || !warehouse.pincodes?.length;
-
-                return (
-                  <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2">
-                    <div className="d-flex justify-content-between">
-                      <div className="font-monospace fw-bold">{o.trackingNumber}</div>
-                      <strong className="text-dark">{destPin}</strong>
-                    </div>
-                    <div className="small text-muted mb-2">
-                      <div className="fw-bold text-dark">{o.user?.name} <span className="fw-normal">({o.user?.phone || 'N/A'})</span></div>
-                      {o.shippingAddress?.street}, {o.shippingAddress?.city}
-                    </div>
-                    {isLocal ? (
-                      <button className="btn btn-sm btn-success rounded-pill fw-bold px-3 shadow-sm" onClick={() => { setAssignForm({ orderId: o.id, deliveryPersonId: "" }); setShowAssignModal(true); }}>
-                        Assign Local Agent
+          <div className="row g-4">
+            {/* Inbound Freight */}
+            <div className="col-12 col-xl-4">
+              <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
+                <h5 className="fw-bold mb-4 d-flex justify-content-between align-items-center">
+                  <span><i className="bi bi-truck me-2 text-danger"></i> Inbound</span>
+                  <span className="badge bg-danger rounded-pill">{inboundOrders.length}</span>
+                </h5>
+                <div className="d-flex flex-column gap-3">
+                  {inboundOrders.map((o: any) => (
+                    <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2 bg-light">
+                      <div className="d-flex justify-content-between">
+                        <div className="font-monospace fw-bold mb-1">{o.trackingNumber}</div>
+                        <span className="small text-muted">{o.shippingAddress?.postalCode}</span>
+                      </div>
+                      <div className="small text-muted">
+                        <strong>Cust:</strong> {o.user?.name} ({o.user?.phone || 'N/A'})
+                      </div>
+                      <button className="btn btn-sm btn-dark rounded-pill fw-bold px-3 shadow-sm mt-2" onClick={() => handleReceive(o.id)} disabled={isPending}>
+                        <i className="bi bi-upc-scan me-1"></i> Receive / Scan
                       </button>
-                    ) : (
-                      <button className="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3 shadow-sm" onClick={() => { setForwardForm({ orderId: o.id, targetWarehouseId: "" }); setShowForwardModal(true); }}>
-                        Forward to Hub <i className="bi bi-arrow-right ms-1"></i>
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-              {atHubOrders.length === 0 && <div className="text-muted text-center py-4 small">Sortation queue is empty.</div>}
-            </div>
-          </div>
-        </div>
-
-        {/* Outbound & Dispatched */}
-        <div className="col-12 col-xl-4">
-          <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
-            <h5 className="fw-bold mb-4 d-flex justify-content-between align-items-center">
-              <span><i className="bi bi-send me-2 text-success"></i> Dispatched</span>
-              <span className="badge bg-success rounded-pill">{outboundOrders?.length || 0}</span>
-            </h5>
-            <div className="d-flex flex-column gap-3">
-              {outboundOrders?.map((o: any) => (
-                <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2 bg-light">
-                  <div className="d-flex justify-content-between">
-                    <div className="font-monospace fw-bold">{o.trackingNumber}</div>
-                    <span className={`badge ${o.status === 'DELIVERED' ? 'bg-success' : 'bg-primary'}`}>{o.status}</span>
-                  </div>
-                  <div className="small">
-                    <span className="text-muted">Cust:</span> {o.user?.name} ({o.shippingAddress?.postalCode})
-                  </div>
-                  <div className="small border-top pt-2 mt-1">
-                    <span className="text-muted"><i className="bi bi-person-badge"></i> Agent:</span> {o.deliveryPerson?.user?.name}
-                    <div className="text-muted ms-3"><i className="bi bi-truck"></i> {o.deliveryPerson?.vehicle?.licensePlate || "No Vehicle"}</div>
-                  </div>
+                    </div>
+                  ))}
+                  {inboundOrders.length === 0 && <div className="text-muted text-center py-4 small">No inbound freight at this time.</div>}
                 </div>
-              ))}
-              {(!outboundOrders || outboundOrders.length === 0) && <div className="text-muted text-center py-4 small">No recent dispatches.</div>}
+              </div>
+            </div>
+
+            {/* Ready for Sortation */}
+            <div className="col-12 col-xl-4">
+              <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
+                <h5 className="fw-bold mb-4 d-flex justify-content-between align-items-center">
+                  <span><i className="bi bi-box-seam me-2 text-warning"></i> Sortation</span>
+                  <span className="badge bg-warning text-dark rounded-pill">{atHubOrders.length}</span>
+                </h5>
+                <div className="d-flex flex-column gap-3">
+                  {atHubOrders.map((o: any) => {
+                    const destPin = o.shippingAddress?.postalCode;
+                    const isLocal = warehouse.pincodes?.includes(destPin) || !warehouse.pincodes?.length;
+
+                    return (
+                      <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2">
+                        <div className="d-flex justify-content-between">
+                          <div className="font-monospace fw-bold">{o.trackingNumber}</div>
+                          <strong className="text-dark">{destPin}</strong>
+                        </div>
+                        <div className="small text-muted mb-2">
+                          <div className="fw-bold text-dark">{o.user?.name} <span className="fw-normal">({o.user?.phone || 'N/A'})</span></div>
+                          {o.shippingAddress?.street}, {o.shippingAddress?.city}
+                        </div>
+                        {isLocal ? (
+                          <button className="btn btn-sm btn-success rounded-pill fw-bold px-3 shadow-sm" onClick={() => { setAssignForm({ orderId: o.id, deliveryPersonId: "" }); setShowAssignModal(true); }}>
+                            Assign Local Agent
+                          </button>
+                        ) : (
+                          <button className="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3 shadow-sm" onClick={() => { setForwardForm({ orderId: o.id, targetWarehouseId: "" }); setShowForwardModal(true); }}>
+                            Forward to Hub <i className="bi bi-arrow-right ms-1"></i>
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {atHubOrders.length === 0 && <div className="text-muted text-center py-4 small">Sortation queue is empty.</div>}
+                </div>
+              </div>
+            </div>
+
+            {/* Outbound & Dispatched */}
+            <div className="col-12 col-xl-4">
+              <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
+                <h5 className="fw-bold mb-4 d-flex justify-content-between align-items-center">
+                  <span><i className="bi bi-send me-2 text-success"></i> Dispatched</span>
+                  <span className="badge bg-success rounded-pill">{outboundOrders?.length || 0}</span>
+                </h5>
+                <div className="d-flex flex-column gap-3">
+                  {outboundOrders?.map((o: any) => (
+                    <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2 bg-light">
+                      <div className="d-flex justify-content-between">
+                        <div className="font-monospace fw-bold">{o.trackingNumber}</div>
+                        <span className={`badge ${o.status === 'DELIVERED' ? 'bg-success' : 'bg-primary'}`}>{o.status}</span>
+                      </div>
+                      <div className="small">
+                        <span className="text-muted">Cust:</span> {o.user?.name} ({o.shippingAddress?.postalCode})
+                      </div>
+                      <div className="small border-top pt-2 mt-1">
+                        <span className="text-muted"><i className="bi bi-person-badge"></i> Agent:</span> {o.deliveryPerson?.user?.name}
+                        <div className="text-muted ms-3"><i className="bi bi-truck"></i> {o.deliveryPerson?.vehicle?.licensePlate || "No Vehicle"}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {(!outboundOrders || outboundOrders.length === 0) && <div className="text-muted text-center py-4 small">No recent dispatches.</div>}
+                </div>
+              </div>
             </div>
           </div>
+        </>
+      ) : (
+        /* Fleet & Agent Management View */
+        <div className="bg-white p-4 rounded-4 shadow-sm border">
+          <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+              <h5 className="fw-bold text-dark m-0"><i className="bi bi-people-fill text-dark me-2"></i> Stationed Delivery Crew</h5>
+              <div className="text-muted small">Manage vehicles and delivery agents registered directly to this hub.</div>
+            </div>
+            <button className="btn btn-dark rounded-pill fw-bold btn-sm px-4 shadow-sm" onClick={() => setShowRegisterModal(true)}>
+              <i className="bi bi-person-plus-fill me-1"></i> Register Agent
+            </button>
+          </div>
+          
+          <div className="table-responsive">
+            <table className="table table-hover align-middle">
+              <thead className="table-light">
+                <tr>
+                  <th className="border-0">Agent Name</th>
+                  <th className="border-0">Email / Contact</th>
+                  <th className="border-0">Assigned Vehicle</th>
+                  <th className="border-0 text-center">Active Workload</th>
+                  <th className="border-0 text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {localAgents.map((a: any) => (
+                  <tr key={a.id}>
+                    <td className="fw-bold text-dark">{a.user.name}</td>
+                    <td className="text-muted small">{a.user.email} {a.user.phone && `• ${a.user.phone}`}</td>
+                    <td>
+                      {a.vehicle ? (
+                        <span className="badge bg-light text-dark border font-monospace px-2 py-1">
+                          {a.vehicle.type} ({a.vehicle.licensePlate})
+                        </span>
+                      ) : (
+                        <span className="text-muted small italic">No vehicle assigned</span>
+                      )}
+                    </td>
+                    <td className="text-center">
+                      <span className={`badge rounded-pill ${a.orders.length > 0 ? 'bg-warning text-dark' : 'bg-success'}`}>
+                        {a.orders.length} active pkgs
+                      </span>
+                    </td>
+                    <td className="text-end">
+                      <div className="d-flex justify-content-end gap-2">
+                        <button className="btn btn-sm btn-outline-dark rounded-pill px-3" onClick={() => { setEditAgentForm({ deliveryPersonId: a.id, vehicleId: a.vehicleId || "" }); setShowEditAgentModal(true); }}>
+                          <i className="bi bi-pencil me-1"></i> Vehicle
+                        </button>
+                        <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => handleRemoveAgent(a.id)}>
+                          <i className="bi bi-trash"></i> Remove
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {localAgents.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="text-muted text-center py-5 small">
+                      No delivery agents registered at this hub yet. Click "Register Agent" to add crew members.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
+      {/* Assign Local Delivery Agent Modal */}
       {showAssignModal && (
         <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
           <div className="modal-dialog modal-dialog-centered">
@@ -204,6 +355,7 @@ export default function WarehouseDashboard({ warehouse, inboundOrders, atHubOrde
         </div>
       )}
 
+      {/* Forward package to next hub modal */}
       {showForwardModal && (
         <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
           <div className="modal-dialog modal-dialog-centered">
@@ -235,6 +387,70 @@ export default function WarehouseDashboard({ warehouse, inboundOrders, atHubOrde
         </div>
       )}
 
+      {/* Register Delivery Agent Modal */}
+      {showRegisterModal && (
+        <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content rounded-4 border-0 shadow-lg">
+              <div className="modal-header border-bottom-0 p-4 pb-0">
+                <h5 className="modal-title fw-bold">Register Delivery Agent</h5>
+                <button type="button" className="btn-close" onClick={() => setShowRegisterModal(false)}></button>
+              </div>
+              <form onSubmit={handleRegisterAgent}>
+                <div className="modal-body p-4 d-flex flex-column gap-3">
+                  <div>
+                    <label className="form-label text-muted small fw-bold text-uppercase">Select User</label>
+                    <select className="form-select" value={registerForm.userId} onChange={e => setRegisterForm({...registerForm, userId: e.target.value})} required>
+                      <option value="">-- Select User to Promote --</option>
+                      {users.map((u: any) => <option key={u.id} value={u.id}>{u.name} ({u.email})</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label text-muted small fw-bold text-uppercase">Assign Vehicle (Optional)</label>
+                    <select className="form-select" value={registerForm.vehicleId} onChange={e => setRegisterForm({...registerForm, vehicleId: e.target.value})}>
+                      <option value="">-- No Vehicle Assigned --</option>
+                      {vehicles.map((v: any) => <option key={v.id} value={v.id}>{v.type} ({v.licensePlate})</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="modal-footer border-top-0 p-4 pt-0">
+                  <button type="button" className="btn btn-light rounded-pill px-4" onClick={() => setShowRegisterModal(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-dark rounded-pill px-4 shadow-sm fw-bold" disabled={isPending}>{isPending ? "Registering..." : "Register Agent"}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Agent Vehicle Modal */}
+      {showEditAgentModal && (
+        <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content rounded-4 border-0 shadow-lg">
+              <div className="modal-header border-bottom-0 p-4 pb-0">
+                <h5 className="modal-title fw-bold">Update Agent Vehicle</h5>
+                <button type="button" className="btn-close" onClick={() => setShowEditAgentModal(false)}></button>
+              </div>
+              <form onSubmit={handleUpdateAgentVehicle}>
+                <div className="modal-body p-4 d-flex flex-column gap-3">
+                  <div>
+                    <label className="form-label text-muted small fw-bold text-uppercase">Assign Vehicle</label>
+                    <select className="form-select" value={editAgentForm.vehicleId} onChange={e => setEditAgentForm({...editAgentForm, vehicleId: e.target.value})}>
+                      <option value="">-- No Vehicle / Unassign --</option>
+                      {vehicles.map((v: any) => <option key={v.id} value={v.id}>{v.type} ({v.licensePlate})</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="modal-footer border-top-0 p-4 pt-0">
+                  <button type="button" className="btn btn-light rounded-pill px-4" onClick={() => setShowEditAgentModal(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-dark rounded-pill px-4 shadow-sm fw-bold" disabled={isPending}>{isPending ? "Updating..." : "Save Changes"}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

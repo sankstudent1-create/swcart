@@ -98,3 +98,80 @@ export async function forwardPackageAction(orderId: string, targetWarehouseId: s
     return { success: false, message: "Failed to forward package" };
   }
 }
+
+export async function registerWarehouseAgentAction(userIdToRegister: string, vehicleId: string | null) {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, message: "Unauthorized" };
+
+  try {
+    const staff = await prisma.warehouseStaff.findUnique({
+      where: { userId },
+      include: { warehouse: true }
+    });
+    if (!staff) return { success: false, message: "Unauthorized: Not a Warehouse Manager" };
+
+    // 1. Ensure the user exists
+    const targetUser = await prisma.user.findUnique({ where: { id: userIdToRegister } });
+    if (!targetUser) return { success: false, message: "User not found" };
+
+    // 2. Assign role DELIVERY
+    let role = await prisma.role.findUnique({ where: { name: "DELIVERY" } });
+    if (!role) role = await prisma.role.create({ data: { name: "DELIVERY" } });
+    await prisma.userRole.upsert({
+      where: { userId_roleId: { userId: userIdToRegister, roleId: role.id } },
+      update: {}, create: { userId: userIdToRegister, roleId: role.id }
+    });
+
+    // 3. Create or update DeliveryPerson profile
+    await prisma.deliveryPerson.upsert({
+      where: { userId: userIdToRegister },
+      update: { vehicleId: vehicleId || null, warehouseId: staff.warehouseId },
+      create: { userId: userIdToRegister, vehicleId: vehicleId || null, warehouseId: staff.warehouseId }
+    });
+
+    revalidatePath("/warehouse");
+    return { success: true, message: "Delivery Agent registered successfully" };
+  } catch (err: any) {
+    return { success: false, message: err.message || "Failed to register delivery agent" };
+  }
+}
+
+export async function updateWarehouseAgentAction(deliveryPersonId: string, vehicleId: string | null) {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, message: "Unauthorized" };
+
+  try {
+    const staff = await prisma.warehouseStaff.findUnique({ where: { userId } });
+    if (!staff) return { success: false, message: "Unauthorized" };
+
+    await prisma.deliveryPerson.update({
+      where: { id: deliveryPersonId, warehouseId: staff.warehouseId },
+      data: { vehicleId: vehicleId || null }
+    });
+
+    revalidatePath("/warehouse");
+    return { success: true, message: "Agent vehicle updated successfully" };
+  } catch (err: any) {
+    return { success: false, message: err.message || "Failed to update agent" };
+  }
+}
+
+export async function removeWarehouseAgentAction(deliveryPersonId: string) {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, message: "Unauthorized" };
+
+  try {
+    const staff = await prisma.warehouseStaff.findUnique({ where: { userId } });
+    if (!staff) return { success: false, message: "Unauthorized" };
+
+    await prisma.deliveryPerson.update({
+      where: { id: deliveryPersonId, warehouseId: staff.warehouseId },
+      data: { warehouseId: null, vehicleId: null }
+    });
+
+    revalidatePath("/warehouse");
+    return { success: true, message: "Agent removed from hub" };
+  } catch (err: any) {
+    return { success: false, message: err.message || "Failed to remove agent" };
+  }
+}
