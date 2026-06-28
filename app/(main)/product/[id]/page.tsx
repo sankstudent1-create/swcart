@@ -18,25 +18,35 @@ export default async function ProductPage({
   const userId = await getSessionUserId();
   let hasPurchasedAndDelivered = false;
   if (userId) {
-    const deliveredOrder = await prisma.order.findFirst({
-      where: {
-        userId,
-        status: "DELIVERED",
-        sellerOrders: {
-          some: {
-            items: {
-              some: {
-                variant: {
-                  productId: id
+    // 1. Check if they have an active course enrollment
+    const enrollment = await prisma.userCourseEnrollment.findUnique({
+      where: { userId_productId: { userId, productId: id } }
+    });
+    
+    if (enrollment) {
+      hasPurchasedAndDelivered = true;
+    } else {
+      // 2. Fallback: check if they bought it via a paid/delivered order
+      const deliveredOrder = await prisma.order.findFirst({
+        where: {
+          userId,
+          status: { in: ["PAID", "PROCESSING", "DELIVERED", "COMPLETED"] },
+          sellerOrders: {
+            some: {
+              items: {
+                some: {
+                  variant: {
+                    productId: id
+                  }
                 }
               }
             }
           }
         }
+      });
+      if (deliveredOrder) {
+        hasPurchasedAndDelivered = true;
       }
-    });
-    if (deliveredOrder) {
-      hasPurchasedAndDelivered = true;
     }
   }
 

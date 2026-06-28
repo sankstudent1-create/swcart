@@ -10,9 +10,10 @@ interface ProductActionsProps {
   variantId?: string;
   disabled?: boolean;
   isDigital?: boolean;
+  hasPurchasedAndDelivered?: boolean;
 }
 
-export default function ProductActions({ productId, variantId, disabled = false, isDigital = false }: ProductActionsProps) {
+export default function ProductActions({ productId, variantId, disabled = false, isDigital = false, hasPurchasedAndDelivered = false }: ProductActionsProps) {
   const [quantity, setQuantity] = useState(1);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -52,21 +53,33 @@ export default function ProductActions({ productId, variantId, disabled = false,
 
   return (
     <div className="action-row flex-wrap gap-2 d-flex align-items-center">
-      {!isDigital && (
-        <div className="qty-ctrl">
-          <button onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={isPending || disabled}>-</button>
-          <span>{quantity}</span>
-          <button onClick={() => setQuantity(quantity + 1)} disabled={isPending || disabled}>+</button>
-        </div>
-      )}
-      {!isDigital && (
-        <button className="btn-add" onClick={handleAddToCart} disabled={isPending || disabled}>
-          {disabled ? "Out of Stock" : isPending ? "Adding..." : "Add to Cart"}
+      {hasPurchasedAndDelivered ? (
+        <button
+          className={`btn btn-success rounded-pill fw-bold px-4 py-2.5 shadow-sm transition-all hover-scale ${isDigital ? 'w-100' : ''}`}
+          onClick={() => router.push(isDigital ? `/library` : `/profile`)}
+          style={{ background: "linear-gradient(135deg, #2a9d8f 0%, #21867a 100%)", border: "none" }}
+        >
+          {isDigital ? "Go to Course / Library" : "View Order"}
         </button>
+      ) : (
+        <>
+          {!isDigital && (
+            <div className="qty-ctrl">
+              <button onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={isPending || disabled}>-</button>
+              <span>{quantity}</span>
+              <button onClick={() => setQuantity(quantity + 1)} disabled={isPending || disabled}>+</button>
+            </div>
+          )}
+          {!isDigital && (
+            <button className="btn-add" onClick={handleAddToCart} disabled={isPending || disabled}>
+              {disabled ? "Out of Stock" : isPending ? "Adding..." : "Add to Cart"}
+            </button>
+          )}
+          <button className={`btn btn-danger rounded-pill fw-bold px-4 py-2.5 shadow-sm transition-all hover-scale ${isDigital ? 'w-100' : ''}`} onClick={handleBuyNow} disabled={isPending || disabled} style={{ background: "linear-gradient(135deg, #e63946 0%, #c1121f 100%)", border: "none" }}>
+            {disabled && !isDigital ? "Out of Stock" : isPending ? "Redirecting..." : (isDigital ? "Enroll Now" : "Buy Now")}
+          </button>
+        </>
       )}
-      <button className={`btn btn-danger rounded-pill fw-bold px-4 py-2.5 shadow-sm transition-all hover-scale ${isDigital ? 'w-100' : ''}`} onClick={handleBuyNow} disabled={isPending || disabled} style={{ background: "linear-gradient(135deg, #e63946 0%, #c1121f 100%)", border: "none" }}>
-        {disabled && !isDigital ? "Out of Stock" : isPending ? "Redirecting..." : (isDigital ? "Enroll Now" : "Buy Now")}
-      </button>
       <button className="btn-wish" onClick={handleAddToWishlist} title="Add to Wishlist" disabled={isPending}>
         <i className="bi bi-heart"></i>
       </button>

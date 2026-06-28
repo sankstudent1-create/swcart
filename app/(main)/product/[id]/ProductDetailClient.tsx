@@ -273,6 +273,7 @@ export default function ProductDetailClient({ product: p, hasPurchasedAndDeliver
                 variantId={activeVariant?.id}
                 disabled={!isDigital && !inStock}
                 isDigital={isDigital}
+                hasPurchasedAndDelivered={hasPurchasedAndDelivered}
               />
 
               <div className="features-grid mt-5">

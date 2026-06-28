@@ -161,7 +161,7 @@ export async function placeOrderAction(formData: FormData) {
           shippingAddressId: addressId,
           totalAmount,
           taxAmount,
-          status: "PROCESSING",
+          status: isDigitalOnly ? "DELIVERED" : "PROCESSING",
           couponId,
           payments: {
             create: paymentData
@@ -169,7 +169,7 @@ export async function placeOrderAction(formData: FormData) {
           sellerOrders: {
             create: Object.entries(sellerGroups).map(([sId, items]) => ({
               sellerId: sId,
-              status: "PROCESSING",
+              status: isDigitalOnly ? "DELIVERED" : "PROCESSING",
               items: {
                 create: items.map(item => {
                   const discount = item.variant.product.discountPercent || 0;
@@ -234,6 +234,26 @@ export async function placeOrderAction(formData: FormData) {
       await tx.cartItem.deleteMany({
         where: { cartId: cart.id }
       });
+
+      // Auto-enroll in digital courses
+      const digitalProductIds = new Set<string>();
+      cart.items.forEach((item: any) => {
+        const pt = item.variant.product.productType;
+        if (pt === "DIGITAL" || pt === "EBOOK") {
+          digitalProductIds.add(item.variant.product.id);
+        }
+      });
+
+      for (const pId of Array.from(digitalProductIds)) {
+        const existingEnrollment = await tx.userCourseEnrollment.findUnique({
+          where: { userId_productId: { userId, productId: pId } }
+        });
+        if (!existingEnrollment) {
+          await tx.userCourseEnrollment.create({
+            data: { userId, productId: pId }
+          });
+        }
+      }
 
       return order.id;
     });
