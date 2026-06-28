@@ -186,6 +186,14 @@ export default function SecureVideoPlayer({
     );
   }
 
+  const isYouTube = src?.includes("youtube.com") || src?.includes("youtu.be");
+  const getYouTubeEmbed = (url: string) => {
+    let id = "";
+    if (url.includes("youtu.be/")) id = url.split("youtu.be/")[1]?.split("?")[0];
+    else if (url.includes("v=")) id = url.split("v=")[1]?.split("&")[0];
+    return `https://www.youtube.com/embed/${id}?autoplay=0&rel=0`;
+  };
+
   return (
     <div
       ref={containerRef}
@@ -197,6 +205,13 @@ export default function SecureVideoPlayer({
         <div style={{ height: 420, display: "flex", alignItems: "center", justifyContent: "center", background: "#111" }}>
           <div className="spinner-border text-danger" />
         </div>
+      ) : isYouTube && src ? (
+        <iframe
+          src={getYouTubeEmbed(src)}
+          style={{ width: "100%", height: 420, display: "block", border: "none" }}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
       ) : (
         <video
           ref={videoRef}
@@ -245,8 +260,8 @@ export default function SecureVideoPlayer({
         </div>
       )}
 
-      {/* Controls bar */}
-      {!loading && (
+      {/* Controls bar (only for native video) */}
+      {!loading && !isYouTube && (
         <div
           style={{
             background: "linear-gradient(transparent,rgba(0,0,0,0.85))",

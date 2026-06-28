@@ -35,7 +35,27 @@ export default async function LessonPage({ params }: Props) {
 
   // Access check
   if (!lesson.isFree && !enrollment) {
-    redirect(`/product/${productId}?error=enroll_required`);
+    const paidOrder = await prisma.order.findFirst({
+      where: {
+        userId,
+        status: { in: ["DELIVERED", "COMPLETED"] },
+        sellerOrders: {
+          some: {
+            items: {
+              some: {
+                variant: {
+                  product: { id: productId }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    if (!paidOrder) {
+      redirect(`/product/${productId}?error=enroll_required`);
+    }
   }
 
   // Load all chapters + progress for sidebar
