@@ -190,7 +190,7 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
                             <i className="bi bi-image text-muted"></i>
                           </div>
                         )}
-                        <div className="flex-grow-1 min-width-0">
+                        <div className="flex-grow-1" style={{ minWidth: 0 }}>
                           <div className="font-jakarta fw-bold text-dark text-truncate" style={{ fontSize: "0.9rem" }}>{item.variant.product.title}</div>
                           <div className="text-muted small mt-1" style={{ fontSize: "0.75rem" }}>
                             {item.variant.size && `Size: ${item.variant.size}`}

@@ -557,6 +557,13 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
                           value={logisticsForm.shippingProvider} onChange={e => setLogisticsForm({ ...logisticsForm, shippingProvider: e.target.value })}>
                           {COURIER_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
+                        {logisticsForm.shippingProvider === "Internal Delivery" && (
+                          <div className="alert alert-info small border-0 bg-info bg-opacity-10 text-white mt-2 mb-0" style={{ fontSize: "0.75rem", lineHeight: "1.4" }}>
+                            <strong>💡 Internal Delivery Guide:</strong><br />
+                            Select <strong>Processing</strong> status and click the blue <strong>Auto-Route to Hub</strong> button. 
+                            The system will automatically find the nearest Hub serving your seller pincode and assign a delivery agent for pickup.
+                          </div>
+                        )}
                       </div>
 
                       <div>

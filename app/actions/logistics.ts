@@ -129,7 +129,7 @@ export async function dispatchOrderAction(orderId: string, assignedWarehouseId: 
         assignedWarehouseId,
         shippingProvider: "Internal Delivery",
         status: "IN_TRANSIT_TO_HUB",
-        trackingNumber: "SW-" + Date.now().toString().slice(-8)
+        trackingNumber: "SW-" + Math.floor(100000 + Math.random() * 900000).toString()
       }
     });
 
@@ -186,7 +186,7 @@ export async function autoRouteLogisticsAction(sellerOrderId: string) {
         data: { 
           status: "READY_FOR_PICKUP",
           shippingProvider: "Internal Logistics",
-          trackingNumber: `SW-${sellerOrderId.slice(-6).toUpperCase()}`
+          trackingNumber: "SW-" + Math.floor(100000 + Math.random() * 900000).toString()
         }
       }),
       prisma.trackingHistory.create({

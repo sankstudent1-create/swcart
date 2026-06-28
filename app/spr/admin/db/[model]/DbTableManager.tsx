@@ -10,6 +10,7 @@ interface FieldMeta {
   isRequired: boolean;
   isId: boolean;
   isList?: boolean;
+  isUserRelation?: boolean;
 }
 
 interface DbTableManagerProps {
@@ -18,14 +19,20 @@ interface DbTableManagerProps {
   initialRecords: any[];
   totalPages: number;
   currentPage: number;
+  allUsers: any[];
 }
+
+const generateCuid = () => {
+  return "c" + Math.random().toString(36).substring(2, 11) + Math.random().toString(36).substring(2, 11);
+};
 
 export default function DbTableManager({
   modelName,
   fields,
   initialRecords,
   totalPages,
-  currentPage
+  currentPage,
+  allUsers
 }: DbTableManagerProps) {
   const [records, setRecords] = useState(initialRecords);
   const [isPending, startTransition] = useTransition();
@@ -39,7 +46,9 @@ export default function DbTableManager({
     setEditingRecord(null);
     const initialForm: Record<string, any> = {};
     fields.forEach(f => {
-      if (!f.isId && f.name !== "createdAt" && f.name !== "updatedAt") {
+      if (f.isId) {
+        initialForm[f.name] = generateCuid();
+      } else if (!f.isId && f.name !== "createdAt" && f.name !== "updatedAt") {
         if (f.type === "Boolean") initialForm[f.name] = false;
         else initialForm[f.name] = "";
       }
@@ -173,11 +182,39 @@ export default function DbTableManager({
             <tbody className="border-top-0">
               {records.map((record: any, rowIndex: number) => (
                 <tr key={rowIndex} className="hover-bg-light transition-all">
-                  {fields.map(field => (
-                    <td key={field.name} className="py-3 text-dark small" style={{ maxWidth: "250px", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {renderValue(record[field.name])}
-                    </td>
-                  ))}
+                  {fields.map(field => {
+                    // Check if there is an loaded related user object
+                    let userObject = null;
+                    if (field.name.toLowerCase().endsWith("id")) {
+                      const relName = field.name.slice(0, -2);
+                      if (record[relName] && record[relName].name) {
+                        userObject = record[relName];
+                      }
+                    } else if (field.isUserRelation && record.user) {
+                      userObject = record.user;
+                    }
+
+                    return (
+                      <td key={field.name} className="py-3 text-dark small" style={{ maxWidth: "250px", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {userObject ? (
+                          <div className="d-flex align-items-center gap-2">
+                            <img 
+                              src={userObject.avatar || "https://tools.swinfosystems.online/icon-192.png"} 
+                              alt="" 
+                              className="rounded-circle" 
+                              style={{ width: "24px", height: "24px", objectFit: "cover" }} 
+                            />
+                            <div>
+                              <div className="fw-bold text-dark">{userObject.name}</div>
+                              <div className="text-muted" style={{ fontSize: "0.7rem" }}>{userObject.email}</div>
+                            </div>
+                          </div>
+                        ) : (
+                          renderValue(record[field.name])
+                        )}
+                      </td>
+                    );
+                  })}
                   <td className="py-2 position-sticky end-0 bg-white text-center shadow-sm">
                     <div className="d-flex justify-content-center gap-2">
                       <button 
@@ -235,7 +272,34 @@ export default function DbTableManager({
                 <div className="modal-body px-4 py-4" style={{ maxHeight: "60vh", overflowY: "auto" }}>
                   <div className="row g-3">
                     {fields.map(f => {
-                      if (f.isId || f.name === "createdAt" || f.name === "updatedAt") {
+                      if (f.isId) {
+                        return (
+                          <div className="col-12" key={f.name}>
+                            <label className="form-label text-dark small fw-bold mb-1">{f.name} (Unique ID)</label>
+                            <div className="input-group shadow-sm">
+                              <input 
+                                type="text" 
+                                className="form-control rounded-start-3 font-monospace" 
+                                value={formData[f.name] ?? ""} 
+                                onChange={(e) => handleInputChange(f.name, e.target.value, f.type)}
+                                disabled={!!editingRecord}
+                                required 
+                              />
+                              {!editingRecord && (
+                                <button 
+                                  type="button" 
+                                  className="btn btn-outline-secondary rounded-end-3" 
+                                  onClick={() => handleInputChange(f.name, generateCuid(), f.type)}
+                                >
+                                  <i className="bi bi-arrow-clockwise me-1"></i> Generate
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (f.name === "createdAt" || f.name === "updatedAt") {
                         if (editingRecord) {
                           return (
                             <div className="col-12" key={f.name}>
@@ -252,7 +316,14 @@ export default function DbTableManager({
                           <label className="form-label text-dark small fw-bold mb-1">
                             {f.name} {f.isRequired && <span className="text-danger">*</span>}
                           </label>
-                          {f.type === "Boolean" ? (
+                          {f.isUserRelation ? (
+                            <UserSelector 
+                              users={allUsers}
+                              value={formData[f.name] ?? ""}
+                              onChange={(val) => handleInputChange(f.name, val, f.type)}
+                              isRequired={f.isRequired}
+                            />
+                          ) : f.type === "Boolean" ? (
                             <select 
                               className="form-select rounded-3 border-light shadow-sm"
                               value={String(formData[f.name] ?? "false")}
@@ -311,6 +382,82 @@ export default function DbTableManager({
         .hover-scale:hover { transform: scale(1.05); }
         .transition-all { transition: all 0.2s ease-in-out; }
       `}</style>
+    </div>
+  );
+}
+
+interface UserSelectorProps {
+  users: any[];
+  value: string;
+  onChange: (val: string) => void;
+  isRequired: boolean;
+}
+
+function UserSelector({ users, value, onChange, isRequired }: UserSelectorProps) {
+  const [search, setSearch] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  const selectedUser = users.find(u => u.id === value);
+
+  const filteredUsers = users.filter(u => 
+    u.name.toLowerCase().includes(search.toLowerCase()) || 
+    u.email.toLowerCase().includes(search.toLowerCase()) ||
+    u.id.toLowerCase().includes(search.toLowerCase())
+  ).slice(0, 10);
+
+  return (
+    <div className="position-relative">
+      <div 
+        className="form-control rounded-3 border shadow-sm d-flex align-items-center justify-content-between cursor-pointer"
+        style={{ background: "#fff", minHeight: "38px" }}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {selectedUser ? (
+          <div className="d-flex align-items-center gap-2">
+            <img src={selectedUser.avatar || "https://tools.swinfosystems.online/icon-192.png"} alt="" className="rounded-circle" style={{ width: "20px", height: "20px", objectFit: "cover" }} />
+            <span className="small fw-bold text-dark">{selectedUser.name} <span className="text-muted fw-normal" style={{ fontSize: "0.75rem" }}>({selectedUser.email})</span></span>
+          </div>
+        ) : (
+          <span className="text-muted small">Select User...</span>
+        )}
+        <i className="bi bi-chevron-down text-muted small"></i>
+      </div>
+
+      {isOpen && (
+        <div className="position-absolute w-100 mt-1 bg-white border rounded-3 shadow-lg p-2" style={{ zIndex: 1000, maxHeight: "250px", overflowY: "auto" }}>
+          <input 
+            type="text" 
+            className="form-control form-control-sm mb-2 rounded-2" 
+            placeholder="Search by name, email, or ID..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            onClick={e => e.stopPropagation()}
+            autoFocus
+          />
+          <div className="d-flex flex-column gap-1">
+            {filteredUsers.map(u => (
+              <div 
+                key={u.id}
+                className="d-flex align-items-center gap-2 p-2 rounded-2 cursor-pointer hover-bg-light"
+                onClick={() => {
+                  onChange(u.id);
+                  setIsOpen(false);
+                  setSearch("");
+                }}
+              >
+                <img src={u.avatar || "https://tools.swinfosystems.online/icon-192.png"} alt="" className="rounded-circle" style={{ width: "24px", height: "24px", objectFit: "cover" }} />
+                <div style={{ fontSize: "0.8rem" }}>
+                  <div className="fw-bold text-dark">{u.name}</div>
+                  <div className="text-muted" style={{ fontSize: "0.7rem" }}>{u.email}</div>
+                </div>
+              </div>
+            ))}
+            {filteredUsers.length === 0 && (
+              <div className="text-muted text-center py-2 small">No users found</div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

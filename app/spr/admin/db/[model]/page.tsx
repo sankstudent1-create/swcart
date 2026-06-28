@@ -28,33 +28,53 @@ export default async function GenericDbPage({ params, searchParams }: { params: 
   const scalarFields = modelMeta.fields.filter(f => f.kind === "scalar");
   const prismaModelName = modelMeta.name.charAt(0).toLowerCase() + modelMeta.name.slice(1);
   const prismaModel = (prisma as any)[prismaModelName];
-
+  
   if (!prismaModel) {
     return <div className="text-danger">Error: Prisma model {prismaModelName} not accessible.</div>;
   }
 
-  const [records, totalCount] = await Promise.all([
+  // Detect relation fields pointing to User
+  const includeQuery: Record<string, any> = {};
+  const userRelations = modelMeta.fields.filter(f => f.kind === "object" && f.type === "User");
+  userRelations.forEach(r => {
+    includeQuery[r.name] = {
+      select: { id: true, name: true, avatar: true, email: true }
+    };
+  });
+
+  const [records, totalCount, allUsers] = await Promise.all([
     prismaModel.findMany({
       take,
       skip,
+      include: Object.keys(includeQuery).length > 0 ? includeQuery : undefined,
       orderBy: scalarFields.some(f => f.name === 'createdAt') ? { createdAt: 'desc' } : undefined
     }).catch(() => []),
-    prismaModel.count().catch(() => 0)
+    prismaModel.count().catch(() => 0),
+    prisma.user.findMany({
+      select: { id: true, name: true, email: true, avatar: true },
+      orderBy: { name: "asc" }
+    }).catch(() => [])
   ]);
 
   const totalPages = Math.ceil(totalCount / take);
 
   // Map fields format safely for client
-  const fields = scalarFields.map(f => ({
-    name: f.name,
-    type: f.type,
-    isRequired: f.isRequired,
-    isId: f.isId,
-    isList: f.isList
-  }));
+  const fields = scalarFields.map(f => {
+    // Check if this field corresponds to a User relation
+    const rel = modelMeta.fields.find(rf => rf.kind === "object" && rf.type === "User" && rf.relationToFields?.includes(f.name));
+    return {
+      name: f.name,
+      type: f.type,
+      isRequired: f.isRequired,
+      isId: f.isId,
+      isList: f.isList,
+      isUserRelation: !!rel
+    };
+  });
 
   // Clean objects so they are serializable (converting Date objects to string, etc.)
   const serializedRecords = JSON.parse(JSON.stringify(records));
+  const serializedUsers = JSON.parse(JSON.stringify(allUsers));
 
   return (
     <DbTableManager 
@@ -63,6 +83,7 @@ export default async function GenericDbPage({ params, searchParams }: { params: 
       initialRecords={serializedRecords}
       totalPages={totalPages}
       currentPage={page}
+      allUsers={serializedUsers}
     />
   );
 }
