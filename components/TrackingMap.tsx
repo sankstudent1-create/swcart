@@ -14,20 +14,11 @@ interface TrackingMapProps {
   checkpoints: Checkpoint[];
 }
 
-/**
- * A client-side Leaflet map that:
- *  - Shows only checkpoints with valid coordinates
- *  - Falls back to a styled "No map data" UI when none are available
- *  - Uses coloured circle markers to distinguish Seller / Hub / Delivery
- *  - Draws a polyline between valid points
- *  - Fits the map to all visible markers automatically
- *  - Guards against the Leaflet SSR/icon-URL bug via L.Icon.Default.mergeOptions
- */
 const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
   const mapRef = useRef<HTMLDivElement>(null);
-  const leafletMapRef = useRef<any>(null);
   const [mapReady, setMapReady] = useState(false);
   const [hasCoords, setHasCoords] = useState(false);
+  const mapInstanceRef = useRef<any>(null);
 
   useEffect(() => {
     const validCheckpoints = checkpoints.filter(
@@ -47,131 +38,173 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
 
     setHasCoords(true);
 
-    let L: any;
-    let map: any;
+    const mapplsKey = process.env.NEXT_PUBLIC_MAPPLS_KEY || "e5287c2e8e625032961522666d3693e7";
+
+    const loadMapplsScript = () => {
+      return new Promise<void>((resolve, reject) => {
+        if ((window as any).mappls) {
+          resolve();
+          return;
+        }
+
+        // Check if script is already added
+        const existingScript = document.querySelector(
+          'script[src*="apis.mappls.com/advancedmaps/api"]'
+        );
+        if (existingScript) {
+          existingScript.addEventListener("load", () => resolve());
+          existingScript.addEventListener("error", (e) => reject(e));
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src = `https://apis.mappls.com/advancedmaps/api/${mapplsKey}/map_sdk?v=3.0&layer=vector`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => resolve();
+        script.onerror = (e) => reject(e);
+        document.head.appendChild(script);
+      });
+    };
 
     const initMap = async () => {
-      // Dynamic import – keeps Leaflet out of the SSR bundle
-      L = (await import("leaflet")).default;
-      await import("leaflet/dist/leaflet.css");
-
-      // Fix broken default icon paths in Next.js
-      // @ts-ignore
-      delete L.Icon.Default.prototype._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        iconRetinaUrl:
-          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        shadowUrl:
-          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      });
-
-      if (!mapRef.current || leafletMapRef.current) return;
-
-      const positions = validCheckpoints.map((c) => c.position as [number, number]);
-
-      // Create map
-      map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: false });
-      leafletMapRef.current = map;
-
-      // -------------------------------------------------------
-      // TILE LAYER: MapmyIndia Mappls (India's official map)
-      // Fetches OAuth token server-side via /api/mappls-token
-      // Falls back to OpenStreetMap if credentials not configured.
-      // -------------------------------------------------------
-      let mapplsToken: string | null = null;
       try {
-        const tokenRes = await fetch("/api/mappls-token");
-        if (tokenRes.ok) {
-          const tokenData = await tokenRes.json();
-          mapplsToken = tokenData.token || null;
-        }
-      } catch {
-        // Non-fatal — fall back to OSM
-      }
+        if (!mapRef.current) return;
 
-      if (mapplsToken) {
-        // Official Indian map tiles — correct Survey of India boundaries
-        L.tileLayer(
-          `https://apis.mapmyindia.com/advancedmaps/v1/${mapplsToken}/still_m/{z}/{x}/{y}.png`,
-          {
-            attribution:
-              '&copy; <a href="https://www.mappls.com" target="_blank">MapmyIndia (Mappls)</a> &bull; <a href="https://www.surveyofindia.gov.in" target="_blank">Survey of India</a>',
-            maxZoom: 18,
-            minZoom: 4,
-            tileSize: 256,
+        // Try to load MapmyIndia Mappls SDK
+        await loadMapplsScript();
+
+        const mappls = (window as any).mappls;
+        if (mappls && mappls.Map) {
+          // Initialize via official MapmyIndia Mappls SDK
+          const centerPos = validCheckpoints[validCheckpoints.length - 1].position!;
+          
+          const map = new mappls.Map(mapRef.current, {
+            center: [centerPos[0], centerPos[1]],
+            zoom: 6,
+            zoomControl: true,
+          });
+          mapInstanceRef.current = map;
+
+          // Add Markers
+          validCheckpoints.forEach((cp) => {
+            const pos = cp.position!;
+            
+            // Custom HTML/CSS styled marker using Mappls custom icon
+            const marker = new mappls.Marker({
+              map: map,
+              position: { lat: pos[0], lng: pos[1] },
+              popupHtml: `
+                <div style="font-family:system-ui;text-align:center;min-width:130px;padding:5px;">
+                  <div style="font-weight:700;font-size:0.9rem;margin-bottom:4px;color:${cp.color}">${cp.label}</div>
+                  <div style="color:#333;font-size:0.8rem;font-weight:600">${cp.name}</div>
+                </div>
+              `,
+              icon_url: cp.label === "Seller" 
+                ? "https://tools.swinfosystems.online/marker-seller.png" 
+                : cp.label === "Hub"
+                ? "https://tools.swinfosystems.online/marker-hub.png"
+                : "https://tools.swinfosystems.online/marker-delivery.png",
+              width: 32,
+              height: 32,
+            });
+          });
+
+          // Add Polyline if multiple checkpoints
+          if (validCheckpoints.length > 1) {
+            const pathCoords = validCheckpoints.map((cp) => ({
+              lat: cp.position![0],
+              lng: cp.position![1],
+            }));
+
+            new mappls.Polyline({
+              map: map,
+              coordinates: pathCoords,
+              strokeColor: "#e63946",
+              strokeOpacity: 0.8,
+              strokeWeight: 4,
+            });
           }
-        ).addTo(map);
-      } else {
-        // Fallback — OpenStreetMap
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-          maxZoom: 18,
-        }).addTo(map);
+
+          setMapReady(true);
+        } else {
+          throw new Error("Mappls object not loaded");
+        }
+      } catch (err) {
+        console.warn("Mappls load failed, falling back to OpenStreetMap", err);
+        // Fallback: Initialize Leaflet Map using standard OSM
+        try {
+          const L = (await import("leaflet")).default;
+          await import("leaflet/dist/leaflet.css");
+
+          delete (L.Icon.Default.prototype as any)._getIconUrl;
+          L.Icon.Default.mergeOptions({
+            iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+            iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+            shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+          });
+
+          const map = L.map(mapRef.current!, { zoomControl: true, scrollWheelZoom: false });
+          mapInstanceRef.current = map;
+
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 18,
+          }).addTo(map);
+
+          const positions = validCheckpoints.map((c) => c.position as [number, number]);
+          const bounds = L.latLngBounds(positions);
+          map.fitBounds(bounds, { padding: [40, 40] });
+
+          validCheckpoints.forEach((cp, idx) => {
+            const pos = cp.position as [number, number];
+            const circleMarker = L.circleMarker(pos, {
+              radius: 12,
+              fillColor: cp.color,
+              color: "#fff",
+              weight: 3,
+              opacity: 1,
+              fillOpacity: 0.9,
+            }).addTo(map);
+
+            circleMarker.bindPopup(
+              `<div style="font-family:system-ui;text-align:center;min-width:130px">
+                <div style="font-weight:700;font-size:0.9rem;margin-bottom:4px">${cp.label}</div>
+                <div style="color:#555;font-size:0.8rem">${cp.name}</div>
+              </div>`,
+              { offset: [0, -10] }
+            );
+
+            if (idx === validCheckpoints.length - 1) circleMarker.openPopup();
+          });
+
+          if (positions.length > 1) {
+            L.polyline(positions, { color: "#e63946", weight: 3, opacity: 0.8 }).addTo(map);
+          }
+
+          setMapReady(true);
+        } catch (leafletErr) {
+          console.error("Leaflet fallback failed", leafletErr);
+        }
       }
-
-      // Fit map to all markers
-      const bounds = L.latLngBounds(positions);
-      map.fitBounds(bounds, { padding: [40, 40] });
-
-      // Custom coloured circle markers
-      validCheckpoints.forEach((cp, idx) => {
-        const pos = cp.position as [number, number];
-
-        const circleMarker = L.circleMarker(pos, {
-          radius: 14,
-          fillColor: cp.color,
-          color: "#fff",
-          weight: 3,
-          opacity: 1,
-          fillOpacity: 0.9,
-        }).addTo(map);
-
-        circleMarker.bindPopup(
-          `<div style="font-family:system-ui;text-align:center;min-width:130px">
-            <div style="font-weight:700;font-size:0.9rem;margin-bottom:4px">${cp.label}</div>
-            <div style="color:#555;font-size:0.8rem">${cp.name}</div>
-          </div>`,
-          { offset: [0, -10] }
-        );
-
-        // Open the last checkpoint popup by default (delivery)
-        if (idx === validCheckpoints.length - 1) circleMarker.openPopup();
-      });
-
-      // Dashed animated polyline connecting waypoints
-      if (positions.length > 1) {
-        // Solid main line
-        L.polyline(positions, {
-          color: "#e63946",
-          weight: 3,
-          opacity: 0.8,
-        }).addTo(map);
-
-        // Dashed overlay for visual style
-        L.polyline(positions, {
-          color: "#fff",
-          weight: 1,
-          opacity: 0.6,
-          dashArray: "6, 10",
-        }).addTo(map);
-      }
-
-      setMapReady(true);
     };
 
     initMap();
 
     return () => {
-      if (leafletMapRef.current) {
-        leafletMapRef.current.remove();
-        leafletMapRef.current = null;
+      if (mapInstanceRef.current) {
+        if (typeof mapInstanceRef.current.remove === "function") {
+          try {
+            mapInstanceRef.current.remove();
+          } catch (e) {
+            // ignore
+          }
+        }
+        mapInstanceRef.current = null;
       }
     };
   }, [checkpoints]);
 
-  // Fallback when no valid coordinates are available
   if (mapReady && !hasCoords) {
     return (
       <div
@@ -192,10 +225,7 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
           style={{ fontSize: "3rem", opacity: 0.4 }}
         />
         <div style={{ textAlign: "center" }}>
-          <div
-            className="fw-bold text-muted"
-            style={{ fontSize: "1rem" }}
-          >
+          <div className="fw-bold text-muted" style={{ fontSize: "1rem" }}>
             Live Map Unavailable
           </div>
           <div className="text-muted small mt-1">
@@ -210,7 +240,6 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
 
   return (
     <div style={{ position: "relative" }}>
-      {/* Loading skeleton */}
       {!mapReady && (
         <div
           style={{
@@ -225,16 +254,12 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
           }}
         >
           <div className="text-muted small d-flex align-items-center gap-2">
-            <span
-              className="spinner-border spinner-border-sm text-danger"
-              role="status"
-            />
+            <span className="spinner-border spinner-border-sm text-danger" role="status" />
             Loading map…
           </div>
         </div>
       )}
 
-      {/* Leaflet map container */}
       <div
         ref={mapRef}
         style={{
@@ -247,7 +272,6 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
         }}
       />
 
-      {/* Legend */}
       {mapReady && hasCoords && (
         <div
           style={{
@@ -265,12 +289,7 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
           }}
         >
           {checkpoints
-            .filter(
-              (c) =>
-                c.position &&
-                c.position[0] !== 0 &&
-                c.position[1] !== 0
-            )
+            .filter((c) => c.position && c.position[0] !== 0 && c.position[1] !== 0)
             .map((cp, i) => (
               <div
                 key={i}

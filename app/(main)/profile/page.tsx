@@ -30,7 +30,15 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   if (!user) redirect("/login");
 
   const params = await searchParams;
-  const tab = params.tab || "orders";
+  
+  // 1. Fetch site settings to check if referral module is enabled
+  const siteSettings = await prisma.siteSetting.findUnique({ where: { id: "GLOBAL" } });
+  const isReferralEnabled = siteSettings?.referralEnabled !== false;
+
+  let tab = params.tab || "orders";
+  if (tab === "referral" && !isReferralEnabled) {
+    tab = "orders"; // Redirect to orders tab if referral is disabled
+  }
 
   // Fetch support tickets for this user
   const tickets = await prisma.supportTicket.findMany({
@@ -117,7 +125,9 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                   <i className="bi bi-geo-alt"></i> Saved Addresses
                 </Link>
                 <Link href="/profile?tab=support" className={`nav-pill-animated ${tab === 'support' ? 'active' : ''}`}><i className="bi bi-headset"></i> Support Helpdesk</Link>
-                <Link href="/profile?tab=referral" className={`nav-pill-animated ${tab === 'referral' ? 'active' : ''}`}><i className="bi bi-share"></i> Referral</Link>
+                {isReferralEnabled && (
+                  <Link href="/profile?tab=referral" className={`nav-pill-animated ${tab === 'referral' ? 'active' : ''}`}><i className="bi bi-share"></i> Referral</Link>
+                )}
                 <hr className="my-2 opacity-10" />
                 <form action={logoutAction as any}>
                   <button type="submit" className="nav-pill-animated bg-transparent border-0 w-100 text-start text-danger hover-red">
@@ -309,7 +319,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                 </div>
               )}
               
-              {tab === "referral" && (
+              {tab === "referral" && isReferralEnabled && (
                 <div className="fade-in">
                   <h3 className="font-jakarta fw-bolder text-dark mb-4">Your Referral Link</h3>
                   <ReferralLink />
