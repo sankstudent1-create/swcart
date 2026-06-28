@@ -108,7 +108,7 @@ export default function SellerDigitalManager({ products, enrollments, progressRe
           <h2 style={{ fontWeight: 900, margin: 0, fontSize: "1.4rem", color: "#fff" }}>Digital Products</h2>
           <p style={{ margin: "4px 0 0", color: "rgba(255,255,255,0.4)", fontSize: "0.82rem" }}>Manage your courses, eBooks, and track how learners consume your content.</p>
         </div>
-        <button onClick={() => router.push("/seller/products")} style={{ padding: "9px 18px", background: "linear-gradient(135deg,#ef4444,#dc2626)", border: "none", borderRadius: 12, color: "#fff", fontWeight: 700, fontSize: "0.83rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+        <button onClick={() => router.push("/seller/digital/studio")} style={{ padding: "9px 18px", background: "linear-gradient(135deg,#ef4444,#dc2626)", border: "none", borderRadius: 12, color: "#fff", fontWeight: 700, fontSize: "0.83rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
           <i className="bi bi-plus-lg" /> Create Digital Product
         </button>
       </div>
@@ -156,10 +156,10 @@ export default function SellerDigitalManager({ products, enrollments, progressRe
               </div>
               <h5 style={{ fontWeight: 800, color: "#fff", marginBottom: 6 }}>No digital products yet</h5>
               <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.85rem", marginBottom: 20 }}>
-                Create a course or eBook by going to Products Catalog and setting the type to DIGITAL.
+                Create your first video course or eBook using the Digital Studio.
               </p>
-              <button onClick={() => router.push("/seller/products")} style={{ padding: "9px 22px", background: "linear-gradient(135deg,#ef4444,#dc2626)", border: "none", borderRadius: 12, color: "#fff", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer" }}>
-                <i className="bi bi-plus-lg me-2" />Go to Products Catalog
+              <button onClick={() => router.push("/seller/digital/studio")} style={{ padding: "9px 22px", background: "linear-gradient(135deg,#ef4444,#dc2626)", border: "none", borderRadius: 12, color: "#fff", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer" }}>
+                <i className="bi bi-plus-lg me-2" />Open Digital Studio
               </button>
             </div>
           ) : (
@@ -180,6 +180,9 @@ export default function SellerDigitalManager({ products, enrollments, progressRe
                           <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.35)", marginTop: 3 }}>{fmt(p.basePrice)} · {timeAgo(p.createdAt)}</div>
                         </div>
                         <div style={{ display: "flex", gap: 6, flexShrink: 0, marginLeft: 8 }}>
+                          <button onClick={() => router.push(`/seller/digital/studio?id=${p.id}`)} style={{ padding: "3px 10px", borderRadius: 999, fontSize: "0.65rem", fontWeight: 700, background: "rgba(255,255,255,0.1)", color: "#fff", border: "none", cursor: "pointer" }}>
+                            <i className="bi bi-pencil-fill me-1"/> Edit
+                          </button>
                           <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: "0.65rem", fontWeight: 700, background: isCourse ? "rgba(139,92,246,0.2)" : "rgba(239,68,68,0.2)", color: isCourse ? "#a78bfa" : "#fca5a5" }}>
                             {isCourse ? "COURSE" : "EBOOK"}
                           </span>
