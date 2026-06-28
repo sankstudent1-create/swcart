@@ -24,6 +24,10 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/3.37.1/minified.js" crossOrigin="anonymous" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.6.20/dist/fetch.umd.min.js" crossOrigin="anonymous" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/resize-observer-polyfill@1.5.1/dist/ResizeObserver.global.min.js" crossOrigin="anonymous" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/intersection-observer@0.12.2/intersection-observer.min.js" crossOrigin="anonymous" defer></script>
       </head>
       <body className={jakarta.className}>
         {children}

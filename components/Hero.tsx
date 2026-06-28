@@ -3,7 +3,15 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 
-export default function Hero() {
+interface HeroProps {
+  products?: any[];
+  metrics?: {
+    activeCustomers: number;
+    sellers: number;
+  };
+}
+
+export default function Hero({ products = [], metrics }: HeroProps) {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -16,6 +24,28 @@ export default function Hero() {
     hidden: { y: 25, opacity: 0 },
     visible: { y: 0, opacity: 1, transition: { type: "spring" as const, stiffness: 90, damping: 15 } }
   };
+
+  // Safe mapping of database products with beautiful defaults
+  const product1 = products[0] || {
+    id: "default-1",
+    title: "Wireless Headphones",
+    basePrice: 24999,
+    images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600&auto=format&fit=crop"]
+  };
+  const product2 = products[1] || {
+    id: "default-2",
+    title: "Smart Wearable",
+    basePrice: 12999,
+    images: ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop"]
+  };
+
+  // Formatted metrics based on live database values or fallback baselines
+  const activeCustomersText = metrics 
+    ? (metrics.activeCustomers > 1000 ? (metrics.activeCustomers / 1000).toFixed(0) + "K+" : metrics.activeCustomers) 
+    : "1.2M+";
+  const sellersText = metrics 
+    ? (metrics.sellers > 1000 ? (metrics.sellers / 1000).toFixed(0) + "K+" : metrics.sellers) 
+    : "60K+";
 
   return (
     <section className="hero position-relative overflow-hidden" style={{ minHeight: "85vh", background: "radial-gradient(circle at 70% 30%, #2D1A10 0%, #120A06 100%)", display: "flex", alignItems: "center" }}>
@@ -59,17 +89,17 @@ export default function Hero() {
             </motion.div>
             
             {/* Quick Metrics */}
-            <motion.div variants={itemVariants} className="mt-5 pt-4 d-flex align-items-center gap-5 border-top border-light border-opacity-10">
+            <motion.div variants={itemVariants} className="mt-5 pt-4 d-flex flex-wrap align-items-center gap-4 gap-sm-5 border-top border-light border-opacity-10">
               <div>
-                <h4 className="text-white fw-bold mb-0">1.2M+</h4>
+                <h4 className="text-white fw-bold mb-0">{activeCustomersText}</h4>
                 <span className="text-muted small text-uppercase" style={{ fontSize: "0.65rem", letterSpacing: "0.5px" }}>Active Customers</span>
               </div>
-              <div style={{ width: "1px", height: "30px", background: "rgba(255,255,255,0.1)" }}></div>
+              <div className="d-none d-sm-block" style={{ width: "1px", height: "30px", background: "rgba(255,255,255,0.1)" }}></div>
               <div>
-                <h4 className="text-white fw-bold mb-0">60K+</h4>
+                <h4 className="text-white fw-bold mb-0">{sellersText}</h4>
                 <span className="text-muted small text-uppercase" style={{ fontSize: "0.65rem", letterSpacing: "0.5px" }}>Global Brands</span>
               </div>
-              <div style={{ width: "1px", height: "30px", background: "rgba(255,255,255,0.1)" }}></div>
+              <div className="d-none d-sm-block" style={{ width: "1px", height: "30px", background: "rgba(255,255,255,0.1)" }}></div>
               <div>
                 <h4 className="text-white fw-bold mb-0">100%</h4>
                 <span className="text-muted small text-uppercase" style={{ fontSize: "0.65rem", letterSpacing: "0.5px" }}>Payment Protection</span>
@@ -93,12 +123,12 @@ export default function Hero() {
                 style={{ width: "65%", zIndex: 3, top: "10%", right: "5%", background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }}
               >
                 <div style={{ aspectRatio: "4/3", overflow: "hidden" }}>
-                  <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600&auto=format&fit=crop" alt="Premium Audio" className="img-fluid w-100" style={{ objectFit: "cover" }} />
+                  <img src={product1.images?.[0] || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600&auto=format&fit=crop"} alt={product1.title} className="img-fluid w-100" style={{ objectFit: "cover" }} />
                 </div>
                 <div className="p-4 bg-dark bg-opacity-70 text-white border-top border-light border-opacity-10">
                   <span className="badge bg-danger rounded-pill mb-2 fw-bold" style={{ fontSize: "0.6rem" }}>POPULAR</span>
-                  <div className="fw-bold fs-5 font-family-poppins">Wireless Headphones</div>
-                  <div className="text-danger fw-extrabold fs-6 mt-1">₹24,999</div>
+                  <div className="fw-bold fs-5 font-family-poppins">{product1.title}</div>
+                  <div className="text-danger fw-extrabold fs-6 mt-1">₹{product1.basePrice.toLocaleString('en-IN')}</div>
                 </div>
               </motion.div>
               
@@ -110,7 +140,7 @@ export default function Hero() {
                 style={{ width: "50%", zIndex: 2, bottom: "10%", left: "5%", background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }}
               >
                 <div style={{ aspectRatio: "1/1", overflow: "hidden" }}>
-                  <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop" alt="Smart Wearable" className="img-fluid w-100" style={{ objectFit: "cover" }} />
+                  <img src={product2.images?.[0] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop"} alt={product2.title} className="img-fluid w-100" style={{ objectFit: "cover" }} />
                 </div>
               </motion.div>
             </div>

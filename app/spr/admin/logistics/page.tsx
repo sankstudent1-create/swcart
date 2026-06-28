@@ -19,11 +19,16 @@ export default async function LogisticsPage() {
   });
   
   // Orders pending dispatch (Not assigned to a warehouse yet)
-  const orders = await prisma.order.findMany({
+  const dbOrders = await prisma.order.findMany({
     where: { status: { in: ["PENDING", "PROCESSING"] }, assignedWarehouseId: null, deliveryPersonId: null },
-    include: { user: true, shippingAddress: true, items: true },
+    include: { user: true, shippingAddress: true, sellerOrders: { include: { items: true } } },
     orderBy: { createdAt: "desc" }
   });
+
+  const orders = dbOrders.map(o => ({
+    ...o,
+    items: o.sellerOrders.flatMap(so => so.items)
+  }));
 
   return (
     <LogisticsManager 
