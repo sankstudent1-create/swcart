@@ -30,12 +30,15 @@ export default function BhuvanMap({ markers = [] }: { markers: any[] }) {
     <div style={{ height: "400px", width: "100%", borderRadius: "16px", overflow: "hidden", border: "1px solid #e9ecef", zIndex: 1 }}>
       {/* @ts-ignore */}
       <MapContainer center={position} zoom={5} style={{ height: "100%", width: "100%", zIndex: 1 }}>
+        {/* @ts-ignore */}
         <WMSTileLayer
           url="https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms/"
-          layers="india3"
-          format="image/jpeg"
-          transparent={true}
-          version="1.1.1"
+          params={{
+            layers: "india3",
+            format: "image/jpeg",
+            transparent: true,
+            version: "1.1.1"
+          }}
           attribution='&copy; <a href="https://bhuvan.nrsc.gov.in/bhuvan_links.php">ISRO Bhuvan</a>'
         />
         {markers.map((m, idx) => (
