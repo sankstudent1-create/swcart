@@ -94,127 +94,88 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
     };
 
     const initMap = async () => {
+      if (!mapRef.current) return;
+
+      // ─── Initialize Leaflet map (primary renderer) ─────────────────────────
+      // Mappls Web SDK requires console activation (currently returns 401),
+      // so we use Leaflet + ISRO Bhuvan WMS overlay as the authoritative
+      // Indian map source instead.
       try {
-        if (!mapRef.current) return;
+        const L = (await import("leaflet")).default;
+        await import("leaflet/dist/leaflet.css");
 
-        // Try to load MapmyIndia Mappls SDK
-        const loaded = await loadMapplsScript();
-        if (!loaded) {
-          throw new Error("Mappls Web SDK is not enabled or credentials need verification");
-        }
+        delete (L.Icon.Default.prototype as any)._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+          iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+          shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        });
 
-        const sdk = (window as any).mappls || (window as any).MapmyIndia;
-        if (sdk && sdk.Map) {
-          // Initialize via official MapmyIndia Mappls SDK
-          const centerPos = validCheckpoints[validCheckpoints.length - 1].position!;
-          
-          const map = new sdk.Map(mapRef.current, {
-            center: [centerPos[0], centerPos[1]],
-            zoom: 6,
-            zoomControl: true,
-          });
-          mapInstanceRef.current = map;
+        const map = L.map(mapRef.current!, { zoomControl: true, scrollWheelZoom: false });
+        mapInstanceRef.current = map;
 
-          // Add Markers
-          validCheckpoints.forEach((cp) => {
-            const pos = cp.position!;
-            
-            // Custom HTML/CSS styled marker using Mappls custom icon
-            const marker = new sdk.Marker({
-              map: map,
-              position: { lat: pos[0], lng: pos[1] },
-              popupHtml: `
-                <div style="font-family:system-ui;text-align:center;min-width:130px;padding:5px;">
-                  <div style="font-weight:700;font-size:0.9rem;margin-bottom:4px;color:${cp.color}">${cp.label}</div>
-                  <div style="color:#333;font-size:0.8rem;font-weight:600">${cp.name}</div>
-                </div>
-              `,
-              icon_url: cp.label === "Seller" 
-                ? "https://tools.swinfosystems.online/marker-seller.png" 
-                : cp.label === "Hub"
-                ? "https://tools.swinfosystems.online/marker-hub.png"
-                : "https://tools.swinfosystems.online/marker-delivery.png",
-              width: 32,
-              height: 32,
-            });
-          });
+        // ─── Base layer: OpenStreetMap ───────────────────────────────────────
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 18,
+        }).addTo(map);
 
-          // Add Polyline if multiple checkpoints
-          if (validCheckpoints.length > 1) {
-            const pathCoords = validCheckpoints.map((cp) => ({
-              lat: cp.position![0],
-              lng: cp.position![1],
-            }));
-
-            new sdk.Polyline({
-              map: map,
-              coordinates: pathCoords,
-              strokeColor: "#e63946",
-              strokeOpacity: 0.8,
-              strokeWeight: 4,
-            });
-          }
-
-          setMapReady(true);
-        } else {
-          throw new Error("Mappls object not loaded");
-        }
-      } catch (err) {
-        console.warn("Mappls load failed, falling back to OpenStreetMap", err);
-        // Fallback: Initialize Leaflet Map using standard OSM
+        // ─── Overlay: ISRO Bhuvan WMS — official Indian political boundaries ─
+        // Bhuvan is India's national geospatial portal maintained by
+        // ISRO / NRSC / Survey of India. Shows correct borders for
+        // J&K, Ladakh, Arunachal Pradesh, Aksai Chin as per GoI.
+        // No API key required — publicly accessible WMS endpoint.
         try {
-          const L = (await import("leaflet")).default;
-          await import("leaflet/dist/leaflet.css");
+          L.tileLayer.wms("https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms", {
+            layers: "india3",      // Official India political boundary layer
+            format: "image/png",
+            transparent: true,
+            opacity: 0.6,
+            version: "1.1.1",
+            attribution:
+              '&copy; <a href="https://bhuvan.nrsc.gov.in" target="_blank">ISRO Bhuvan</a> | Survey of India',
+          } as any).addTo(map);
+        } catch {
+          // Non-fatal — OSM base still renders if Bhuvan is unreachable
+        }
 
-          delete (L.Icon.Default.prototype as any)._getIconUrl;
-          L.Icon.Default.mergeOptions({
-            iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-            iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-            shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-          });
+        // ─── Fit map bounds ──────────────────────────────────────────────────
+        const positions = validCheckpoints.map((c) => c.position as [number, number]);
+        map.fitBounds(L.latLngBounds(positions), { padding: [40, 40] });
 
-          const map = L.map(mapRef.current!, { zoomControl: true, scrollWheelZoom: false });
-          mapInstanceRef.current = map;
-
-          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-            maxZoom: 18,
+        // ─── Checkpoint markers ──────────────────────────────────────────────
+        validCheckpoints.forEach((cp, idx) => {
+          const pos = cp.position as [number, number];
+          const circleMarker = L.circleMarker(pos, {
+            radius: 14,
+            fillColor: cp.color,
+            color: "#fff",
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 0.92,
           }).addTo(map);
 
-          const positions = validCheckpoints.map((c) => c.position as [number, number]);
-          const bounds = L.latLngBounds(positions);
-          map.fitBounds(bounds, { padding: [40, 40] });
+          circleMarker.bindPopup(
+            `<div style="font-family:'Plus Jakarta Sans',system-ui;text-align:center;min-width:140px;padding:4px 0">
+              <div style="font-weight:800;font-size:0.88rem;color:${cp.color};margin-bottom:3px">${cp.label}</div>
+              <div style="color:#333;font-size:0.8rem;font-weight:600">${cp.name}</div>
+            </div>`,
+            { offset: [0, -12] }
+          );
+          if (idx === validCheckpoints.length - 1) circleMarker.openPopup();
+        });
 
-          validCheckpoints.forEach((cp, idx) => {
-            const pos = cp.position as [number, number];
-            const circleMarker = L.circleMarker(pos, {
-              radius: 12,
-              fillColor: cp.color,
-              color: "#fff",
-              weight: 3,
-              opacity: 1,
-              fillOpacity: 0.9,
-            }).addTo(map);
-
-            circleMarker.bindPopup(
-              `<div style="font-family:system-ui;text-align:center;min-width:130px">
-                <div style="font-weight:700;font-size:0.9rem;margin-bottom:4px">${cp.label}</div>
-                <div style="color:#555;font-size:0.8rem">${cp.name}</div>
-              </div>`,
-              { offset: [0, -10] }
-            );
-
-            if (idx === validCheckpoints.length - 1) circleMarker.openPopup();
-          });
-
-          if (positions.length > 1) {
-            L.polyline(positions, { color: "#e63946", weight: 3, opacity: 0.8 }).addTo(map);
-          }
-
-          setMapReady(true);
-        } catch (leafletErr) {
-          console.error("Leaflet fallback failed", leafletErr);
+        // ─── Route polyline ──────────────────────────────────────────────────
+        if (positions.length > 1) {
+          L.polyline(positions, { color: "#e63946", weight: 4, opacity: 0.85 }).addTo(map);
+          L.polyline(positions, {
+            color: "#fff", weight: 2, opacity: 0.5, dashArray: "8, 12",
+          }).addTo(map);
         }
+
+        setMapReady(true);
+      } catch (err) {
+        console.error("Map init failed", err);
       }
     };
 
