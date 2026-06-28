@@ -28,6 +28,19 @@ export default function RootLayout({
         <script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.6.20/dist/fetch.umd.min.js" crossOrigin="anonymous" defer></script>
         <script src="https://cdn.jsdelivr.net/npm/resize-observer-polyfill@1.5.1/dist/ResizeObserver.global.min.js" crossOrigin="anonymous" defer></script>
         <script src="https://cdn.jsdelivr.net/npm/intersection-observer@0.12.2/intersection-observer.min.js" crossOrigin="anonymous" defer></script>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              const urlParams = new URLSearchParams(window.location.search);
+              const ref = urlParams.get('ref');
+              if (ref) {
+                const d = new Date();
+                d.setTime(d.getTime() + (30*24*60*60*1000));
+                document.cookie = "swcart_ref=" + ref + ";expires=" + d.toUTCString() + ";path=/";
+              }
+            })();
+          `
+        }} />
       </head>
       <body className={jakarta.className}>
         {children}

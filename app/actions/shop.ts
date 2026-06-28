@@ -112,6 +112,40 @@ export async function placeOrderAction(formData: FormData) {
         }
       });
 
+      const useWallet = formData.get("useWallet") === "true";
+      let walletPayAmount = 0;
+      let walletId = null;
+
+      if (useWallet) {
+        const wallet = await tx.wallet.findUnique({ where: { userId } });
+        if (wallet && wallet.balance > 0) {
+          walletPayAmount = Math.min(wallet.balance, totalAmount);
+          walletId = wallet.id;
+          
+          await tx.wallet.update({
+            where: { id: wallet.id },
+            data: { balance: { decrement: walletPayAmount } }
+          });
+        }
+      }
+
+      const remainingAmount = totalAmount - walletPayAmount;
+      const paymentData = [];
+      if (walletPayAmount > 0) {
+        paymentData.push({
+          method: "WALLET",
+          amount: walletPayAmount,
+          status: "COMPLETED"
+        });
+      }
+      if (remainingAmount > 0) {
+        paymentData.push({
+          method: "COD",
+          amount: remainingAmount,
+          status: "PENDING"
+        });
+      }
+
       const order = await tx.order.create({
         data: {
           userId,
@@ -121,11 +155,7 @@ export async function placeOrderAction(formData: FormData) {
           status: "PROCESSING",
           couponId,
           payments: {
-            create: [{
-              method: "COD",
-              amount: totalAmount,
-              status: "PENDING"
-            }]
+            create: paymentData
           },
           sellerOrders: {
             create: Object.entries(sellerGroups).map(([sId, items]) => ({
@@ -146,6 +176,51 @@ export async function placeOrderAction(formData: FormData) {
           }
         }
       });
+
+      if (walletPayAmount > 0 && walletId) {
+        await tx.walletTransaction.create({
+          data: {
+            walletId,
+            amount: -walletPayAmount,
+            type: "DEBIT",
+            reason: `Payment for Order #${order.id.slice(-8).toUpperCase()}`
+          }
+        });
+      }
+
+      // Check for referrals and award bonus on first order
+      const referral = await tx.referral.findUnique({
+        where: { referredId: userId }
+      });
+      if (referral && referral.status === "PENDING") {
+        await tx.referral.update({
+          where: { id: referral.id },
+          data: { status: "COMPLETED", rewardPaid: true }
+        });
+
+        let referrerWallet = await tx.wallet.findUnique({
+          where: { userId: referral.referrerId }
+        });
+        if (!referrerWallet) {
+          referrerWallet = await tx.wallet.create({
+            data: { userId: referral.referrerId, balance: 0 }
+          });
+        }
+
+        await tx.wallet.update({
+          where: { id: referrerWallet.id },
+          data: { balance: { increment: 100 } }
+        });
+
+        await tx.walletTransaction.create({
+          data: {
+            walletId: referrerWallet.id,
+            amount: 100,
+            type: "CREDIT",
+            reason: "Referral Bonus for inviting new customer"
+          }
+        });
+      }
 
       await tx.cartItem.deleteMany({
         where: { cartId: cart.id }

@@ -58,6 +58,26 @@ export default async function SettingsPage() {
               <label className="form-label text-muted small fw-bold text-uppercase text-danger">Platform Commission (%)</label>
               <input type="number" name="platformCommission" step="0.1" className="form-control rounded-3 border-danger bg-danger bg-opacity-10" defaultValue={settings.platformCommission} required />
             </div>
+
+            <div className="col-12 mt-5">
+              <h5 className="fw-bold mb-3 border-bottom pb-2">Referrals & Affiliates</h5>
+            </div>
+            <div className="col-md-6">
+              <div className="form-check form-switch mt-2">
+                <input 
+                  type="checkbox" 
+                  name="referralEnabled" 
+                  id="referralEnabled"
+                  className="form-check-input"
+                  defaultChecked={settings.referralEnabled}
+                  value="true"
+                />
+                <label className="form-check-label fw-semibold text-dark ms-2" htmlFor="referralEnabled">
+                  Enable Referral & Affiliate System
+                </label>
+              </div>
+              <p className="text-muted small mt-1">When enabled, users can generate affiliate invite invite links, and referral signups will earn wallet credits upon their first purchase.</p>
+            </div>
           </div>
 
           <div className="mt-5 d-flex justify-content-end">

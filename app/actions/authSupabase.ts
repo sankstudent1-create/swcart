@@ -44,17 +44,62 @@ export async function registerSupabase(formData: FormData): Promise<{ error?: st
       });
 
       if (!existingUser) {
-        await prisma.user.create({
-          data: {
-            id: data.user.id,
-            name,
-            email,
-            passwordHash: "", // password managed by Supabase Auth
-            roles: {
-              create: { roleId: role.id }
-            },
-            customerProfile: {
-              create: {}
+        const cookieStore = await cookies();
+        const refCode = cookieStore.get("swcart_ref")?.value;
+        let referrerId: string | null = null;
+        let affiliateLinkId: string | null = null;
+
+        if (refCode) {
+          const affiliateLink = await prisma.affiliateLink.findUnique({
+            where: { code: refCode }
+          });
+          if (affiliateLink) {
+            referrerId = affiliateLink.userId;
+            affiliateLinkId = affiliateLink.id;
+          } else {
+            const directUser = await prisma.user.findUnique({ where: { id: refCode } });
+            if (directUser) {
+              referrerId = directUser.id;
+            }
+          }
+        }
+
+        await prisma.$transaction(async (tx) => {
+          await tx.user.create({
+            data: {
+              id: data.user!.id,
+              name,
+              email,
+              passwordHash: "",
+              roles: {
+                create: { roleId: role.id }
+              },
+              customerProfile: {
+                create: {}
+              }
+            }
+          });
+
+          if (referrerId && referrerId !== data.user!.id) {
+            const settings = await tx.siteSetting.findUnique({ where: { id: "GLOBAL" } });
+            if (settings?.referralEnabled !== false) {
+              await tx.referral.create({
+                data: {
+                  referrerId,
+                  referredId: data.user!.id,
+                  affiliateLinkId,
+                  status: "PENDING"
+                }
+              });
+
+              if (affiliateLinkId) {
+                await tx.affiliateClick.create({
+                  data: {
+                    linkId: affiliateLinkId,
+                    ipAddress: "Registered User"
+                  }
+                });
+              }
             }
           }
         });

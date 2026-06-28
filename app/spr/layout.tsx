@@ -29,6 +29,7 @@ export default async function AdminLayout({
     { href: "/spr/admin/logistics", label: "Logistics Hub", icon: "bi-truck" },
     { href: "/spr/admin/coupons", label: "Coupons", icon: "bi-tag" },
     { href: "/spr/admin/offers", label: "Offers Hub", icon: "bi-gift" },
+    { href: "/spr/admin/referrals", label: "Referral Program", icon: "bi-share" },
     { href: "/spr/admin/support", label: "Support Helpdesk", icon: "bi-headset" },
     { href: "/spr/admin/roles", label: "Access Roles", icon: "bi-shield-lock" },
     { href: "/spr/admin/settings", label: "Settings", icon: "bi-gear" },

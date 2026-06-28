@@ -21,6 +21,11 @@ export default async function CheckoutPage() {
 
   const savedAddress = profile?.addresses?.[0] || null;
 
+  const wallet = await prisma.wallet.findUnique({
+    where: { userId }
+  });
+  const walletBalance = wallet?.balance || 0;
+
   const items = cart?.items || [];
   if (items.length === 0) {
     redirect("/cart");
@@ -29,7 +34,7 @@ export default async function CheckoutPage() {
   return (
     <div className="container checkout-layout py-5">
       <h1 className="mb-4 fw-bold">Secure Checkout</h1>
-      <CheckoutForm items={items} savedAddress={savedAddress} />
+      <CheckoutForm items={items} savedAddress={savedAddress} walletBalance={walletBalance} />
     </div>
   );
 }

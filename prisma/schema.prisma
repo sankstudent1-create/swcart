@@ -42,6 +42,10 @@ model User {
   auditLogs        AuditLog[]
   productQuestions ProductQuestion[]
   productAnswers   ProductAnswer[]
+  
+  // Affiliate / Referrals
+  referralsCreated Referral[] @relation("ReferrerRelation")
+  referralJoined  Referral?  @relation("ReferredRelation")
 
   // Security & Soft Delete
   twoFactorEnabled Boolean @default(false)
@@ -506,6 +510,7 @@ model SiteSetting {
   twitterUrl   String?
 
   autoApproveSellers Boolean @default(true)
+  referralEnabled    Boolean @default(true)
 }
 
 model DynamicPage {
@@ -724,4 +729,17 @@ model AuditLog {
   details   Json?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model Referral {
+  id              String   @id @default(cuid())
+  referrerId      String
+  referredId      String   @unique
+  affiliateLinkId String?
+  status          String   @default("PENDING") // PENDING, COMPLETED
+  rewardPaid      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  
+  referrer        User     @relation("ReferrerRelation", fields: [referrerId], references: [id])
+  referred        User     @relation("ReferredRelation", fields: [referredId], references: [id])
 }

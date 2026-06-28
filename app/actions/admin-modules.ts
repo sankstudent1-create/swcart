@@ -96,26 +96,38 @@ export async function updateSettingsAction(data: any) {
   if (!isSuperAdmin) return { success: false, message: "Unauthorized" };
 
   try {
+    const isForm = data instanceof FormData;
+    const brandName = isForm ? (data.get("brandName") as string) : data.brandName;
+    const contactEmail = isForm ? (data.get("contactEmail") as string) : data.contactEmail;
+    const contactPhone = isForm ? (data.get("contactPhone") as string) : data.contactPhone;
+    const defaultGst = Number(isForm ? data.get("defaultGst") : data.defaultGst);
+    const deliveryFee = Number(isForm ? data.get("deliveryFee") : data.deliveryFee);
+    const freeShippingThresh = Number(isForm ? data.get("freeShippingThresh") : data.freeShippingThresh);
+    const platformCommission = Number(isForm ? data.get("platformCommission") : data.platformCommission);
+    const referralEnabled = isForm ? (data.get("referralEnabled") === "on" || data.get("referralEnabled") === "true") : !!data.referralEnabled;
+
     await prisma.siteSetting.upsert({
       where: { id: "GLOBAL" },
       update: {
-        brandName: data.brandName,
-        contactEmail: data.contactEmail,
-        contactPhone: data.contactPhone,
-        defaultGst: Number(data.defaultGst),
-        deliveryFee: Number(data.deliveryFee),
-        freeShippingThresh: Number(data.freeShippingThresh),
-        platformCommission: Number(data.platformCommission),
+        brandName,
+        contactEmail,
+        contactPhone,
+        defaultGst,
+        deliveryFee,
+        freeShippingThresh,
+        platformCommission,
+        referralEnabled,
       },
       create: {
         id: "GLOBAL",
-        brandName: data.brandName,
-        contactEmail: data.contactEmail,
-        contactPhone: data.contactPhone,
-        defaultGst: Number(data.defaultGst),
-        deliveryFee: Number(data.deliveryFee),
-        freeShippingThresh: Number(data.freeShippingThresh),
-        platformCommission: Number(data.platformCommission),
+        brandName,
+        contactEmail,
+        contactPhone,
+        defaultGst,
+        deliveryFee,
+        freeShippingThresh,
+        platformCommission,
+        referralEnabled,
       }
     });
     revalidatePath("/spr/admin/settings");
