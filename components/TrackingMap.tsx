@@ -48,9 +48,9 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
         `https://apis.mapmyindia.com/advancedmaps/api/${mapplsKey}/map_sdk?v=3.0&layer=vector`
       ];
 
-      return new Promise<void>((resolve, reject) => {
+      return new Promise<boolean>((resolve) => {
         if ((window as any).mappls || (window as any).MapmyIndia) {
-          resolve();
+          resolve(true);
           return;
         }
 
@@ -58,7 +58,8 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
 
         const tryNext = () => {
           if (attempt >= candidateUrls.length) {
-            reject(new Error("All Mappls script URLs failed to load"));
+            // Quietly resolve with false so we fall back to OSM without console crashes
+            resolve(false);
             return;
           }
 
@@ -77,7 +78,7 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
           script.defer = true;
           script.onload = () => {
             if ((window as any).mappls || (window as any).MapmyIndia) {
-              resolve();
+              resolve(true);
             } else {
               tryNext();
             }
@@ -97,7 +98,10 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
         if (!mapRef.current) return;
 
         // Try to load MapmyIndia Mappls SDK
-        await loadMapplsScript();
+        const loaded = await loadMapplsScript();
+        if (!loaded) {
+          throw new Error("Mappls Web SDK is not enabled or credentials need verification");
+        }
 
         const sdk = (window as any).mappls || (window as any).MapmyIndia;
         if (sdk && sdk.Map) {
