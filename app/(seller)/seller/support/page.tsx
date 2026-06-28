@@ -1,4 +1,4 @@
-import { checkSellerAccess, getSessionUserId } from "@/app/actions/auth";
+import { getSessionUserId } from "@/app/actions/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import SellerSupportManager from "./SellerSupportManager";
