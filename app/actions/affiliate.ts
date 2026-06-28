@@ -4,7 +4,14 @@
 import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/app/actions/auth";
 
-/** Generate a unique 8-char alphanumeric affiliate code */
+/** Canonical site origin for referral links — set NEXT_PUBLIC_SITE_URL in env */
+function getSiteOrigin(): string {
+  return (
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+    "https://swcart-three.vercel.app"
+  );
+}
+
 function generateCode(): string {
   return Math.random().toString(36).substring(2, 10).toUpperCase();
 }
@@ -29,11 +36,7 @@ export async function generateAffiliateLink(): Promise<{ link?: string; error?: 
       });
     }
 
-    const origin =
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-
-    return { link: `${origin}/?ref=${affiliateLink.code}` };
+    return { link: `${getSiteOrigin()}/?ref=${affiliateLink.code}` };
   } catch (e: any) {
     return { error: e.message || "Failed to generate link" };
   }
@@ -47,11 +50,7 @@ export async function getAffiliateLink(): Promise<{ link?: string }> {
   const affiliateLink = await prisma.affiliateLink.findFirst({ where: { userId } });
   if (!affiliateLink) return {};
 
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-
-  return { link: `${origin}/?ref=${affiliateLink.code}` };
+  return { link: `${getSiteOrigin()}/?ref=${affiliateLink.code}` };
 }
 
 /** Get referral stats for the current user's dashboard */
@@ -106,12 +105,8 @@ export async function getReferralStats(): Promise<{
   });
   const totalEarned = walletTxns.reduce((acc, t) => acc + t.amount, 0);
 
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-
   return {
-    link: affiliateLink ? `${origin}/?ref=${affiliateLink.code}` : undefined,
+    link: affiliateLink ? `${getSiteOrigin()}/?ref=${affiliateLink.code}` : undefined,
     totalReferrals: referrals.length,
     completedReferrals: referrals.filter((r) => r.status === "COMPLETED").length,
     pendingReferrals: referrals.filter((r) => r.status === "PENDING").length,
