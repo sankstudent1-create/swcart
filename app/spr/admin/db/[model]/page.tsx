@@ -49,7 +49,8 @@ export default async function GenericDbPage({ params, searchParams }: { params: 
     name: f.name,
     type: f.type,
     isRequired: f.isRequired,
-    isId: f.isId
+    isId: f.isId,
+    isList: f.isList
   }));
 
   // Clean objects so they are serializable (converting Date objects to string, etc.)

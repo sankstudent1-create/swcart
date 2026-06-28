@@ -9,6 +9,7 @@ interface FieldMeta {
   type: string;
   isRequired: boolean;
   isId: boolean;
+  isList?: boolean;
 }
 
 interface DbTableManagerProps {
@@ -52,7 +53,8 @@ export default function DbTableManager({
     const editForm: Record<string, any> = {};
     fields.forEach(f => {
       if (!f.isId && f.name !== "createdAt" && f.name !== "updatedAt") {
-        editForm[f.name] = record[f.name] ?? "";
+        const val = record[f.name];
+        editForm[f.name] = f.isList && Array.isArray(val) ? val.join(", ") : (val ?? "");
       }
     });
     setFormData(editForm);
@@ -79,6 +81,13 @@ export default function DbTableManager({
           let val = formData[f.name];
           if (f.type === "DateTime" && val) {
             val = new Date(val).toISOString();
+          }
+          if (f.isList) {
+            if (typeof val === "string") {
+              val = val.split(',').map(s => s.trim()).filter(Boolean);
+            } else if (!val) {
+              val = [];
+            }
           }
           cleanedData[f.name] = val === "" ? null : val;
         }
@@ -119,6 +128,7 @@ export default function DbTableManager({
 
   const renderValue = (val: any) => {
     if (val === null || val === undefined) return <span className="text-muted fst-italic">null</span>;
+    if (Array.isArray(val)) return val.join(", ");
     if (typeof val === 'boolean') {
       return val ? (
         <span className="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1">True</span>

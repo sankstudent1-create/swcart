@@ -30,6 +30,21 @@ export async function deleteWarehouseAction(id: string) {
   }
 }
 
+export async function updateWarehouseAction(id: string, data: { name: string; location: string; pincodes: string[] }) {
+  const isSuperAdmin = await checkSuperAdmin();
+  if (!isSuperAdmin) return { success: false, message: "Unauthorized" };
+  try {
+    await prisma.warehouse.update({
+      where: { id },
+      data: { name: data.name, location: data.location, pincodes: data.pincodes }
+    });
+    revalidatePath("/spr/admin/logistics");
+    return { success: true, message: "Warehouse updated" };
+  } catch (err: any) {
+    return { success: false, message: err.message || "Failed to update warehouse" };
+  }
+}
+
 export async function createVehicleAction(data: { licensePlate: string, type: string, capacity: number }) {
   const isSuperAdmin = await checkSuperAdmin();
   if (!isSuperAdmin) return { success: false, message: "Unauthorized" };

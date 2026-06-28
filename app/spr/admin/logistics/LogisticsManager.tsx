@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { createWarehouseAction, deleteWarehouseAction, createVehicleAction, deleteVehicleAction, assignDeliveryAgentAction, dispatchOrderAction, assignWarehouseStaffAction } from "@/app/actions/logistics";
+import { createWarehouseAction, deleteWarehouseAction, createVehicleAction, deleteVehicleAction, assignDeliveryAgentAction, dispatchOrderAction, assignWarehouseStaffAction, updateWarehouseAction } from "@/app/actions/logistics";
 import { toast } from "sonner";
 
 export default function LogisticsManager({ warehouses, vehicles, deliveryAgents, users, orders }: any) {
@@ -10,6 +10,7 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
 
   // Modals
   const [showWarehouseModal, setShowWarehouseModal] = useState(false);
+  const [editingWarehouse, setEditingWarehouse] = useState<any | null>(null);
   const [warehouseForm, setWarehouseForm] = useState({ name: "", location: "", pincodes: "" });
 
   const [showVehicleModal, setShowVehicleModal] = useState(false);
@@ -28,8 +29,17 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
     e.preventDefault();
     startTransition(async () => {
       const pinArray = warehouseForm.pincodes.split(',').map(p => p.trim()).filter(Boolean);
-      const res = await createWarehouseAction({ name: warehouseForm.name, location: warehouseForm.location, pincodes: pinArray });
-      if (res.success) { toast.success(res.message); setShowWarehouseModal(false); }
+      let res;
+      if (editingWarehouse) {
+        res = await updateWarehouseAction(editingWarehouse.id, { name: warehouseForm.name, location: warehouseForm.location, pincodes: pinArray });
+      } else {
+        res = await createWarehouseAction({ name: warehouseForm.name, location: warehouseForm.location, pincodes: pinArray });
+      }
+      if (res.success) { 
+        toast.success(res.message); 
+        setShowWarehouseModal(false); 
+        setEditingWarehouse(null);
+      }
       else toast.error(res.message);
     });
   };
@@ -217,7 +227,7 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
               <h5 className="fw-bold mb-0">Warehouses & Hubs</h5>
               <div className="d-flex gap-2">
                 <button className="btn btn-outline-dark rounded-pill px-3 shadow-sm" onClick={() => setShowStaffModal(true)}>+ Assign Manager</button>
-                <button className="btn btn-dark rounded-pill px-3 shadow-sm" onClick={() => setShowWarehouseModal(true)}>+ Add Hub</button>
+                <button className="btn btn-dark rounded-pill px-3 shadow-sm" onClick={() => { setEditingWarehouse(null); setWarehouseForm({ name: "", location: "", pincodes: "" }); setShowWarehouseModal(true); }}>+ Add Hub</button>
               </div>
             </div>
             <div className="table-responsive">
@@ -239,6 +249,16 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
                       <td className="small text-muted" style={{maxWidth: 150}}>{w.pincodes?.join(', ') || 'None'}</td>
                       <td>{w.staff?.map((s: any) => <span key={s.id} className="badge bg-secondary me-1">{s.user.name}</span>) || "-"}</td>
                       <td className="text-end">
+                        <button 
+                          className="btn btn-sm btn-outline-dark rounded-pill px-3 me-2" 
+                          onClick={() => {
+                            setEditingWarehouse(w);
+                            setWarehouseForm({ name: w.name, location: w.location, pincodes: w.pincodes?.join(', ') || '' });
+                            setShowWarehouseModal(true);
+                          }}
+                        >
+                          Edit
+                        </button>
                         <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => startTransition(async () => { const res = await deleteWarehouseAction(w.id); if (res.success) toast.success(res.message); else toast.error(res.message); })}>Remove</button>
                       </td>
                     </tr>
@@ -367,8 +387,8 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content rounded-4 border-0 shadow-lg">
               <div className="modal-header border-bottom-0 p-4 pb-0">
-                <h5 className="modal-title fw-bold">Add Warehouse/Hub</h5>
-                <button type="button" className="btn-close" onClick={() => setShowWarehouseModal(false)}></button>
+                <h5 className="modal-title fw-bold">{editingWarehouse ? "Edit Warehouse/Hub" : "Add Warehouse/Hub"}</h5>
+                <button type="button" className="btn-close" onClick={() => { setShowWarehouseModal(false); setEditingWarehouse(null); }}></button>
               </div>
               <form onSubmit={handleWarehouse}>
                 <div className="modal-body p-4 d-flex flex-column gap-3">
@@ -386,8 +406,8 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
                   </div>
                 </div>
                 <div className="modal-footer border-top-0 p-4 pt-0">
-                  <button type="button" className="btn btn-light rounded-pill px-4" onClick={() => setShowWarehouseModal(false)}>Cancel</button>
-                  <button type="submit" className="btn btn-dark rounded-pill px-4" disabled={isPending}>Save Hub</button>
+                  <button type="button" className="btn btn-light rounded-pill px-4" onClick={() => { setShowWarehouseModal(false); setEditingWarehouse(null); }}>Cancel</button>
+                  <button type="submit" className="btn btn-dark rounded-pill px-4" disabled={isPending}>{editingWarehouse ? "Save Changes" : "Save Hub"}</button>
                 </div>
               </form>
             </div>
