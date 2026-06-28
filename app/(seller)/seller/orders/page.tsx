@@ -25,7 +25,8 @@ export default async function SellerOrdersPage() {
           order: {
             include: {
               user: { select: { name: true, email: true, phone: true } },
-              shippingAddress: true
+              shippingAddress: true,
+              coupon: true
             }
           }
         }

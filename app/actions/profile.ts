@@ -72,6 +72,41 @@ export async function deleteAddressAction(formData: FormData) {
   }
 }
 
+export async function setDefaultAddressAction(formData: FormData) {
+  const userId = await getSessionUserId();
+  if (!userId) return;
+
+  const addressId = formData.get("addressId") as string;
+  if (!addressId) return;
+
+  try {
+    const address = await prisma.address.findUnique({
+      where: { id: addressId },
+      include: { customerProfile: true }
+    });
+
+    if (address?.customerProfile.userId === userId) {
+      const profileId = address.customerProfileId;
+      
+      // Update all to not default
+      await prisma.address.updateMany({
+        where: { customerProfileId: profileId },
+        data: { isDefault: false },
+      });
+      
+      // Update selected to default
+      await prisma.address.update({
+        where: { id: addressId },
+        data: { isDefault: true },
+      });
+      
+      revalidatePath("/profile");
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 export async function updateProfileAvatarAction(avatarUrl: string) {
   const userId = await getSessionUserId();
   if (!userId) return { success: false, message: "Unauthorized" };

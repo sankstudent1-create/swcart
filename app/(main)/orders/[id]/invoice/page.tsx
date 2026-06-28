@@ -14,6 +14,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
     where: { id, userId },
     include: {
       user: true,
+      coupon: true,
       shippingAddress: true,
       sellerOrders: {
         include: {
@@ -41,6 +42,11 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   const items = order.sellerOrders.flatMap((so: any) => so.items);
   const subtotal = items.reduce((acc: number, item: any) => acc + item.priceAtBuy * item.quantity, 0);
   const tax = order.taxAmount;
+  const shipping = order.shippingFee || 0;
+  
+  // Calculate discount based on subtotal + tax + shipping - total
+  // Or just display the coupon details directly
+  const discount = (subtotal + tax + shipping) - order.totalAmount;
   const total = order.totalAmount;
 
   return (
@@ -202,8 +208,11 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               <div style={{ minWidth: "300px" }}>
                 {[
                   { label: "Subtotal", value: `₹${subtotal.toLocaleString("en-IN")}`, green: false },
-                  { label: "Shipping", value: "Free", green: true },
+                  { label: "Shipping", value: shipping === 0 ? "Free" : `₹${shipping.toLocaleString("en-IN")}`, green: shipping === 0 },
                   { label: "GST (18%)", value: `₹${tax.toLocaleString("en-IN")}`, green: false },
+                  ...(discount > 0 && order.coupon ? [
+                    { label: `Coupon (${order.coupon.code})`, value: `-₹${discount.toLocaleString("en-IN")}`, green: true }
+                  ] : []),
                 ].map(row => (
                   <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", color: "#666", fontSize: "0.9rem" }}>
                     <span>{row.label}</span>

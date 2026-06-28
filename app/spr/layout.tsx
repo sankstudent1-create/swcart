@@ -25,6 +25,8 @@ export default async function AdminLayout({
     { href: "/spr/admin/sellers", label: "Seller ERP", icon: "bi-shop" },
     { href: "/spr/admin/categories", label: "Category Intel", icon: "bi-tags" },
     { href: "/spr/admin/products", label: "Products Catalog", icon: "bi-box-seam" },
+    { href: "/spr/admin/digital", label: "Digital Products", icon: "bi-collection-play" },
+    { href: "/spr/admin/digital-logs", label: "Digital Access Logs", icon: "bi-shield-check" },
     { href: "/spr/admin/orders", label: "Order Ledger", icon: "bi-receipt" },
     { href: "/spr/admin/logistics", label: "Logistics Hub", icon: "bi-truck" },
     { href: "/spr/admin/coupons", label: "Coupons", icon: "bi-tag" },

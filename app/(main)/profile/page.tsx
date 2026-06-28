@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getSessionUserId, logoutAction } from "@/app/actions/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { deleteAddressAction } from "@/app/actions/profile";
+import { deleteAddressAction, setDefaultAddressAction } from "@/app/actions/profile";
 import AddressForm from "@/components/AddressForm";
 import ProfileSupportManager from "./ProfileSupportManager";
 import RequestReturnBtn from "./RequestReturnBtn";
@@ -117,6 +117,9 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
               <nav className="d-flex flex-column">
                 <Link href="/profile?tab=orders" className={`nav-pill-animated ${tab === 'orders' ? 'active' : ''}`}>
                   <i className="bi bi-box-seam"></i> My Orders
+                </Link>
+                <Link href="/library" className="nav-pill-animated">
+                  <i className="bi bi-collection-play"></i> My Library
                 </Link>
                 <Link href="/profile?tab=account" className={`nav-pill-animated ${tab === 'account' ? 'active' : ''}`}>
                   <i className="bi bi-person-badge"></i> Account Details
@@ -291,6 +294,12 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                               <input type="hidden" name="addressId" value={address.id} />
                               <button className="btn btn-sm btn-outline-danger w-100 rounded-3 py-2 fw-semibold"><i className="bi bi-trash3 me-2"></i> Remove Address</button>
                             </form>
+                            {!address.isDefault && (
+                              <form action={setDefaultAddressAction as any} className="mt-2">
+                                <input type="hidden" name="addressId" value={address.id} />
+                                <button className="btn btn-sm btn-outline-primary w-100 rounded-3 py-2 fw-semibold"><i className="bi bi-check-circle me-2"></i> Set as Default</button>
+                              </form>
+                            )}
                           </div>
                         </div>
                       ))}

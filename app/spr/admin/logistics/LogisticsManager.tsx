@@ -3,6 +3,12 @@
 import React, { useState, useTransition } from "react";
 import { createWarehouseAction, deleteWarehouseAction, createVehicleAction, deleteVehicleAction, assignDeliveryAgentAction, dispatchOrderAction, assignWarehouseStaffAction, updateWarehouseAction } from "@/app/actions/logistics";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
+
+const BhuvanMap = dynamic(() => import("@/components/BhuvanMap"), {
+  ssr: false,
+  loading: () => <div className="p-5 text-center bg-light rounded-4 shadow-sm border"><div className="spinner-border text-danger"></div><div className="mt-2 text-muted">Loading ISRO Bhuvan Live Tracking Map...</div></div>
+});
 
 export default function LogisticsManager({ warehouses, vehicles, deliveryAgents, users, orders }: any) {
   const [activeTab, setActiveTab] = useState("DISPATCH");
@@ -85,6 +91,7 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
 
   const TABS = [
     { id: "DISPATCH", label: "Dispatch Hub", icon: "bi-send" },
+    { id: "TRACKING", label: "Live Tracking", icon: "bi-map" },
     { id: "AGENTS", label: "Delivery Agents", icon: "bi-person-badge" },
     { id: "VEHICLES", label: "Fleet Vehicles", icon: "bi-truck" },
     { id: "WAREHOUSES", label: "Warehouses", icon: "bi-building" }
@@ -147,6 +154,27 @@ export default function LogisticsManager({ warehouses, vehicles, deliveryAgents,
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* --- LIVE TRACKING MAP --- */}
+        {activeTab === "TRACKING" && (
+          <div>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h5 className="fw-bold mb-0"><i className="bi bi-geo-alt-fill text-danger me-2"></i> ISRO Bhuvan Fleet Tracking</h5>
+            </div>
+            <div className="mb-4 text-muted small bg-light p-3 rounded-3 border">
+              <strong>Live Monitoring:</strong> Integrated with official Indian authorized map (ISRO Bhuvan WMS).
+            </div>
+            <BhuvanMap markers={[
+              // Render warehouses as markers
+              ...warehouses.map((w: any) => ({
+                lat: 20.5937 + (Math.random() - 0.5) * 10, // Mock random coords for demo around India
+                lng: 78.9629 + (Math.random() - 0.5) * 10,
+                title: `Hub: ${w.name}`,
+                description: `Location: ${w.location}`
+              }))
+            ]} />
           </div>
         )}
 

@@ -303,6 +303,7 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
             <div class="tot-box">
               <div class="tot-row"><span>Subtotal</span><strong>₹${totalEarnings.toLocaleString("en-IN")}</strong></div>
               <div class="tot-row"><span>Tax (18% GST)</span><strong>₹${Math.round(totalEarnings * 0.18).toLocaleString("en-IN")}</strong></div>
+              ${order.coupon ? `<div class="tot-row"><span style="color:#2ecc71">Coupon Applied</span><strong style="color:#2ecc71">${order.coupon.code}</strong></div>` : ""}
               <div class="tot-row bold"><span>Total Payable</span><span>₹${(totalEarnings + Math.round(totalEarnings * 0.18)).toLocaleString("en-IN")}</span></div>
             </div>
           </div>
