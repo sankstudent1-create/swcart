@@ -6,9 +6,9 @@ export const metadata = { title: "Digital Products — Admin" };
 
 export default async function AdminDigitalProductsPage() {
   const products = await prisma.product.findMany({
-    where: { productType: { in: ["DIGITAL", "EBOOK"] } },
+    where: { productType: { in: ["DIGITAL", "SERVICE"] } },
     include: {
-      seller: { select: { storeName: true, user: { select: { name: true } } } },
+      seller: { select: { companyName: true, user: { select: { name: true } } } },
       digitalAssets: true,
       courseChapters: {
         include: { lessons: true },
@@ -67,7 +67,7 @@ export default async function AdminDigitalProductsPage() {
                         </span>
                       </td>
                       <td>
-                        <div className="fw-semibold">{p.seller?.storeName || p.seller?.user?.name || "Unknown"}</div>
+                        <div className="fw-semibold">{p.seller?.companyName || p.seller?.user?.name || "Unknown"}</div>
                       </td>
                       <td>
                         {isCourse ? (
