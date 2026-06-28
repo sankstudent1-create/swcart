@@ -43,6 +43,11 @@ interface Product {
   tag: string | null;
   productType?: string;
   description: string;
+  courseChapters?: {
+    id: string;
+    title: string;
+    lessons: { id: string; title: string; duration?: number | null; isFree?: boolean }[];
+  }[];
   image: string;
   images: string[];
   discountPercent: number;
@@ -314,6 +319,63 @@ export default function ProductDetailClient({ product: p, hasPurchasedAndDeliver
             </div>
           </div>
         </div>
+
+        {/* Course Curriculum Preview */}
+        {isDigital && p.courseChapters && p.courseChapters.length > 0 && (
+          <div className="mt-5 pt-5 border-top" id="curriculum">
+            <h3 className="fw-bolder mb-4 text-dark d-flex align-items-center">
+              <i className="bi bi-journal-bookmark-fill text-danger me-2"></i>
+              Course Curriculum
+            </h3>
+            <div className="accordion rounded-4 overflow-hidden border shadow-sm" id="curriculumAccordion">
+              {p.courseChapters.map((chapter, i) => (
+                <div className="accordion-item border-0 border-bottom" key={chapter.id}>
+                  <h2 className="accordion-header">
+                    <button
+                      className={`accordion-button ${i !== 0 ? 'collapsed' : ''} fw-bold`}
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target={`#collapse${chapter.id}`}
+                      style={{ backgroundColor: "#f8f9fa", color: "#1a1a2e" }}
+                    >
+                      <span className="me-2 text-danger">Chapter {i + 1}:</span> {chapter.title}
+                    </button>
+                  </h2>
+                  <div
+                    id={`collapse${chapter.id}`}
+                    className={`accordion-collapse collapse ${i === 0 ? 'show' : ''}`}
+                    data-bs-parent="#curriculumAccordion"
+                  >
+                    <div className="accordion-body p-0">
+                      <div className="list-group list-group-flush">
+                        {chapter.lessons.length > 0 ? chapter.lessons.map((lesson, j) => (
+                          <div key={lesson.id} className="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div className="d-flex align-items-center gap-3">
+                              <div className="bg-light rounded-circle d-flex align-items-center justify-content-center text-muted" style={{ width: 32, height: 32 }}>
+                                {lesson.isFree ? <i className="bi bi-play-fill text-success fs-5"></i> : <i className="bi bi-lock-fill"></i>}
+                              </div>
+                              <span className={lesson.isFree ? "fw-semibold text-dark" : "text-muted"}>
+                                {lesson.title}
+                              </span>
+                            </div>
+                            <div className="d-flex align-items-center gap-3">
+                              {lesson.isFree && <span className="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1">Preview</span>}
+                              {lesson.duration && <span className="text-muted small"><i className="bi bi-clock me-1"></i>{Math.round(lesson.duration / 60)} min</span>}
+                            </div>
+                          </div>
+                        )) : (
+                          <div className="list-group-item text-muted text-center py-4 small">
+                            No lessons added to this chapter yet.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Q&A Section */}
         {p.questions && p.questions.length > 0 && (

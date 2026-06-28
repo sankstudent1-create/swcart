@@ -123,6 +123,10 @@ export async function getProductById(id: string) {
             user: { select: { name: true } },
             answers: { include: { user: { select: { name: true } } } }
           }
+        },
+        courseChapters: {
+          include: { lessons: { orderBy: { order: "asc" } } },
+          orderBy: { order: "asc" }
         }
       }
     });
@@ -142,6 +146,7 @@ export async function getProductById(id: string) {
         id: prod.id,
         name: prod.title,
         cat: prod.category.name,
+        productType: prod.productType,
         price: discountedPrice ?? prod.basePrice,
         old: discountedPrice ? prod.basePrice : null,
         tag: prod.discountPercent > 0 ? `-${prod.discountPercent}%` : null,
@@ -183,6 +188,16 @@ export async function getProductById(id: string) {
             answer: a.answer,
             userName: a.user.name,
             createdAt: a.createdAt.toISOString()
+          }))
+        })),
+        courseChapters: prod.courseChapters.map(c => ({
+          id: c.id,
+          title: c.title,
+          lessons: c.lessons.map(l => ({
+            id: l.id,
+            title: l.title,
+            duration: l.duration,
+            isFree: l.isFree
           }))
         }))
       };

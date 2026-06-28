@@ -58,7 +58,18 @@ export default async function LibraryPage() {
             include: {
               variant: {
                 include: {
-                  product: { include: { digitalAssets: true } },
+                  product: {
+                    include: {
+                      digitalAssets: true,
+                      courseChapters: {
+                        include: {
+                          lessons: {
+                            include: { progress: { where: { userId } } }
+                          }
+                        }
+                      }
+                    }
+                  },
                 },
               },
             },
@@ -68,28 +79,44 @@ export default async function LibraryPage() {
     },
   });
 
-  // De-duplicate ebook products
-  const ebookProducts = new Map<string, any>();
+  // De-duplicate digital products
+  const digitalProducts = new Map<string, any>();
   for (const order of ebookOrders) {
     for (const sellerOrder of order?.sellerOrders || []) {
       for (const item of sellerOrder?.items || []) {
         const p = item?.variant?.product;
-        if (p && (p.productType === "DIGITAL" || p.productType === "EBOOK") && !ebookProducts.has(p.id)) {
-          ebookProducts.set(p.id, p);
+        if (p && (p.productType === "DIGITAL" || p.productType === "EBOOK") && !digitalProducts.has(p.id)) {
+          digitalProducts.set(p.id, p);
         }
       }
     }
   }
-  const ebooks = Array.from(ebookProducts.values());
 
-  // Compute course progress
-  const courseItems = enrollments.filter(e => e.product).map((e) => {
+  // Split into ebooks and courses based on whether they have course chapters
+  const allDigitalProducts = Array.from(digitalProducts.values());
+  const ebooks = allDigitalProducts.filter(p => !p.courseChapters || p.courseChapters.length === 0);
+  const orderedCourses = allDigitalProducts.filter(p => p.courseChapters && p.courseChapters.length > 0);
+
+  // Compute course progress for enrolled courses
+  let courseItems = enrollments.filter(e => e.product).map((e) => {
     const allLessons = e.product.courseChapters?.flatMap((c) => c.lessons || []) || [];
     const completedCount = allLessons.filter((l) => l.progress?.some((p) => p.completed)).length || 0;
     const total = allLessons.length;
     const pct = total > 0 ? Math.round((completedCount / total) * 100) : 0;
-    return { enrollment: e, product: e.product, pct, total, completedCount };
+    return { product: e.product, pct, total, completedCount };
   });
+
+  // Add courses bought via orders but not in enrollments
+  const enrolledCourseIds = new Set(courseItems.map(c => c.product.id));
+  for (const p of orderedCourses) {
+    if (!enrolledCourseIds.has(p.id)) {
+      const allLessons = p.courseChapters?.flatMap((c: any) => c.lessons || []) || [];
+      const completedCount = allLessons.filter((l: any) => l.progress?.some((pr: any) => pr.completed)).length || 0;
+      const total = allLessons.length;
+      const pct = total > 0 ? Math.round((completedCount / total) * 100) : 0;
+      courseItems.push({ product: p, pct, total, completedCount });
+    }
+  }
 
   const isEmpty = ebooks.length === 0 && courseItems.length === 0;
 
@@ -156,7 +183,7 @@ export default async function LibraryPage() {
                       className="btn btn-sm btn-danger w-100 mt-2"
                       style={{ borderRadius: 8 }}
                     >
-                      Read Now
+                      View / Access
                     </Link>
                   </div>
                 </div>
