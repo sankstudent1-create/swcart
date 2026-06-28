@@ -1,21 +1,32 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import TrackingMap from "@/components/TrackingMap";
+import TrackingMap, { type Checkpoint } from "@/components/TrackingMap";
 
-const pincodeToLatLng = (pincode: string | null | undefined): [number, number] => {
-  if (!pincode) return [0, 0];
-  const map: Record<string, [number, number]> = {
-    "560001": [12.9716, 77.5946], // Bangalore
-    "110001": [28.6139, 77.2090], // Delhi
-    "400001": [18.9388, 72.8355], // Mumbai
-    "600001": [13.0827, 80.2707], // Chennai
-    // Add more mappings as needed
-  };
-  return map[pincode] || [0, 0];
-};
-
-
-
+/**
+ * Server-side geocode helper using the free Nominatim API (OpenStreetMap).
+ * Returns [lat, lng] or null if the query can't be resolved.
+ */
+async function geocodeAddress(query: string): Promise<[number, number] | null> {
+  if (!query || query.trim() === "") return null;
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "SwCart/1.0 (contact@swcart.in)",
+        "Accept-Language": "en",
+      },
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 
 import PrintTrackingBtn from "./PrintTrackingBtn";
@@ -67,22 +78,71 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
     }
   }
 
-  // Get current status index
-  const checkpoints = order ? [
-  {
-    name: order.sellerOrders?.[0]?.seller?.companyName || "Seller Dispatch",
-    position: pincodeToLatLng(order.sellerOrders?.[0]?.seller?.pickupPincode),
-  },
-  {
-    name: "Hub",
-    position: pincodeToLatLng(order.assignedWarehouse?.pincodes?.[0]),
-  },
-  {
-    name: "Delivery Address",
-    position: pincodeToLatLng(order.shippingAddress?.postalCode),
-  },
-] : [];
-const statusSteps = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED"];
+  // --- Build geocoded checkpoints for the map ---
+  const checkpoints: Checkpoint[] = [];
+
+  if (order) {
+    // 1. Seller dispatch location
+    const seller = order.sellerOrders?.[0]?.seller;
+    const sellerCoords = seller
+      ? await geocodeAddress(
+          seller.pickupPincode
+            ? `${seller.pickupPincode} India`
+            : `${seller.companyName} India`
+        )
+      : null;
+
+    checkpoints.push({
+      name: seller?.companyName || "Seller",
+      label: "Seller",
+      position: sellerCoords,
+      color: "#2ecc71",
+      icon: "bi-shop",
+    });
+
+    // 2. Hub (assigned warehouse)
+    const warehouseQuery = order.assignedWarehouse?.location
+      ? `${order.assignedWarehouse.location} India`
+      : order.assignedWarehouse?.pincodes?.[0]
+      ? `${order.assignedWarehouse.pincodes[0]} India`
+      : null;
+
+    const hubCoords = warehouseQuery
+      ? await geocodeAddress(warehouseQuery)
+      : null;
+
+    checkpoints.push({
+      name: order.assignedWarehouse?.location || "Sorting Hub",
+      label: "Hub",
+      position: hubCoords,
+      color: "#f39c12",
+      icon: "bi-building",
+    });
+
+    // 3. Delivery address
+    const addr = order.shippingAddress;
+    const deliveryQuery = addr
+      ? [addr.street, addr.city, addr.state, addr.postalCode, addr.country || "India"]
+          .filter(Boolean)
+          .join(", ")
+      : null;
+
+    const deliveryCoords = deliveryQuery
+      ? await geocodeAddress(deliveryQuery)
+      : null;
+
+    checkpoints.push({
+      name: addr
+        ? `${addr.city || ""} ${addr.postalCode ? `(${addr.postalCode})` : ""}`.trim()
+        : "Delivery Address",
+      label: "Delivery",
+      position: deliveryCoords,
+      color: "#e63946",
+      icon: "bi-house-door-fill",
+    });
+  }
+
+  const statusSteps = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED"];
   const currentStatusIndex = order ? statusSteps.indexOf(order.status) : -1;
 
   return (
