@@ -31,16 +31,16 @@ export default function BhuvanMap({ markers = [] }: { markers: any[] }) {
       {/* @ts-ignore */}
       <MapContainer center={position} zoom={5} style={{ height: "100%", width: "100%", zIndex: 1 }}>
         {/* @ts-ignore */}
-        <WMSTileLayer
-          url="https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms/"
-          params={{
+        <WMSTileLayer {...({
+          url: "https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms/",
+          params: {
             layers: "india3",
             format: "image/jpeg",
             transparent: true,
             version: "1.1.1"
-          }}
-          attribution='&copy; <a href="https://bhuvan.nrsc.gov.in/bhuvan_links.php">ISRO Bhuvan</a>'
-        />
+          },
+          attribution: '&copy; <a href="https://bhuvan.nrsc.gov.in/bhuvan_links.php">ISRO Bhuvan</a>'
+        } as any)} />
         {markers.map((m, idx) => (
           m.lat && m.lng && (
             <Marker key={idx} position={[m.lat, m.lng]} icon={bhuvanIcon}>
