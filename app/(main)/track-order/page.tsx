@@ -13,20 +13,7 @@ const pincodeToLatLng = (pincode: string | null | undefined): [number, number] =
 };
 
 
-const checkpoints = order ? [
-  {
-    name: order.sellerOrders?.[0]?.seller?.companyName || "Seller Dispatch",
-    position: pincodeToLatLng(order.sellerOrders?.[0]?.seller?.pickupPincode),
-  },
-  {
-    name: "Hub",
-    position: pincodeToLatLng(order.assignedWarehouse?.pincodes?.[0]),
-  },
-  {
-    name: "Delivery Address",
-    position: pincodeToLatLng(order.shippingAddress?.postalCode),
-  },
-] : [];
+
 
 
 import PrintTrackingBtn from "./PrintTrackingBtn";
@@ -36,6 +23,7 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
   const orderId = sp.id || null;
 
   let order = null;
+
   let errorMsg = "";
   
 
@@ -78,7 +66,21 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
   }
 
   // Get current status index
-  const statusSteps = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED"];
+  const checkpoints = order ? [
+  {
+    name: order.sellerOrders?.[0]?.seller?.companyName || "Seller Dispatch",
+    position: pincodeToLatLng(order.sellerOrders?.[0]?.seller?.pickupPincode),
+  },
+  {
+    name: "Hub",
+    position: pincodeToLatLng(order.assignedWarehouse?.pincodes?.[0]),
+  },
+  {
+    name: "Delivery Address",
+    position: pincodeToLatLng(order.shippingAddress?.postalCode),
+  },
+] : [];
+const statusSteps = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED"];
   const currentStatusIndex = order ? statusSteps.indexOf(order.status) : -1;
 
   return (
@@ -263,20 +265,7 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
 
 {/* Map Section */}
 <div className="my-5">
-  <TrackingMap
-    checkpoints={[
-      {
-        name: order.sellerOrders?.[0]?.seller?.companyName || "Seller Dispatch",
-        position: [40.7128, -74.0060],
-      },
-      { name: "Sorting Center", position: [41.8781, -87.6298] },
-      { name: "In Transit", position: [39.9526, -75.1652] },
-      {
-        name: order.shippingAddress?.city || "Delivery Address",
-        position: [34.0522, -118.2437],
-      },
-    ]}
-  />
+  <TrackingMap checkpoints={checkpoints} />
 </div>
 <div className="row g-4">
               {/* Package Details */}
