@@ -3,173 +3,129 @@ import { logoutAction, checkSuperAdmin } from "@/app/actions/auth";
 import { Prisma } from "@prisma/client";
 import { Outfit } from "next/font/google";
 import { redirect } from "next/navigation";
+import AdminSidebar from "./AdminSidebar";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "900"] });
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  // 1. Role Guard
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const isSuperAdmin = await checkSuperAdmin();
-  if (!isSuperAdmin) {
-    redirect("/");
-  }
+  if (!isSuperAdmin) redirect("/");
 
   const models = Prisma.dmmf.datamodel.models.map(m => m.name).sort();
 
-  const navLinks = [
-    { href: "/spr/admin", label: "Dashboard", icon: "bi-speedometer2" },
-    { href: "/spr/admin/users", label: "User CRM", icon: "bi-people" },
-    { href: "/spr/admin/sellers", label: "Seller ERP", icon: "bi-shop" },
-    { href: "/spr/admin/categories", label: "Category Intel", icon: "bi-tags" },
-    { href: "/spr/admin/products", label: "Products Catalog", icon: "bi-box-seam" },
-    { href: "/spr/admin/digital", label: "Digital Products", icon: "bi-collection-play" },
-    { href: "/spr/admin/digital-logs", label: "Digital Access Logs", icon: "bi-shield-check" },
-    { href: "/spr/admin/orders", label: "Order Ledger", icon: "bi-receipt" },
-    { href: "/spr/admin/logistics", label: "Logistics Hub", icon: "bi-truck" },
-    { href: "/spr/admin/coupons", label: "Coupons", icon: "bi-tag" },
-    { href: "/spr/admin/offers", label: "Offers Hub", icon: "bi-gift" },
-    { href: "/spr/admin/referrals", label: "Referral Program", icon: "bi-share" },
-    { href: "/spr/admin/support", label: "Support Helpdesk", icon: "bi-headset" },
-    { href: "/spr/admin/roles", label: "Access Roles", icon: "bi-shield-lock" },
-    { href: "/spr/admin/settings", label: "Settings", icon: "bi-gear" },
-  ];
+  return (
+    <div className={`d-flex flex-column flex-lg-row ${outfit.className}`} style={{ minHeight: "100vh", backgroundColor: "#f4f5f7" }}>
 
-  const SidebarContent = () => (
-    <div className="d-flex flex-column h-100">
-      <Link href="/spr/admin" className="text-white text-decoration-none fs-3 fw-bold mb-4 d-flex align-items-center justify-content-start">
-        <img src="https://tools.swinfosystems.online/icon-192.png" alt="Swcart logo" style={{ width: "35px", marginRight: "10px" }} />
-        <span>Sw<span style={{color: "var(--red)"}}>cart</span></span>
-      </Link>
-      
-      <div className="overflow-auto db-nav flex-grow-1 pe-2">
-        <div className="text-uppercase text-muted small fw-bold mb-3" style={{ letterSpacing: "1.5px" }}>Intelligence Core</div>
-        <div className="d-flex flex-column gap-1 mb-4">
-          {navLinks.map(link => (
-            <a 
-              key={link.href} 
-              href={link.href} 
-              className="text-white text-decoration-none p-3 rounded-3 d-flex align-items-center hover-bg-light-10 transition-all"
-            >
-              <i className={`bi ${link.icon} me-3 fs-5 opacity-75`}></i> 
-              <span className="fw-semibold">{link.label}</span>
-            </a>
-          ))}
+      {/* Desktop collapsible sidebar */}
+      <AdminSidebar models={models} />
+
+      {/* Mobile Offcanvas Drawer */}
+      <div
+        className="offcanvas offcanvas-start text-white w-75 d-lg-none"
+        tabIndex={-1}
+        id="adminSidebarCanvas"
+        aria-labelledby="adminSidebarLabel"
+        style={{ background: "#0f0f13" }}
+      >
+        <div className="offcanvas-header border-bottom px-4 py-3" style={{ borderColor: "rgba(255,255,255,0.08) !important" }}>
+          <h5 className="offcanvas-title fw-bold text-white" id="adminSidebarLabel">
+            Sw<span style={{ color: "#ef4444" }}>cart</span> Admin
+          </h5>
+          <button type="button" className="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close" />
         </div>
-
-        <details className="mb-4">
-          <summary className="text-uppercase text-muted small fw-bold mb-3 d-flex justify-content-between align-items-center" style={{ letterSpacing: "1.5px", cursor: "pointer", userSelect: "none" }}>
-            Raw Master Data
-            <span className="badge rounded-pill" style={{ backgroundColor: "var(--red)" }}>{models.length}</span>
-          </summary>
-          
-          <div className="d-flex flex-column gap-1 pt-2">
-            {models.map(model => (
-              <a 
-                key={model} 
-                href={`/spr/admin/db/${model.toLowerCase()}`} 
-                className="text-white-50 text-decoration-none p-2 rounded-3 d-flex align-items-center hover-bg-light-10 transition-all" 
-                style={{ fontSize: "0.9rem" }}
+        <div className="offcanvas-body p-3" style={{ overflowY: "auto" }}>
+          {/* Mobile nav links */}
+          <div className="d-flex flex-column gap-1">
+            {[
+              { href: "/spr/admin", label: "Dashboard", icon: "bi-speedometer2" },
+              { href: "/spr/admin/users", label: "User CRM", icon: "bi-people" },
+              { href: "/spr/admin/sellers", label: "Seller ERP", icon: "bi-shop" },
+              { href: "/spr/admin/categories", label: "Category Intel", icon: "bi-tags" },
+              { href: "/spr/admin/products", label: "Products Catalog", icon: "bi-box-seam" },
+              { href: "/spr/admin/digital", label: "Digital Products", icon: "bi-collection-play" },
+              { href: "/spr/admin/digital-logs", label: "Digital Access Logs", icon: "bi-shield-check" },
+              { href: "/spr/admin/orders", label: "Order Ledger", icon: "bi-receipt" },
+              { href: "/spr/admin/logistics", label: "Logistics Hub", icon: "bi-truck" },
+              { href: "/spr/admin/support", label: "Support Helpdesk", icon: "bi-headset" },
+              { href: "/spr/admin/coupons", label: "Coupons", icon: "bi-tag" },
+              { href: "/spr/admin/offers", label: "Offers Hub", icon: "bi-gift" },
+              { href: "/spr/admin/referrals", label: "Referral Program", icon: "bi-share" },
+              { href: "/spr/admin/roles", label: "Access Roles", icon: "bi-shield-lock" },
+              { href: "/spr/admin/settings", label: "Settings", icon: "bi-gear" },
+            ].map(link => (
+              <a
+                key={link.href}
+                href={link.href}
+                style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, color: "rgba(255,255,255,0.65)", textDecoration: "none", fontWeight: 600, fontSize: "0.85rem" }}
               >
-                <i className="bi bi-database me-3 opacity-50"></i> {model}
+                <i className={`bi ${link.icon}`} style={{ fontSize: "1rem", width: 18, textAlign: "center", color: "rgba(255,255,255,0.4)" }} />
+                {link.label}
               </a>
             ))}
           </div>
-        </details>
-      </div>
-
-      <div className="mt-auto pt-4 border-top border-secondary border-opacity-35 mt-3">
-        <Link href="/" className="text-muted text-decoration-none small d-flex align-items-center justify-content-start hover-text-white transition-all fw-semibold">
-          <i className="bi bi-arrow-left me-2"></i> Back to Storefront
-        </Link>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className={`d-flex flex-column flex-lg-row ${outfit.className}`} style={{ minHeight: "100vh", backgroundColor: "#f4f5f7" }}>
-      
-      {/* Desktop Sidebar (hidden on mobile) */}
-      <aside 
-        className="d-none d-lg-block bg-dark text-white p-4 shadow-lg position-relative z-3 flex-shrink-0" 
-        style={{ width: "280px", borderRight: "1px solid rgba(255,255,255,0.1)", height: "100vh", position: "sticky", top: 0 }}
-      >
-        <SidebarContent />
-      </aside>
-
-      {/* Mobile Offcanvas Drawer (hidden on desktop) */}
-      <div 
-        className="offcanvas offcanvas-start bg-dark text-white w-75 d-lg-none" 
-        tabIndex={-1} 
-        id="adminSidebarCanvas" 
-        aria-labelledby="adminSidebarLabel"
-      >
-        <div className="offcanvas-header border-bottom border-secondary border-opacity-25 px-4 py-3">
-          <h5 className="offcanvas-title fw-bold text-white" id="adminSidebarLabel">
-            <span className="text-danger">Sw</span>cart Admin Menu
-          </h5>
-          <button type="button" className="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div className="offcanvas-body p-4">
-          <SidebarContent />
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", marginTop: 12, paddingTop: 12 }}>
+            <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 10, color: "rgba(255,255,255,0.4)", textDecoration: "none", fontWeight: 600, fontSize: "0.82rem" }}>
+              <i className="bi bi-arrow-left" /> Back to Storefront
+            </Link>
+            <form action={logoutAction as any}>
+              <button type="submit" style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 10, background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 600, fontSize: "0.82rem", cursor: "pointer" }}>
+                <i className="bi bi-box-arrow-right" style={{ color: "#ef4444" }} /> Log Out
+              </button>
+            </form>
+          </div>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-grow-1 d-flex flex-column" style={{ maxWidth: "100%", overflowX: "hidden" }}>
-        
+      <div className="flex-grow-1 d-flex flex-column" style={{ maxWidth: "100%", overflowX: "hidden", minWidth: 0 }}>
+
         {/* Top Navbar */}
-        <div className="bg-white px-4 py-3 shadow-sm d-flex justify-content-between align-items-center sticky-top z-2">
-          {/* Hamburger toggle button visible on mobile */}
-          <button 
-            className="btn btn-light border-0 d-lg-none fs-4 p-0 me-3" 
-            type="button" 
-            data-bs-toggle="offcanvas" 
+        <div style={{ background: "#fff", padding: "10px 20px", boxShadow: "0 1px 0 rgba(0,0,0,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 20 }}>
+          {/* Mobile hamburger */}
+          <button
+            className="btn btn-light border-0 d-lg-none p-1"
+            type="button"
+            data-bs-toggle="offcanvas"
             data-bs-target="#adminSidebarCanvas"
             aria-controls="adminSidebarCanvas"
           >
-            <i className="bi bi-list"></i>
+            <i className="bi bi-list fs-4" />
           </button>
-          
-          <div className="fw-bold text-muted text-uppercase" style={{ letterSpacing: "1.5px", fontSize: "0.85rem" }}>
+
+          <div style={{ fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "1.5px", fontSize: "0.75rem" }}>
             Superadmin Control Panel
           </div>
-          
-          <div className="d-flex align-items-center gap-4 ms-auto">
-            <div className="position-relative" style={{ cursor: "pointer" }}>
-              <i className="bi bi-bell fs-5 text-dark hover-text-danger transition-all"></i>
-              <span className="position-absolute top-0 start-100 translate-middle p-1 border border-light rounded-circle" style={{ backgroundColor: "var(--red)" }}>
-                <span className="visually-hidden">New alerts</span>
-              </span>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {/* Notification bell */}
+            <div style={{ position: "relative", cursor: "pointer" }}>
+              <i className="bi bi-bell" style={{ fontSize: "1.1rem", color: "#374151" }} />
+              <span style={{ position: "absolute", top: -2, right: -2, width: 8, height: 8, background: "#ef4444", borderRadius: "50%", border: "2px solid #fff" }} />
             </div>
-            <form action={logoutAction as any} className="m-0">
-              <button type="submit" className="btn btn-sm text-white rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center hover-scale transition-all" style={{ backgroundColor: "var(--red)" }}>
-                <i className="bi bi-box-arrow-right me-2"></i> Log Out
+
+            {/* Admin badge */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 12px", background: "#f8f9fb", borderRadius: 99, border: "1px solid #e5e7eb" }}>
+              <div style={{ width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(135deg,#ef4444,#dc2626)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "0.7rem", fontWeight: 800 }}>SA</div>
+              <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#374151" }}>Super Admin</span>
+            </div>
+
+            <form action={logoutAction as any} style={{ margin: 0 }}>
+              <button type="submit" style={{ padding: "6px 16px", background: "linear-gradient(135deg,#ef4444,#dc2626)", border: "none", borderRadius: 99, color: "#fff", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                <i className="bi bi-box-arrow-right" /> Log Out
               </button>
             </form>
           </div>
         </div>
 
         {/* Page Content */}
-        <main className="p-4 p-md-5 overflow-auto flex-grow-1" style={{ backgroundColor: "#f4f5f7" }}>
+        <main style={{ flex: 1, padding: "28px 24px", backgroundColor: "#f4f5f7", overflowAuto: "auto" } as any}>
           {children}
         </main>
       </div>
-      
+
       <style>{`
-        .hover-bg-light-10:hover { background-color: rgba(255,255,255,0.08); color: white !important; transform: translateX(5px); }
-        .hover-text-white:hover { color: white !important; }
         .hover-text-danger:hover { color: var(--red) !important; }
-        .hover-scale:hover { transform: scale(1.05); }
         .transition-all { transition: all 0.2s ease-in-out; }
-        
-        /* Custom Scrollbar for Sidebar */
-        .db-nav::-webkit-scrollbar { width: 6px; }
-        .db-nav::-webkit-scrollbar-track { background: transparent; }
-        .db-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
-        .db-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
       `}</style>
     </div>
   );
