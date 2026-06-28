@@ -2,12 +2,13 @@ import Link from "next/link";
 import { getSessionUserId, logoutAction } from "@/app/actions/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { deleteAddressAction, updateProfileAvatarAction } from "@/app/actions/profile";
+import { deleteAddressAction } from "@/app/actions/profile";
 import AddressForm from "@/components/AddressForm";
 import ProfileSupportManager from "./ProfileSupportManager";
 import RequestReturnBtn from "./RequestReturnBtn";
-import "./profile.css"; // Import the premium profile styles
+import "./profile.css";
 import ReferralLink from "@/components/ReferralLink";
+import AvatarUpload from "@/components/AvatarUpload";
 
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ tab?: string, success?: string }> }) {
   const userId = await getSessionUserId();
@@ -245,20 +246,10 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                     </div>
                   </div>
 
-                  <form action={async (formData: FormData) => {
-                    "use server";
-                    const avatarUrl = formData.get("avatarUrl") as string;
-                    if (avatarUrl !== undefined) {
-                      await updateProfileAvatarAction(avatarUrl);
-                    }
-                  }} className="bg-light bg-opacity-50 border rounded-4 p-4 mt-2">
-                    <h5 className="font-jakarta fw-bold text-dark mb-3"><i className="bi bi-image me-2 text-danger"></i> Update Profile Photo</h5>
-                    <p className="text-muted small mb-3">Paste an image URL to update your profile avatar.</p>
-                    <div className="d-flex gap-3">
-                      <input type="url" name="avatarUrl" className="form-control modern-input flex-grow-1" placeholder="https://example.com/avatar.jpg" defaultValue={user.avatar || ""} required />
-                      <button type="submit" className="btn btn-danger rounded-3 px-4 fw-bold shadow-sm">Save Photo</button>
-                    </div>
-                  </form>
+                  <AvatarUpload
+                    currentAvatar={user.avatar}
+                    userName={user.name}
+                  />
                 </div>
               )}
 
