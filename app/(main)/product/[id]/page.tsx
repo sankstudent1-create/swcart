@@ -30,7 +30,7 @@ export default async function ProductPage({
       const deliveredOrder = await prisma.order.findFirst({
         where: {
           userId,
-          status: { in: ["PAID", "PROCESSING", "DELIVERED", "COMPLETED"] },
+          status: { in: ["DELIVERED", "COMPLETED"] },
           sellerOrders: {
             some: {
               items: {

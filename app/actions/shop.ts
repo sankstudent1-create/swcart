@@ -97,9 +97,16 @@ export async function placeOrderAction(formData: FormData) {
         customerProfile = await tx.customerProfile.create({ data: { userId } });
       }
 
-      const isDigitalOnly = cart.items.every((item: any) => 
-        item.variant.product.productType === "DIGITAL" || item.variant.product.productType === "EBOOK"
-      );
+      let hasDigital = false;
+      const isDigitalOnly = cart.items.every((item: any) => {
+        const pt = item.variant.product.productType;
+        if (pt === "DIGITAL" || pt === "EBOOK") hasDigital = true;
+        return pt === "DIGITAL" || pt === "EBOOK";
+      });
+      cart.items.forEach((item: any) => {
+        const pt = item.variant.product.productType;
+        if (pt === "DIGITAL" || pt === "EBOOK") hasDigital = true;
+      });
 
       let addressId = null;
 
@@ -139,6 +146,14 @@ export async function placeOrderAction(formData: FormData) {
       }
 
       const remainingAmount = totalAmount - walletPayAmount;
+      
+      // DIGITAL GOODS SECURITY FIX:
+      // If the cart contains ANY digital goods, the remaining amount must be 0 (fully paid via wallet)
+      // because we cannot allow COD (Cash on Delivery) for instant digital access.
+      if (hasDigital && remainingAmount > 0) {
+        throw new Error("Digital products must be fully paid upfront. Please add funds to your wallet.");
+      }
+
       const paymentData = [];
       if (walletPayAmount > 0) {
         paymentData.push({

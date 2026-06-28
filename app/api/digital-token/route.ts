@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const order = await prisma.order.findFirst({
       where: {
         userId,
-        status: { in: ["PAID", "PROCESSING", "DELIVERED", "COMPLETED"] },
+        status: { in: ["DELIVERED", "COMPLETED"] },
         sellerOrders: {
           some: {
             items: {

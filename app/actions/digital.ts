@@ -27,9 +27,20 @@ export async function saveDigitalProductAction(
 
     if (productId) {
       // Update
-      const existing = await prisma.product.findUnique({ where: { id: productId } });
+      const existing = await prisma.product.findUnique({ 
+        where: { id: productId },
+        include: { courseChapters: true, digitalAssets: true } 
+      });
       if (!existing || existing.sellerId !== seller.id) {
         return { success: false, message: "Product not found or unauthorized access" };
+      }
+
+      if (data.isPublished) {
+        const hasChapters = existing.courseChapters.length > 0;
+        const hasAssets = existing.digitalAssets.length > 0;
+        if (!hasChapters && !hasAssets) {
+          return { success: false, message: "Cannot publish a digital product without any chapters or assets." };
+        }
       }
       await prisma.product.update({
         where: { id: productId },
@@ -49,6 +60,10 @@ export async function saveDigitalProductAction(
       return { success: true, message: "Digital product updated", productId };
     } else {
       // Create
+      if (data.isPublished) {
+        return { success: false, message: "Cannot publish a new digital product before adding chapters or assets." };
+      }
+      
       const newProduct = await prisma.product.create({
         data: {
           sellerId: seller.id,

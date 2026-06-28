@@ -59,6 +59,12 @@ export default function CheckoutForm({ items, savedAddress, walletBalance = 0 }:
     };
   }, [items, coupon, useWallet, walletBalance]);
 
+  const hasDigital = useMemo(() => {
+    return items.some((item: any) => 
+      item.variant.product.productType === "DIGITAL" || item.variant.product.productType === "EBOOK"
+    );
+  }, [items]);
+
   const isDigitalOnly = useMemo(() => {
     return items.every((item: any) => 
       item.variant.product.productType === "DIGITAL" || item.variant.product.productType === "EBOOK"
@@ -315,6 +321,7 @@ export default function CheckoutForm({ items, savedAddress, walletBalance = 0 }:
               onChange={(e) => setCouponCode(e.target.value.toUpperCase())} 
               disabled={isPending} 
             />
+
             <button 
               type="button" 
               className="btn btn-dark rounded-end-3 px-3 fw-bold" 
@@ -362,12 +369,22 @@ export default function CheckoutForm({ items, savedAddress, walletBalance = 0 }:
             <span className="fw-bold text-dark fs-5">Total Payable</span>
             <span className="fw-bold text-danger fs-4">₹{remainingTotal.toLocaleString('en-IN')}</span>
           </div>
+
+          {/* Digital items requirement warning */}
+          {hasDigital && remainingTotal > 0 && (
+            <div className="alert alert-danger mb-4 d-flex align-items-center" style={{ fontSize: "0.85rem", borderRadius: "10px" }}>
+              <i className="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+              <div>
+                <strong>Digital Products detected.</strong> You must have sufficient Wallet Balance to pay for digital products instantly. Cash on Delivery is not allowed.
+              </div>
+            </div>
+          )}
           
           <button 
             type="submit" 
             className="btn btn-danger w-100 py-3 rounded-pill fw-bold shadow-sm"
             style={{ background: "linear-gradient(135deg, #e63946 0%, #c1121f 100%)", border: "none" }}
-            disabled={isPending}
+            disabled={isPending || (hasDigital && remainingTotal > 0)}
           >
             {isPending ? (
               <><span className="spinner-border spinner-border-sm me-2"></span>Processing Securely...</>
