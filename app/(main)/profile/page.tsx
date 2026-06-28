@@ -7,6 +7,7 @@ import AddressForm from "@/components/AddressForm";
 import ProfileSupportManager from "./ProfileSupportManager";
 import RequestReturnBtn from "./RequestReturnBtn";
 import "./profile.css"; // Import the premium profile styles
+import ReferralLink from "@/components/ReferralLink";
 
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ tab?: string, success?: string }> }) {
   const userId = await getSessionUserId();
@@ -114,9 +115,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                 <Link href="/profile?tab=address" className={`nav-pill-animated ${tab === 'address' ? 'active' : ''}`}>
                   <i className="bi bi-geo-alt"></i> Saved Addresses
                 </Link>
-                <Link href="/profile?tab=support" className={`nav-pill-animated ${tab === 'support' ? 'active' : ''}`}>
-                  <i className="bi bi-headset"></i> Support Helpdesk
-                </Link>
+                <Link href="/profile?tab=support" className={`nav-pill-animated ${tab === 'support' ? 'active' : ''}`}><i className="bi bi-headset"></i> Support Helpdesk</Link>
+                <Link href="/profile?tab=referral" className={`nav-pill-animated ${tab === 'referral' ? 'active' : ''}`}><i className="bi bi-share"></i> Referral</Link>
                 <hr className="my-2 opacity-10" />
                 <form action={logoutAction as any}>
                   <button type="submit" className="nav-pill-animated bg-transparent border-0 w-100 text-start text-danger hover-red">
@@ -315,6 +315,13 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                 <div className="fade-in">
                   <h3 className="font-jakarta fw-bolder text-dark mb-4">Support Helpdesk</h3>
                   <ProfileSupportManager tickets={serializedTickets} />
+                </div>
+              )}
+              
+              {tab === "referral" && (
+                <div className="fade-in">
+                  <h3 className="font-jakarta fw-bolder text-dark mb-4">Your Referral Link</h3>
+                  <ReferralLink />
                 </div>
               )}
               

@@ -6,19 +6,11 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// Fix default icon issue for Leaflet in Next.js
+// Set default icon options for Leaflet (required for Next.js)
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
   iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
   shadowUrl: markerShadow,
-});
-
-// Fix default icon issue in Leaflet when using with Webpack/Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png').default,
-  iconUrl: require('leaflet/dist/images/marker-icon.png').default,
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
 
 interface Checkpoint {
