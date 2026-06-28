@@ -47,7 +47,7 @@ export default function DigitalStudioManager({ categories, product }: { categori
       if (res.success) {
         toast.success(res.message);
         if (!product?.id && res.productId) {
-          router.replace(`/seller/digital/studio?id=${res.productId}`);
+          window.location.href = `/seller/digital/studio?id=${res.productId}`;
         } else {
           router.refresh();
         }

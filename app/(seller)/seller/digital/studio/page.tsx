@@ -3,7 +3,8 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import DigitalStudioManager from "./DigitalStudioManager";
 
-export default async function DigitalStudioPage({ searchParams }: { searchParams: { id?: string } }) {
+export default async function DigitalStudioPage(props: { searchParams: Promise<{ id?: string }> }) {
+  const searchParams = await props.searchParams;
   const userId = await getSessionUserId();
   if (!userId) redirect("/login");
 
