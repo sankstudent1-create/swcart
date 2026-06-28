@@ -132,14 +132,8 @@ export default async function LibraryPage() {
             {ebooks.map((p) => (
               <div key={p.id} className="col-6 col-md-4 col-lg-3">
                 <div
-                  className="card h-100 border-0 shadow-sm"
+                  className="card h-100 border-0 shadow-sm hover-scale"
                   style={{ borderRadius: 16, overflow: "hidden", transition: "transform .15s" }}
-                  onMouseEnter={(e) =>
-                    ((e.currentTarget as HTMLElement).style.transform = "translateY(-3px)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.currentTarget as HTMLElement).style.transform = "none")
-                  }
                 >
                   {/* Cover */}
                   <div
