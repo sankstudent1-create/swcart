@@ -3,46 +3,126 @@
 
 import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/app/actions/auth";
-import { cookies } from "next/headers";
 
-/** Generate a unique affiliate code */
+/** Generate a unique 8-char alphanumeric affiliate code */
 function generateCode(): string {
-  // Simple short code – you can replace with a more robust generator
-  return Math.random().toString(36).substring(2, 10);
+  return Math.random().toString(36).substring(2, 10).toUpperCase();
 }
 
-/** Create (or fetch) an affiliate link for the logged‑in user */
-export async function generateAffiliateLink(): Promise<{ link: string }> {
+/** Create (or fetch) an affiliate link for the logged-in user */
+export async function generateAffiliateLink(): Promise<{ link?: string; error?: string }> {
   const userId = await getSessionUserId();
-  if (!userId) throw new Error("User not authenticated");
+  if (!userId) return { error: "User not authenticated" };
 
-  // Check if a link already exists
-  let link = await prisma.affiliateLink.findFirst({ where: { userId } });
-  if (!link) {
-    // Ensure uniqueness of the code
-    let code = generateCode();
-    while (await prisma.affiliateLink.findUnique({ where: { code } })) {
-      code = generateCode();
+  try {
+    // Check if a link already exists
+    let affiliateLink = await prisma.affiliateLink.findFirst({ where: { userId } });
+
+    if (!affiliateLink) {
+      // Ensure uniqueness of the code
+      let code = generateCode();
+      while (await prisma.affiliateLink.findUnique({ where: { code } })) {
+        code = generateCode();
+      }
+      affiliateLink = await prisma.affiliateLink.create({
+        data: { userId, code },
+      });
     }
-    link = await prisma.affiliateLink.create({
-      data: { userId, code },
-    });
+
+    const origin =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
+    return { link: `${origin}/?ref=${affiliateLink.code}` };
+  } catch (e: any) {
+    return { error: e.message || "Failed to generate link" };
   }
-
-  // Store the code in a cookie for later referral tracking (optional)
-  const cookieStore = await cookies();
-  cookieStore.set("swcart_ref", link.code, { path: "/", maxAge: 60 * 60 * 24 * 30 });
-
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
-  return { link: `${origin}/?ref=${link.code}` };
 }
 
-/** Retrieve an existing affiliate link (if any) */
+/** Retrieve an existing affiliate link (if any) without creating one */
 export async function getAffiliateLink(): Promise<{ link?: string }> {
   const userId = await getSessionUserId();
   if (!userId) return {};
-  const link = await prisma.affiliateLink.findFirst({ where: { userId } });
-  if (!link) return {};
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
-  return { link: `${origin}/?ref=${link.code}` };
+
+  const affiliateLink = await prisma.affiliateLink.findFirst({ where: { userId } });
+  if (!affiliateLink) return {};
+
+  const origin =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
+  return { link: `${origin}/?ref=${affiliateLink.code}` };
+}
+
+/** Get referral stats for the current user's dashboard */
+export async function getReferralStats(): Promise<{
+  link?: string;
+  totalReferrals: number;
+  completedReferrals: number;
+  pendingReferrals: number;
+  totalClicks: number;
+  totalEarned: number;
+  referredUsers: {
+    name: string;
+    email: string;
+    joinedAt: Date;
+    status: string;
+    hasOrdered: boolean;
+  }[];
+}> {
+  const userId = await getSessionUserId();
+  if (!userId) {
+    return {
+      totalReferrals: 0,
+      completedReferrals: 0,
+      pendingReferrals: 0,
+      totalClicks: 0,
+      totalEarned: 0,
+      referredUsers: [],
+    };
+  }
+
+  const affiliateLink = await prisma.affiliateLink.findFirst({
+    where: { userId },
+    include: { clicks: true },
+  });
+
+  const referrals = await prisma.referral.findMany({
+    where: { referrerId: userId },
+    include: {
+      referred: {
+        include: { orders: { take: 1, orderBy: { createdAt: "asc" } } },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const walletTxns = await prisma.walletTransaction.findMany({
+    where: {
+      wallet: { userId },
+      type: "CREDIT",
+      reason: { contains: "Referral Bonus" },
+    },
+  });
+  const totalEarned = walletTxns.reduce((acc, t) => acc + t.amount, 0);
+
+  const origin =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
+  return {
+    link: affiliateLink ? `${origin}/?ref=${affiliateLink.code}` : undefined,
+    totalReferrals: referrals.length,
+    completedReferrals: referrals.filter((r) => r.status === "COMPLETED").length,
+    pendingReferrals: referrals.filter((r) => r.status === "PENDING").length,
+    totalClicks: affiliateLink?.clicks.length ?? 0,
+    totalEarned,
+    referredUsers: referrals.map((r) => ({
+      name: r.referred.name,
+      email: r.referred.email,
+      joinedAt: r.createdAt,
+      status: r.status,
+      hasOrdered: r.referred.orders.length > 0,
+    })),
+  };
 }

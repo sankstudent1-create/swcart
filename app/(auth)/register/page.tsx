@@ -2,11 +2,18 @@
 
 import Link from "next/link";
 import { registerSupabase } from "../../actions/authSupabase";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 
 export default function RegisterPage() {
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [referredBy, setReferredBy] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Read the swcart_ref cookie to show the referral banner
+    const match = document.cookie.match(/(?:^|;\s*)swcart_ref=([^;]+)/);
+    if (match) setReferredBy(match[1]);
+  }, []);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -38,6 +45,31 @@ export default function RegisterPage() {
           
           <h1>Create an account</h1>
           <p className="subtitle">Join Swcart to start shopping.</p>
+
+          {/* Referral Banner */}
+          {referredBy && (
+            <div style={{
+              background: "linear-gradient(135deg, #fff7ed, #fff3e0)",
+              border: "1px solid #f59e0b40",
+              borderLeft: "4px solid #f59e0b",
+              borderRadius: "10px",
+              padding: "12px 16px",
+              marginBottom: "1rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}>
+              <span style={{ fontSize: "1.3rem" }}>🎉</span>
+              <div>
+                <div style={{ fontWeight: 700, color: "#92400e", fontSize: "0.9rem" }}>
+                  You were invited by a friend!
+                </div>
+                <div style={{ color: "#a16207", fontSize: "0.78rem", marginTop: "2px" }}>
+                  Sign up now — your friend earns ₹100 when you place your first order.
+                </div>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div style={{
