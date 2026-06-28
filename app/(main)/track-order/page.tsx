@@ -1,10 +1,6 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import dynamic from 'next/dynamic';
-
-
-
-const TrackingMap = dynamic(() => import('@/components/TrackingMap'), { ssr: false });
+import TrackingMap from "@/components/TrackingMap";
 
 const pincodeToLatLng = (pincode: string | null | undefined): [number, number] => {
   if (!pincode) return [0, 0];

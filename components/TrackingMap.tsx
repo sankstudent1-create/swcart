@@ -40,12 +40,12 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
     <MapContainer
       style={{ height: '400px', width: '100%', borderRadius: '12px' }}
       bounds={bounds}
-      scrollWheelZoom={false}
     >
+{/* @ts-ignore */}
       <TileLayer
         // OpenStreetMap tiles – free and open source
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution="© <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors"
+
       />
       {checkpoints.map((cp, idx) => (
         <Marker key={idx} position={cp.position}>
@@ -53,7 +53,7 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
         </Marker>
       ))}
       {/* Draw polyline connecting checkpoints */}
-      <Polyline positions={positions} color="#e63946" weight={3} />
+      <Polyline positions={positions} pathOptions={{ color: "#e63946", weight: 3 }} />
     </MapContainer>
   );
 };
