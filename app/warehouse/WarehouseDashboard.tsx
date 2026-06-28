@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 export default function WarehouseDashboard({ 
   warehouse, 
+  manager,
   inboundOrders, 
   atHubOrders, 
   outboundOrders, 
@@ -38,6 +39,8 @@ export default function WarehouseDashboard({
 
   const [showEditAgentModal, setShowEditAgentModal] = useState(false);
   const [editAgentForm, setEditAgentForm] = useState({ deliveryPersonId: "", vehicleId: "" });
+
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const handleReceive = (orderId: string) => {
     startTransition(async () => {
@@ -104,6 +107,11 @@ export default function WarehouseDashboard({
     });
   };
 
+  // Calculations for report
+  const totalLocalShipped = outboundOrders.filter((o: any) => o.status === "SHIPPED").length;
+  const totalLocalDelivered = outboundOrders.filter((o: any) => o.status === "DELIVERED").length;
+  const totalForwardedDispatched = outboundOrders.filter((o: any) => o.status === "IN_TRANSIT_TO_HUB").length;
+
   return (
     <div className="container-fluid max-w-7xl mx-auto font-jakarta">
       {/* Header and Tabs */}
@@ -116,22 +124,32 @@ export default function WarehouseDashboard({
           </div>
         </div>
         
-        {/* Navigation Tabs */}
-        <div className="btn-group rounded-pill p-1 bg-light border shadow-sm">
+        {/* Navigation Tabs & Actions */}
+        <div className="d-flex align-items-center gap-2 flex-wrap">
           <button 
             type="button" 
-            className={`btn rounded-pill px-4 fw-bold transition-all btn-sm ${activeTab === "logistics" ? "btn-dark shadow-sm text-white" : "btn-light text-muted border-0"}`}
-            onClick={() => setActiveTab("logistics")}
+            className="btn btn-outline-danger rounded-pill fw-bold btn-sm px-3 shadow-sm"
+            onClick={() => setShowReportModal(true)}
           >
-            <i className="bi bi-box-seam me-2"></i> Logistics Hub
+            <i className="bi bi-file-earmark-bar-graph me-1"></i> Day-End Report
           </button>
-          <button 
-            type="button" 
-            className={`btn rounded-pill px-4 fw-bold transition-all btn-sm ${activeTab === "agents" ? "btn-dark shadow-sm text-white" : "btn-light text-muted border-0"}`}
-            onClick={() => setActiveTab("agents")}
-          >
-            <i className="bi bi-people me-2"></i> Fleet & Agents
-          </button>
+          
+          <div className="btn-group rounded-pill p-1 bg-light border shadow-sm">
+            <button 
+              type="button" 
+              className={`btn rounded-pill px-4 fw-bold transition-all btn-sm ${activeTab === "logistics" ? "btn-dark shadow-sm text-white" : "btn-light text-muted border-0"}`}
+              onClick={() => setActiveTab("logistics")}
+            >
+              <i className="bi bi-box-seam me-2"></i> Logistics Hub
+            </button>
+            <button 
+              type="button" 
+              className={`btn rounded-pill px-4 fw-bold transition-all btn-sm ${activeTab === "agents" ? "btn-dark shadow-sm text-white" : "btn-light text-muted border-0"}`}
+              onClick={() => setActiveTab("agents")}
+            >
+              <i className="bi bi-people me-2"></i> Fleet & Agents
+            </button>
+          </div>
         </div>
       </div>
 
@@ -276,15 +294,24 @@ export default function WarehouseDashboard({
                     <div key={o.id} className="p-3 border rounded-3 d-flex flex-column gap-2 bg-light">
                       <div className="d-flex justify-content-between">
                         <div className="font-monospace fw-bold text-dark">{o.trackingNumber}</div>
-                        <span className={`badge ${o.status === 'DELIVERED' ? 'bg-success' : 'bg-primary'}`}>{o.status}</span>
+                        <span className={`badge ${o.status === 'DELIVERED' ? 'bg-success' : o.status === 'IN_TRANSIT_TO_HUB' ? 'bg-info text-white' : 'bg-primary'}`}>
+                          {o.status === 'IN_TRANSIT_TO_HUB' ? 'FORWARDED' : o.status}
+                        </span>
                       </div>
-                      <div className="small">
+                      <div className="small text-dark">
                         <span className="text-muted">Cust:</span> {o.user?.name} ({o.shippingAddress?.postalCode})
                       </div>
-                      <div className="small border-top pt-2 mt-1">
-                        <span className="text-muted"><i className="bi bi-person-badge"></i> Agent:</span> {o.deliveryPerson?.user?.name}
-                        <div className="text-muted ms-3"><i className="bi bi-truck"></i> {o.deliveryPerson?.vehicle?.licensePlate || "No Vehicle"}</div>
-                      </div>
+                      
+                      {o.status === "IN_TRANSIT_TO_HUB" ? (
+                        <div className="small border-top pt-2 mt-1 text-primary fw-bold">
+                          <i className="bi bi-arrow-right-circle-fill me-1"></i> Forwarded to next Hub
+                        </div>
+                      ) : (
+                        <div className="small border-top pt-2 mt-1">
+                          <span className="text-muted"><i className="bi bi-person-badge"></i> Agent:</span> {o.deliveryPerson?.user?.name || "Unassigned"}
+                          <div className="text-muted ms-3"><i className="bi bi-truck"></i> {o.deliveryPerson?.vehicle?.licensePlate || "No Vehicle"}</div>
+                        </div>
+                      )}
                     </div>
                   ))}
                   {(!outboundOrders || outboundOrders.length === 0) && <div className="text-muted text-center py-4 small">No recent dispatches.</div>}
@@ -390,6 +417,126 @@ export default function WarehouseDashboard({
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Day-End Performance Report Modal */}
+      {showReportModal && (
+        <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.55)", backdropFilter: "blur(5px)", zIndex: 1060 }}>
+          <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div className="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+              <div className="modal-header bg-dark text-white p-4">
+                <div className="d-flex align-items-center gap-3">
+                  <img src="https://tools.swinfosystems.online/icon-192.png" alt="Swcart Logo" style={{ width: 40 }} />
+                  <div>
+                    <h5 className="modal-title fw-bold text-white m-0">Hub Day-End Performance Report</h5>
+                    <div className="small text-white-50">Operational overview & analytics report</div>
+                  </div>
+                </div>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowReportModal(false)}></button>
+              </div>
+              <div className="modal-body p-4 bg-light" id="printable-hub-report">
+                {/* Branding Site Info */}
+                <div className="d-flex justify-content-between align-items-center border-bottom pb-4 mb-4">
+                  <div>
+                    <h3 className="fw-black text-danger m-0">Sw<span className="text-dark">cart</span></h3>
+                    <div className="text-muted small">Premium Logistics Aggregator Network</div>
+                  </div>
+                  <div className="text-end text-muted small">
+                    <div>support@swcart.com</div>
+                    <div>Date: {new Date().toLocaleDateString("en-IN", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                  </div>
+                </div>
+
+                {/* Hub Data & Manager Data */}
+                <div className="row g-3 mb-4">
+                  <div className="col-12 col-md-6">
+                    <div className="bg-white p-3 rounded-3 border h-100">
+                      <div className="text-muted small fw-bold text-uppercase mb-1"><i className="bi bi-building me-1"></i> Warehouse Station</div>
+                      <h6 className="fw-bold mb-1 text-dark">{warehouse.name}</h6>
+                      <div className="text-muted small">{warehouse.location}</div>
+                      <div className="text-muted small mt-2"><strong>Active Pincodes:</strong> {warehouse.pincodes?.join(', ') || 'Global Routing'}</div>
+                    </div>
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <div className="bg-white p-3 rounded-3 border h-100">
+                      <div className="text-muted small fw-bold text-uppercase mb-1"><i className="bi bi-person-badge me-1"></i> Hub Administrator</div>
+                      <h6 className="fw-bold mb-1 text-dark">{manager?.name || "Station Manager"}</h6>
+                      <div className="text-muted small">{manager?.email || "N/A"}</div>
+                      <div className="text-muted small mt-2"><strong>Privileges:</strong> WAREHOUSE_MANAGER</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Logistics Performance Summary */}
+                <div className="card border-0 rounded-3 shadow-sm p-4 mb-4 bg-white">
+                  <h6 className="fw-bold mb-3 border-bottom pb-2 text-dark"><i className="bi bi-pie-chart me-1"></i> Operations Log & Efficiency Stats</h6>
+                  <div className="row text-center g-3">
+                    <div className="col-4">
+                      <div className="fs-3 fw-bold text-dark">{totalLocalShipped + totalLocalDelivered}</div>
+                      <div className="text-muted small">Local Outbounds</div>
+                    </div>
+                    <div className="col-4">
+                      <div className="fs-3 fw-bold text-success">{totalLocalDelivered}</div>
+                      <div className="text-muted small">Success Deliveries</div>
+                    </div>
+                    <div className="col-4">
+                      <div className="fs-3 fw-bold text-primary">{totalForwardedDispatched}</div>
+                      <div className="text-muted small">Forwards Routed</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fleet Details */}
+                <div className="bg-white p-4 rounded-3 border mb-4">
+                  <h6 className="fw-bold mb-3 border-bottom pb-2 text-dark"><i className="bi bi-people me-1"></i> Delivery Agent & Fleet Roster</h6>
+                  <div className="table-responsive">
+                    <table className="table table-hover align-middle small">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Agent Name</th>
+                          <th>Vehicle Assignment</th>
+                          <th className="text-center">Workload Pkgs</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {localAgents.map((a: any) => (
+                          <tr key={a.id}>
+                            <td className="fw-bold text-dark">{a.user.name}</td>
+                            <td>{a.vehicle ? `${a.vehicle.type} (${a.vehicle.licensePlate})` : "Unassigned"}</td>
+                            <td className="text-center fw-bold text-danger">{a.orders.length}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Footnote */}
+                <div className="text-center text-muted small mt-4 pt-4 border-top">
+                  Swcart Logistics Manager Control Panel &bull; Generated Securely at Hub
+                </div>
+              </div>
+              <div className="modal-footer border-top-0 p-4 pt-0 bg-light d-flex justify-content-end gap-2">
+                <button type="button" className="btn btn-light rounded-pill px-4" onClick={() => setShowReportModal(false)}>Close</button>
+                <button 
+                  type="button" 
+                  className="btn btn-dark rounded-pill px-4 fw-bold shadow-sm"
+                  onClick={() => {
+                    const printContents = document.getElementById("printable-hub-report")?.innerHTML;
+                    const originalContents = document.body.innerHTML;
+                    if (printContents) {
+                      document.body.innerHTML = printContents;
+                      window.print();
+                      window.location.reload();
+                    }
+                  }}
+                >
+                  <i className="bi bi-printer me-2"></i> Print / Save PDF
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

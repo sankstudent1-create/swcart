@@ -9,7 +9,7 @@ export default async function WarehousePage() {
 
   const staffRecord = await prisma.warehouseStaff.findUnique({
     where: { userId },
-    include: { warehouse: true }
+    include: { warehouse: true, user: true }
   });
 
   if (!staffRecord) redirect("/");
@@ -29,7 +29,12 @@ export default async function WarehousePage() {
   });
 
   const outboundOrders = await prisma.order.findMany({
-    where: { assignedWarehouseId: warehouseId, status: { in: ["SHIPPED", "DELIVERED"] }, deliveryPersonId: { not: null } },
+    where: {
+      OR: [
+        { assignedWarehouseId: warehouseId, status: { in: ["SHIPPED", "DELIVERED"] } },
+        { trackingHistory: { some: { location: `Dispatched from ${staffRecord.warehouse.name}` } } }
+      ]
+    },
     include: { user: true, shippingAddress: true, deliveryPerson: { include: { user: true, vehicle: true } } },
     orderBy: { updatedAt: "desc" },
     take: 50
@@ -88,6 +93,7 @@ export default async function WarehousePage() {
   return (
     <WarehouseDashboard 
       warehouse={staffRecord.warehouse} 
+      manager={staffRecord.user}
       inboundOrders={inboundOrders}
       atHubOrders={atHubOrders}
       outboundOrders={outboundOrders}
