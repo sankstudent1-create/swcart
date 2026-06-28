@@ -53,6 +53,7 @@ export default async function CoursePage({ params }: Props) {
   const product = await prisma.product.findUnique({
     where: { id: productId },
     include: {
+      digitalAssets: true,
       courseChapters: {
         orderBy: { order: "asc" },
         include: {
@@ -104,20 +105,9 @@ export default async function CoursePage({ params }: Props) {
 
   return (
     <div className="container-fluid py-4" style={{ fontFamily: "'Plus Jakarta Sans',system-ui", background: "#f8f9fa", minHeight: "100vh" }}>
-      <div className="row g-4">
-        {/* Sidebar */}
-        <div className="col-12 col-lg-4 col-xl-3">
-          <CourseSidebar
-            productId={productId}
-            chapters={chaptersForSidebar}
-            enrolled={hasAccess}
-            totalCompleted={totalCompleted}
-            totalLessons={totalLessons}
-          />
-        </div>
-
+      <div className="row g-4 justify-content-center">
         {/* Main content */}
-        <div className="col-12 col-lg-8 col-xl-9">
+        <div className="col-12 col-lg-10 col-xl-9">
           {/* Hero Redesign */}
           <div
             className="position-relative overflow-hidden"
@@ -354,6 +344,39 @@ export default async function CoursePage({ params }: Props) {
               );
             })}
           </div>
+
+          {/* Digital Assets / Resources */}
+          {product.digitalAssets.length > 0 && (
+            <div className="mt-5">
+              <h3 className="mb-4 text-dark" style={{ fontWeight: 800 }}>Course Resources</h3>
+              <div className="row g-3">
+                {product.digitalAssets.map((asset) => (
+                  <div key={asset.id} className="col-12 col-md-6 col-lg-4">
+                    <div className="card border-0 h-100" style={{ borderRadius: 16, boxShadow: "0 4px 12px rgba(0,0,0,0.03)" }}>
+                      <div className="card-body d-flex flex-column">
+                        <div className="d-flex align-items-center gap-3 mb-3">
+                          <div style={{ width: 40, height: 40, borderRadius: 10, background: "#e0f2fe", color: "#0284c7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <FileText size={20} />
+                          </div>
+                          <span style={{ fontWeight: 700, fontSize: "0.95rem" }}>
+                            {asset.assetType === "PDF" ? "PDF Document" : asset.assetType === "EBOOK" ? "eBook" : "Resource"}
+                          </span>
+                        </div>
+                        <a 
+                          href={hasAccess ? asset.fileUrl : `/product/${productId}`}
+                          target={hasAccess ? "_blank" : "_self"}
+                          className={`btn ${hasAccess ? 'btn-outline-primary' : 'btn-light text-muted'} w-100 mt-auto`}
+                          style={{ borderRadius: 10, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                        >
+                          {hasAccess ? "Download" : <><Lock size={14} /> Locked</>}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
