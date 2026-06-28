@@ -17,7 +17,7 @@ export default async function WarehousePage() {
   const warehouseId = staffRecord.warehouseId;
 
   const inboundOrders = await prisma.order.findMany({
-    where: { assignedWarehouseId: warehouseId, status: "IN_TRANSIT_TO_HUB", deliveryPersonId: null },
+    where: { assignedWarehouseId: warehouseId, status: "IN_TRANSIT_TO_HUB" },
     include: { user: true, shippingAddress: true },
     orderBy: { createdAt: "desc" }
   });

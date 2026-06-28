@@ -50,7 +50,10 @@ export async function receivePackageAction(orderId: string) {
 
     await prisma.order.update({
       where: { id: orderId },
-      data: { status: "AT_HUB" }
+      data: { 
+        status: "AT_HUB",
+        deliveryPersonId: null
+      }
     });
 
     await prisma.trackingHistory.create({
