@@ -387,7 +387,7 @@ export async function requestRefundAction(sellerOrderId: string, reason: string)
   }
 }
 
-export async function submitReviewAction(productId: string, rating: number, comment: string) {
+export async function submitReviewAction(productId: string, rating: number, comment: string, mediaUrls: string[] = []) {
   const userId = await getSessionUserId();
   if (!userId) return { success: false, message: "Please log in to leave a review." };
 
@@ -421,7 +421,8 @@ export async function submitReviewAction(productId: string, rating: number, comm
         userId,
         productId,
         rating,
-        comment: comment.trim() || null
+        comment: comment.trim() || null,
+        mediaUrls
       }
     });
 

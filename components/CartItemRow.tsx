@@ -17,8 +17,8 @@ interface CartItemProps {
       price: number;
       product: {
         id: string;
-        name: string;
-        cat: string;
+        title: string;
+        images: string[];
       }
     }
   }
@@ -44,14 +44,15 @@ export default function CartItemRow({ item }: CartItemProps) {
   };
 
   const p = item.variant.product;
+  const imageUrl = p.images?.[0] || "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=300&q=80";
 
   return (
     <div className="cart-item d-flex align-items-center gap-3 py-3 border-bottom" style={{ opacity: isPending ? 0.5 : 1 }}>
-      <img src={placeholderImg(p.id, p.name)} alt={p.name} style={{width: "80px", height: "80px", objectFit: "cover", borderRadius: "8px"}} />
+      <img src={imageUrl} alt={p.title} style={{width: "80px", height: "80px", objectFit: "cover", borderRadius: "8px"}} />
       <div className="flex-grow-1">
-        <div style={{fontSize: "0.85rem", color: "#666"}}>{p.cat}</div>
-        <Link href={`/product?id=${p.id}`} className="text-decoration-none text-dark fw-semibold">{p.name}</Link>
-        <div style={{fontSize: "0.85rem", color: "#666"}}>Variant: {item.variant.size}</div>
+        <Link href={`/product/${p.id}`} className="text-decoration-none text-dark fw-semibold">{p.title}</Link>
+        <div className="text-muted small mt-1">SKU: {item.variant.sku}</div>
+        {item.variant.size && <div className="text-muted small">Size: {item.variant.size}</div>}
       </div>
       <div className="qty-ctrl" style={{marginBottom: 0}}>
         <button onClick={() => handleUpdate(item.quantity - 1)} disabled={isPending}>-</button>

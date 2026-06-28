@@ -57,7 +57,7 @@ interface Product {
 
 const FALLBACK_IMG = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80";
 
-export default function ProductDetailClient({ product: p }: { product: Product }) {
+export default function ProductDetailClient({ product: p, hasPurchasedAndDelivered = false }: { product: Product, hasPurchasedAndDelivered?: boolean }) {
   const allImages = [
     ...(p.images?.filter(img => img?.startsWith("http")) || []),
   ];
@@ -67,6 +67,7 @@ export default function ProductDetailClient({ product: p }: { product: Product }
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
     p.variants?.length > 0 ? p.variants[0] : null
   );
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   const displayPrice = selectedVariant ? selectedVariant.price : p.price;
   const oldPrice = p.old;
@@ -316,7 +317,32 @@ export default function ProductDetailClient({ product: p }: { product: Product }
         <div className="mt-5 pt-5 border-top" id="reviews">
           <h3 className="fw-bold mb-4">Customer Reviews</h3>
           
-          <ReviewForm productId={p.id} />
+          {hasPurchasedAndDelivered ? (
+            <div className="mb-4">
+              {!showReviewForm ? (
+                <button 
+                  className="btn btn-outline-danger rounded-pill fw-bold px-4 shadow-sm"
+                  onClick={() => setShowReviewForm(true)}
+                >
+                  <i className="bi bi-pencil-square me-2"></i> Write a Review
+                </button>
+              ) : (
+                <div className="bg-light p-4 rounded-4 border position-relative">
+                  <button 
+                    type="button" 
+                    className="btn-close position-absolute top-0 end-0 m-3" 
+                    onClick={() => setShowReviewForm(false)}
+                  ></button>
+                  <ReviewForm productId={p.id} onSubmitted={() => setShowReviewForm(false)} />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="alert alert-light border small text-muted mb-4">
+              <i className="bi bi-info-circle me-2 text-danger"></i>
+              Only verified customers who have purchased and received this item can write a review.
+            </div>
+          )}
 
           {p.reviews.length > 0 ? (
             <div className="row g-4 mt-2">

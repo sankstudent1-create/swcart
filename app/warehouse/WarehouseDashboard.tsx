@@ -513,6 +513,128 @@ export default function WarehouseDashboard({
                   </div>
                 </div>
 
+                {/* Active Inbound Queue in Report */}
+                <div className="bg-white p-4 rounded-3 border mb-4">
+                  <h6 className="fw-bold mb-3 border-bottom pb-2 text-dark"><i className="bi bi-box-seam me-1"></i> Inbound Freight Queue</h6>
+                  <div className="table-responsive">
+                    <table className="table table-hover align-middle small">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Tracking #</th>
+                          <th>Customer</th>
+                          <th>Destination Pin</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {inboundOrders.map((o: any) => (
+                          <tr key={o.id}>
+                            <td className="font-monospace fw-bold">#{o.trackingNumber}</td>
+                            <td>{o.user?.name}</td>
+                            <td>{o.shippingAddress?.postalCode}</td>
+                          </tr>
+                        ))}
+                        {inboundOrders.length === 0 && (
+                          <tr><td colSpan={3} className="text-muted text-center py-2">No inbound packages.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Active Pickups in Report */}
+                <div className="bg-white p-4 rounded-3 border mb-4">
+                  <h6 className="fw-bold mb-3 border-bottom pb-2 text-dark"><i className="bi bi-arrow-down-left-square-fill me-1"></i> Active Seller Pickups</h6>
+                  <div className="table-responsive">
+                    <table className="table table-hover align-middle small">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Tracking #</th>
+                          <th>Seller Store</th>
+                          <th>Pincode</th>
+                          <th>Assigned Driver</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pendingPickups.map((o: any) => (
+                          <tr key={o.id}>
+                            <td className="font-monospace fw-bold">#{o.trackingNumber}</td>
+                            <td>{o.sellerOrders?.[0]?.seller?.companyName || "Vendor"}</td>
+                            <td>{o.sellerOrders?.[0]?.seller?.pickupPincode}</td>
+                            <td>{o.deliveryPerson?.user?.name || "Unassigned"}</td>
+                          </tr>
+                        ))}
+                        {pendingPickups.length === 0 && (
+                          <tr><td colSpan={4} className="text-muted text-center py-2">No pickups in progress.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Sorting Deck in Report */}
+                <div className="bg-white p-4 rounded-3 border mb-4">
+                  <h6 className="fw-bold mb-3 border-bottom pb-2 text-dark"><i className="bi bi-gear-fill me-1"></i> Sorting Deck (Ready for Route)</h6>
+                  <div className="table-responsive">
+                    <table className="table table-hover align-middle small">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Tracking #</th>
+                          <th>Customer</th>
+                          <th>Address</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {atHubOrders.map((o: any) => (
+                          <tr key={o.id}>
+                            <td className="font-monospace fw-bold">#{o.trackingNumber}</td>
+                            <td>{o.user?.name}</td>
+                            <td>{o.shippingAddress?.street}, {o.shippingAddress?.city} ({o.shippingAddress?.postalCode})</td>
+                          </tr>
+                        ))}
+                        {atHubOrders.length === 0 && (
+                          <tr><td colSpan={3} className="text-muted text-center py-2">No packages on sorting deck.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Dispatched & Forwarded List in Report */}
+                <div className="bg-white p-4 rounded-3 border mb-4">
+                  <h6 className="fw-bold mb-3 border-bottom pb-2 text-dark"><i className="bi bi-send me-1"></i> Dispatched & Forwarded Freights</h6>
+                  <div className="table-responsive">
+                    <table className="table table-hover align-middle small">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Tracking #</th>
+                          <th>Customer</th>
+                          <th>Status</th>
+                          <th>Assignment Details</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {outboundOrders.map((o: any) => (
+                          <tr key={o.id}>
+                            <td className="font-monospace fw-bold">#{o.trackingNumber}</td>
+                            <td>{o.user?.name}</td>
+                            <td>
+                              <span className={`badge ${o.status === 'DELIVERED' ? 'bg-success' : o.status === 'IN_TRANSIT_TO_HUB' ? 'bg-info text-white' : 'bg-primary'}`}>
+                                {o.status}
+                              </span>
+                            </td>
+                            <td>
+                              {o.status === "IN_TRANSIT_TO_HUB" ? "Forwarded to next Hub" : `Agent: ${o.deliveryPerson?.user?.name || "Unassigned"}`}
+                            </td>
+                          </tr>
+                        ))}
+                        {outboundOrders.length === 0 && (
+                          <tr><td colSpan={4} className="text-muted text-center py-2">No dispatches.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
                 {/* Footnote */}
                 <div className="text-center text-muted small mt-4 pt-4 border-top">
                   Swcart Logistics Manager Control Panel &bull; Generated Securely at Hub

@@ -42,7 +42,7 @@ export default async function WarehousePage() {
 
   const localAgents = await prisma.deliveryPerson.findMany({
     where: { warehouseId },
-    include: { user: true, orders: { where: { status: "SHIPPED" } } }
+    include: { user: true, vehicle: true, orders: { where: { status: "SHIPPED" } } }
   });
 
   const allWarehouses = await prisma.warehouse.findMany({

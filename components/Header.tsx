@@ -1,22 +1,19 @@
 import Link from "next/link";
 import { checkSession, getSessionUserId, checkSuperAdmin } from "@/app/actions/auth";
 import { prisma } from "@/lib/db";
+import CartWishlistCounts from "./CartWishlistCounts";
 
 export default async function Header() {
   const userId = await getSessionUserId();
   const isSuperAdmin = await checkSuperAdmin();
-  let cartCount = 0;
-  let wishCount = 0;
+  // Cart and wishlist counts are fetched client-side via CartWishlistCounts
   let user = null;
 
   if (userId) {
-    const [cart, wish, dbUser] = await Promise.all([
-      prisma.cart.findUnique({ where: { userId }, include: { items: true } }),
-      prisma.wishlist.findUnique({ where: { userId }, include: { items: true } }),
-      prisma.user.findUnique({ where: { id: userId }, include: { roles: { include: { role: true } } } })
-    ]);
-    cartCount = cart?.items.reduce((acc, item) => acc + item.quantity, 0) || 0;
-    wishCount = wish?.items.length || 0;
+    const dbUser = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { roles: { include: { role: true } } }
+    });
     user = dbUser;
   }
 
@@ -114,20 +111,7 @@ export default async function Header() {
                     <span className="d-none d-md-inline">Login / Sign Up</span>
                   </Link>
                 )}
-                <Link href="/wishlist" className="header-icon-btn">
-                  <span className="icon-wrap">
-                    <i className="bi bi-heart"></i>
-                    {wishCount > 0 && <span className="badge-count" id="wishCount">{wishCount}</span>}
-                  </span>
-                  <span className="d-none d-md-inline">Wishlist</span>
-                </Link>
-                <Link href="/cart" className="header-icon-btn">
-                  <span className="icon-wrap">
-                    <i className="bi bi-cart3"></i>
-                    {cartCount > 0 && <span className="badge-count" id="globalCartCount">{cartCount}</span>}
-                  </span>
-                  <span className="d-none d-md-inline">Cart</span>
-                </Link>
+                <CartWishlistCounts />
               </div>
             </div>
             
@@ -228,19 +212,7 @@ export default async function Header() {
                 </a>
               )}
               
-              <a href="/cart" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center justify-content-between transition-all">
-                <div className="d-flex align-items-center gap-3">
-                  <i className="bi bi-cart3 fs-5 text-danger"></i> Cart
-                </div>
-                {cartCount > 0 && <span className="badge bg-danger rounded-pill px-3 py-2 fw-bold">{cartCount}</span>}
-              </a>
-              
-              <a href="/wishlist" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center justify-content-between transition-all">
-                <div className="d-flex align-items-center gap-3">
-                  <i className="bi bi-heart fs-5 text-danger"></i> Wishlist
-                </div>
-                {wishCount > 0 && <span className="badge bg-danger rounded-pill px-3 py-2 fw-bold">{wishCount}</span>}
-              </a>
+              <CartWishlistCounts />
               
               <a href="/track-order" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all">
                 <i className="bi bi-geo-alt fs-5 text-danger"></i> Track Order

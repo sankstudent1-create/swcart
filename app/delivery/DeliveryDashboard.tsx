@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useTransition } from "react";
+import React, { useTransition, useState } from "react";
 import { updateDeliveryStatusAction } from "@/app/actions/delivery";
 import { toast } from "sonner";
 
 export default function DeliveryDashboard({ deliveryPerson, completedOrders = [], analytics }: { deliveryPerson: any, completedOrders?: any[], analytics?: any }) {
   const [isPending, startTransition] = useTransition();
+  const [showReport, setShowReport] = useState(false);
 
   const handleUpdate = (orderId: string, status: string, location: string) => {
     startTransition(async () => {
@@ -15,20 +16,33 @@ export default function DeliveryDashboard({ deliveryPerson, completedOrders = []
     });
   };
 
+  const totalTasks = deliveryPerson.orders.length;
+  const totalPickups = deliveryPerson.orders.filter((o: any) => o.status === "PROCESSING").length;
+  const totalDeliveries = deliveryPerson.orders.filter((o: any) => o.status !== "PROCESSING").length;
+
   return (
     <div className="p-3 pb-5 text-dark font-jakarta">
       {/* Profile & Vehicle Info */}
       <div className="card border-0 rounded-4 p-3 mb-4 shadow-sm bg-white border" style={{ borderColor: "#eef0f3" }}>
-        <div className="d-flex align-items-center gap-3">
-          <div className="bg-danger bg-opacity-10 rounded-circle d-flex justify-content-center align-items-center flex-shrink-0" style={{ width: 50, height: 50 }}>
-            <i className="bi bi-person-badge-fill fs-4 text-danger"></i>
-          </div>
-          <div>
-            <div className="text-muted small text-uppercase fw-bold" style={{ letterSpacing: "1px", fontSize: "0.75rem" }}>Active Delivery Agent</div>
-            <div className="fw-bold text-dark" style={{ fontSize: "1.1rem" }}>
-              {deliveryPerson.vehicle ? `${deliveryPerson.vehicle.type} (${deliveryPerson.vehicle.licensePlate})` : "No Vehicle Assigned"}
+        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div className="d-flex align-items-center gap-3">
+            <div className="bg-danger bg-opacity-10 rounded-circle d-flex justify-content-center align-items-center flex-shrink-0" style={{ width: 50, height: 50 }}>
+              <i className="bi bi-person-badge-fill fs-4 text-danger"></i>
+            </div>
+            <div>
+              <div className="text-muted small text-uppercase fw-bold" style={{ letterSpacing: "1px", fontSize: "0.75rem" }}>Active Delivery Agent</div>
+              <div className="fw-bold text-dark" style={{ fontSize: "1.1rem" }}>
+                {deliveryPerson.vehicle ? `${deliveryPerson.vehicle.type} (${deliveryPerson.vehicle.licensePlate})` : "No Vehicle Assigned"}
+              </div>
             </div>
           </div>
+          <button 
+            type="button" 
+            className="btn btn-outline-danger rounded-pill fw-bold btn-sm px-3"
+            onClick={() => setShowReport(true)}
+          >
+            <i className="bi bi-file-earmark-bar-graph me-1"></i> Shift Report
+          </button>
         </div>
       </div>
 
@@ -195,6 +209,118 @@ export default function DeliveryDashboard({ deliveryPerson, completedOrders = []
           </div>
         )}
       </div>
+
+      {/* Driver Printable Shift Report Modal */}
+      {showReport && (
+        <div className="modal d-block text-dark font-jakarta" style={{ backgroundColor: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)", zIndex: 1060 }}>
+          <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div className="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+              <div className="modal-header bg-dark text-white p-4">
+                <div className="d-flex align-items-center gap-3">
+                  <img src="https://tools.swinfosystems.online/icon-192.png" alt="Logo" style={{ width: 40 }} />
+                  <div>
+                    <h5 className="modal-title fw-bold text-white m-0">Driver Shift & Activity Report</h5>
+                    <div className="small text-white-50">Swcart Logistics Network Partner</div>
+                  </div>
+                </div>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowReport(false)}></button>
+              </div>
+              <div className="modal-body p-4 bg-light" id="printable-driver-report">
+                {/* Brand Header */}
+                <div className="d-flex justify-content-between align-items-center border-bottom pb-4 mb-4">
+                  <div>
+                    <h3 className="fw-black text-danger m-0">Sw<span className="text-dark">cart</span></h3>
+                    <div className="text-muted small">Last-Mile Routing Operations</div>
+                  </div>
+                  <div className="text-end text-muted small">
+                    <div>Date: {new Date().toLocaleDateString("en-IN", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                    <div>Agent Operations Log</div>
+                  </div>
+                </div>
+
+                {/* Driver & Vehicle Details */}
+                <div className="card border-0 rounded-3 shadow-sm p-4 mb-4 bg-white">
+                  <div className="text-muted small fw-bold text-uppercase mb-2"><i className="bi bi-person-badge me-1 text-danger"></i> Courier Agent Information</div>
+                  <h6 className="fw-bold mb-1 text-dark">{deliveryPerson.user?.name || "Agent"}</h6>
+                  <div className="text-muted small">{deliveryPerson.user?.email}</div>
+                  
+                  <hr className="my-3 opacity-10" />
+                  <div className="text-muted small fw-bold text-uppercase mb-1"><i className="bi bi-truck me-1"></i> Assigned Shift Fleet Vehicle</div>
+                  {deliveryPerson.vehicle ? (
+                    <div className="fw-bold text-dark">{deliveryPerson.vehicle.type} &bull; License: <span className="font-monospace text-danger">{deliveryPerson.vehicle.licensePlate}</span></div>
+                  ) : (
+                    <div className="text-muted small italic">No vehicle assigned for current shift.</div>
+                  )}
+                </div>
+
+                {/* Logistics Stats */}
+                <div className="card border-0 rounded-3 shadow-sm p-4 mb-4 bg-white">
+                  <h6 className="fw-bold mb-3 border-bottom pb-2 text-dark"><i className="bi bi-pie-chart me-1"></i> Shift Accomplishment summary</h6>
+                  <div className="row text-center g-3">
+                    <div className="col-4">
+                      <div className="fs-3 fw-bold text-dark">{totalTasks}</div>
+                      <div className="text-muted small">Active Tasks</div>
+                    </div>
+                    <div className="col-4">
+                      <div className="fs-3 fw-bold text-primary">{totalPickups}</div>
+                      <div className="text-muted small">Pickups</div>
+                    </div>
+                    <div className="col-4">
+                      <div className="fs-3 fw-bold text-success">{completedOrders.length}</div>
+                      <div className="text-muted small">Delivered Today</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Active Task Details */}
+                <div className="bg-white p-4 rounded-3 border mb-4">
+                  <h6 className="fw-bold mb-3 border-bottom pb-2 text-dark"><i className="bi bi-list-check me-1"></i> Active Workload Run details</h6>
+                  <ul className="list-group list-group-flush small">
+                    {deliveryPerson.orders.map((o: any, i: number) => (
+                      <li key={o.id} className="list-group-item bg-transparent px-0 py-2 border-bottom">
+                        <div className="d-flex justify-content-between align-items-center">
+                          <strong className="text-dark">#{i + 1} Run Task</strong>
+                          <span className="badge bg-light text-dark border font-monospace">{o.trackingNumber}</span>
+                        </div>
+                        <div className="text-muted mt-1" style={{ fontSize: "0.75rem" }}>
+                          Type: <strong>{o.status === "PROCESSING" ? "Pickup" : "Delivery"}</strong><br />
+                          Contact: {o.user?.name || "Customer"}<br />
+                          Destination: {o.shippingAddress?.street || "Seller Location"}
+                        </div>
+                      </li>
+                    ))}
+                    {deliveryPerson.orders.length === 0 && (
+                      <div className="text-muted py-2 text-center">No active route tasks.</div>
+                    )}
+                  </ul>
+                </div>
+
+                {/* Footnote */}
+                <div className="text-center text-muted small mt-4 pt-4 border-top">
+                  Swcart Courier Routing Aggregator Network &bull; Shift Summary Report
+                </div>
+              </div>
+              <div className="modal-footer border-top-0 p-4 pt-0 bg-light d-flex justify-content-end gap-2">
+                <button type="button" className="btn btn-light rounded-pill px-4" onClick={() => setShowReport(false)}>Close</button>
+                <button 
+                  type="button" 
+                  className="btn btn-dark rounded-pill px-4 fw-bold shadow-sm"
+                  onClick={() => {
+                    const printContents = document.getElementById("printable-driver-report")?.innerHTML;
+                    if (printContents) {
+                      document.body.innerHTML = printContents;
+                      window.print();
+                      window.location.reload();
+                    }
+                  }}
+                >
+                  <i className="bi bi-printer me-2"></i> Print / Save PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

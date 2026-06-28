@@ -21,9 +21,11 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
         },
         include: {
           user: true,
+          shippingAddress: true,
           trackingHistory: { orderBy: { timestamp: "desc" } },
           sellerOrders: {
             include: {
+              seller: true,
               items: {
                 include: {
                   variant: {
@@ -169,6 +171,63 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
                     </div>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* Visual Route Checkpoint Map */}
+            <div className="glass-panel p-4 mb-5 shadow-sm border-0 position-relative">
+              <h5 className="fw-bold mb-4 text-dark"><i className="bi bi-map-fill me-2 text-danger"></i> Interactive Route Journey</h5>
+              
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-4 bg-white bg-opacity-50 p-4 rounded-4 border border-light">
+                {/* Checkpoint 1: Seller */}
+                <div className="d-flex flex-column align-items-center text-center flex-grow-1">
+                  <div className="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mb-2 shadow-sm" style={{ width: 44, height: 44 }}>
+                    <i className="bi bi-shop fs-5"></i>
+                  </div>
+                  <div className="fw-bold small text-dark">Seller Dispatch</div>
+                  <div className="text-muted small" style={{ fontSize: "0.75rem" }}>
+                    {order.sellerOrders?.[0]?.seller?.companyName || "Vendor Hub"}
+                  </div>
+                </div>
+
+                <div className="text-muted d-none d-md-block fs-3 opacity-25"><i className="bi bi-arrow-right"></i></div>
+
+                {/* Checkpoint 2: Origin Sorting Hub */}
+                <div className="d-flex flex-column align-items-center text-center flex-grow-1">
+                  <div className={`rounded-circle d-flex align-items-center justify-content-center mb-2 shadow-sm ${currentStatusIndex >= 1 ? "bg-success text-white" : "bg-light text-muted border"}`} style={{ width: 44, height: 44 }}>
+                    <i className="bi bi-building fs-5"></i>
+                  </div>
+                  <div className="fw-bold small text-dark">Sorting Center</div>
+                  <div className="text-muted small" style={{ fontSize: "0.75rem" }}>
+                    Origin Hub
+                  </div>
+                </div>
+
+                <div className="text-muted d-none d-md-block fs-3 opacity-25"><i className="bi bi-arrow-right"></i></div>
+
+                {/* Checkpoint 3: Transit */}
+                <div className="d-flex flex-column align-items-center text-center flex-grow-1">
+                  <div className={`rounded-circle d-flex align-items-center justify-content-center mb-2 shadow-sm ${currentStatusIndex >= 2 ? "bg-success text-white" : "bg-light text-muted border"}`} style={{ width: 44, height: 44 }}>
+                    <i className="bi bi-truck fs-5"></i>
+                  </div>
+                  <div className="fw-bold small text-dark">In Transit</div>
+                  <div className="text-muted small" style={{ fontSize: "0.75rem" }}>
+                    Regional Network
+                  </div>
+                </div>
+
+                <div className="text-muted d-none d-md-block fs-3 opacity-25"><i className="bi bi-arrow-right"></i></div>
+
+                {/* Checkpoint 4: Destination Customer */}
+                <div className="d-flex flex-column align-items-center text-center flex-grow-1">
+                  <div className={`rounded-circle d-flex align-items-center justify-content-center mb-2 shadow-sm ${currentStatusIndex >= 3 ? "bg-success text-white" : "bg-light text-muted border"}`} style={{ width: 44, height: 44 }}>
+                    <i className="bi bi-house-door-fill fs-5"></i>
+                  </div>
+                  <div className="fw-bold small text-dark">Delivery Address</div>
+                  <div className="text-muted small" style={{ fontSize: "0.75rem" }}>
+                    {order.shippingAddress?.city || "Destination"} ({order.shippingAddress?.postalCode || ""})
+                  </div>
+                </div>
               </div>
             </div>
 

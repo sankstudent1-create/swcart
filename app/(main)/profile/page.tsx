@@ -185,7 +185,18 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                                     )}
                                     <div className="text-truncate flex-grow-1">
                                       <div className="fw-bold text-dark font-jakarta text-truncate" title={item.variant.product.title}>{item.variant.product.title}</div>
-                                      <div className="text-muted small mt-1">Qty: <span className="fw-bold text-dark">{item.quantity}</span> &bull; {item.variant.size} {item.variant.color}</div>
+                                      <div className="text-muted small mt-1">
+                                        Qty: <span className="fw-bold text-dark">{item.quantity}</span> &bull; {item.variant.size} {item.variant.color}
+                                        {order.status === "DELIVERED" && (
+                                          <Link 
+                                            href={`/product/${item.variant.product.id}#reviews`} 
+                                            className="btn btn-xs btn-outline-danger rounded-pill px-2.5 py-0.5 small fw-bold text-decoration-none ms-3"
+                                            style={{ fontSize: "0.75rem" }}
+                                          >
+                                            <i className="bi bi-star-fill me-1"></i> Submit Review
+                                          </Link>
+                                        )}
+                                      </div>
                                     </div>
                                     <div className="text-danger fw-bold ms-auto">₹{item.priceAtBuy.toLocaleString('en-IN')}</div>
                                   </div>

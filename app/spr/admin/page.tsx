@@ -1,6 +1,7 @@
 import { checkSuperAdmin } from "@/app/actions/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
+import SuperadminReportBtn from "./SuperadminReportBtn";
 
 export default async function AdminDashboard() {
   const isSuperAdmin = await checkSuperAdmin();
@@ -37,9 +38,14 @@ export default async function AdminDashboard() {
           <h2 className="fw-bold mb-1 text-dark" style={{ letterSpacing: "-1px" }}>Executive Dashboard</h2>
           <p className="text-muted mb-0">Marketplace overview & performance metrics.</p>
         </div>
-        <button className="btn text-white rounded-pill shadow-sm px-4 fw-bold hover-scale transition-all" style={{ backgroundColor: "var(--red)" }}>
-          <i className="bi bi-cloud-download me-2"></i> Export Report
-        </button>
+        <SuperadminReportBtn 
+          userCount={userCount}
+          orderCount={orderCount}
+          revenue={revenue}
+          recentOrders={JSON.parse(JSON.stringify(recentOrders))}
+          newUsers={JSON.parse(JSON.stringify(newUsers))}
+          pendingKycCount={pendingKycCount}
+        />
       </div>
       
       {/* Metric Cards */}

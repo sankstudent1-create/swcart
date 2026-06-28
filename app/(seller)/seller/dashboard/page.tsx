@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { unstable_cache } from "next/cache";
+import SellerReportBtn from "./SellerReportBtn";
 
 const FALLBACK_IMG = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=80&q=60";
 
@@ -139,7 +140,8 @@ export default async function SellerDashboard() {
           </h2>
           <p className="text-muted mb-0 small">Welcome back, <strong className="text-white">{seller.companyName}</strong> — here&apos;s your store at a glance.</p>
         </div>
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 align-items-center">
+          <SellerReportBtn stats={stats} sellerName={seller.companyName} />
           <Link href="/seller/products" className="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">
             <i className="bi bi-plus-lg me-1"></i>Add Product
           </Link>
