@@ -22,6 +22,7 @@ export default async function SellerLayout({ children }: { children: React.React
   const navLinks = [
     { href: "/seller/dashboard", label: "Dashboard", icon: "bi-speedometer2" },
     { href: "/seller/products", label: "Products Catalog", icon: "bi-box-seam" },
+    { href: "/seller/digital", label: "Digital Content", icon: "bi-collection-play" },
     { href: "/seller/orders", label: "Logistics ERP", icon: "bi-receipt" },
     { href: "/seller/returns", label: "Returns Center", icon: "bi-arrow-return-left" },
     { href: "/seller/reviews", label: "Customer Reviews", icon: "bi-star-half" },
