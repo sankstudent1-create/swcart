@@ -50,13 +50,22 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Generate short-lived signed URL (90s)
-  const { data, error } = await supabase.storage
-    .from("course-videos")
-    .createSignedUrl(lesson.videoKey, 90);
+  let signedUrl = lesson.videoKey;
+  let expiresIn = 90;
 
-  if (error || !data?.signedUrl) {
-    return NextResponse.json({ error: "Could not generate signed URL" }, { status: 500 });
+  // Generate short-lived signed URL (90s) only if it's a Supabase bucket path (not a full external URL)
+  if (!lesson.videoKey.startsWith("http://") && !lesson.videoKey.startsWith("https://")) {
+    const { data, error } = await supabase.storage
+      .from("course-videos")
+      .createSignedUrl(lesson.videoKey, 90);
+
+    if (error || !data?.signedUrl) {
+      return NextResponse.json({ error: "Could not generate signed URL" }, { status: 500 });
+    }
+    signedUrl = data.signedUrl;
+  } else {
+    // For external URLs, we don't have a strict expiry, but we pass 90s to maintain the frontend polling loop
+    expiresIn = 90;
   }
 
   // Log access
@@ -69,5 +78,5 @@ export async function POST(req: NextRequest) {
     metadata: { lessonId },
   });
 
-  return NextResponse.json({ signedUrl: data.signedUrl, expiresIn: 90 });
+  return NextResponse.json({ signedUrl, expiresIn });
 }
