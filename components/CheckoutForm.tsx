@@ -5,18 +5,27 @@ import { placeOrderAction, validateCouponAction } from "@/app/actions/shop";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-export default function CheckoutForm({ items, savedAddress, walletBalance = 0 }: any) {
+export default function CheckoutForm({ items, savedAddresses = [], defaultAddress, walletBalance = 0, userName = "" }: any) {
   const [isPending, startTransition] = useTransition();
   const [couponCode, setCouponCode] = useState("");
   const [coupon, setCoupon] = useState<{ discountType: string, discountVal: number, code: string } | null>(null);
   const [useWallet, setUseWallet] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  
+  const nameParts = userName.split(" ");
+  const defaultFirstName = nameParts[0] || "";
+  const defaultLastName = nameParts.slice(1).join(" ") || "";
+
+  const [selectedAddressId, setSelectedAddressId] = useState<string>(
+    defaultAddress ? defaultAddress.id : "new"
+  );
+
   const [shippingForm, setShippingForm] = useState({
-    firstName: "",
-    lastName: "",
-    address: savedAddress?.street || "",
-    city: savedAddress?.city || "",
-    zip: savedAddress?.postalCode || ""
+    firstName: defaultFirstName,
+    lastName: defaultLastName,
+    address: defaultAddress?.street || "",
+    city: defaultAddress?.city || "",
+    zip: defaultAddress?.postalCode || ""
   });
   const router = useRouter();
 
@@ -125,6 +134,29 @@ export default function CheckoutForm({ items, savedAddress, walletBalance = 0 }:
     );
   };
 
+  const handleAddressChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setSelectedAddressId(val);
+    if (val === "new") {
+      setShippingForm({
+        ...shippingForm,
+        address: "",
+        city: "",
+        zip: ""
+      });
+    } else {
+      const addr = savedAddresses.find((a: any) => a.id === val);
+      if (addr) {
+        setShippingForm({
+          ...shippingForm,
+          address: addr.street,
+          city: addr.city,
+          zip: addr.postalCode
+        });
+      }
+    }
+  };
+
   const handlePlaceOrder = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -132,6 +164,9 @@ export default function CheckoutForm({ items, savedAddress, walletBalance = 0 }:
       formData.append("couponCode", coupon.code);
     }
     formData.append("useWallet", String(useWallet));
+    if (selectedAddressId !== "new") {
+      formData.append("addressId", selectedAddressId);
+    }
     startTransition(async () => {
       const res = await placeOrderAction(formData);
       if (res.success) {
@@ -170,6 +205,24 @@ export default function CheckoutForm({ items, savedAddress, walletBalance = 0 }:
               </button>
             </div>
             <div className="row g-3">
+              {savedAddresses.length > 0 && (
+                <div className="col-12 mb-2">
+                  <label className="form-label small fw-bold text-muted text-uppercase mb-1">Saved Addresses</label>
+                  <select 
+                    className="form-select rounded-3 border-light shadow-sm py-2"
+                    value={selectedAddressId}
+                    onChange={handleAddressChange}
+                  >
+                    <option value="new">+ Add New Address</option>
+                    {savedAddresses.map((a: any) => (
+                      <option key={a.id} value={a.id}>
+                        {a.street}, {a.city} {a.postalCode} {a.isDefault ? "(Default)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
               <div className="col-md-6">
                 <label className="form-label small fw-bold text-muted text-uppercase mb-1">First Name</label>
                 <input 

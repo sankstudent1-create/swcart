@@ -111,21 +111,26 @@ export async function placeOrderAction(formData: FormData) {
       let addressId = null;
 
       if (!isDigitalOnly) {
-        const street = formData.get("address") as string || "123 Main St";
-        const city = formData.get("city") as string || "City";
-        const postalCode = formData.get("zip") as string || "000000";
+        const existingAddressId = formData.get("addressId") as string;
+        if (existingAddressId) {
+          addressId = existingAddressId;
+        } else {
+          const street = formData.get("address") as string || "123 Main St";
+          const city = formData.get("city") as string || "City";
+          const postalCode = formData.get("zip") as string || "000000";
 
-        const address = await tx.address.create({
-          data: {
-            customerProfileId: customerProfile.id,
-            street,
-            city,
-            state: "State",
-            postalCode,
-            country: "IN"
-          }
-        });
-        addressId = address.id;
+          const address = await tx.address.create({
+            data: {
+              customerProfileId: customerProfile.id,
+              street,
+              city,
+              state: "State",
+              postalCode,
+              country: "IN"
+            }
+          });
+          addressId = address.id;
+        }
       }
 
       const useWallet = formData.get("useWallet") === "true";

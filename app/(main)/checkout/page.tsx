@@ -7,6 +7,7 @@ export default async function CheckoutPage() {
   const userId = await getSessionUserId();
   if (!userId) redirect("/login");
 
+  const user = await prisma.user.findUnique({ where: { id: userId } });
   const cart = await prisma.cart.findUnique({
     where: { userId },
     include: {
@@ -18,7 +19,9 @@ export default async function CheckoutPage() {
     where: { userId },
     include: { addresses: true }
   });
-  const savedAddress = profile?.addresses?.find(a => a.isDefault) || profile?.addresses?.[0] || null;
+  const savedAddresses = profile?.addresses || [];
+  const defaultAddress = savedAddresses.find(a => a.isDefault) || savedAddresses[0] || null;
+  
   const wallet = await prisma.wallet.findUnique({
     where: { userId }
   });
@@ -32,7 +35,13 @@ export default async function CheckoutPage() {
   return (
     <div className="container checkout-layout py-5">
       <h1 className="mb-4 fw-bold">Secure Checkout</h1>
-      <CheckoutForm items={items} savedAddress={savedAddress} walletBalance={walletBalance} />
+      <CheckoutForm 
+        items={items} 
+        savedAddresses={savedAddresses} 
+        defaultAddress={defaultAddress} 
+        walletBalance={walletBalance} 
+        userName={user?.name || ""}
+      />
     </div>
   );
 }

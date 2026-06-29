@@ -329,11 +329,16 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
       {/* Map div */}
       <div
         ref={mapRef}
+        id="swcart-map-container"
         style={{
           height: "400px",
           width: "100%",
           borderRadius: "16px",
-          display: mapReady && hasCoords ? "block" : "none",
+          opacity: mapReady && hasCoords ? 1 : 0,
+          position: mapReady && hasCoords ? "relative" : "absolute",
+          top: 0,
+          left: 0,
+          pointerEvents: mapReady && hasCoords ? "auto" : "none",
           overflow: "hidden",
           boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
         }}

@@ -3,9 +3,11 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import HubCommandClient from "./HubCommandClient";
 
-export default async function HubCommandPage({ searchParams }: { searchParams: { hub?: string } }) {
+export default async function HubCommandPage({ searchParams }: { searchParams: Promise<{ hub?: string }> }) {
   const isSuperAdmin = await checkSuperAdmin();
   if (!isSuperAdmin) redirect("/");
+
+  const params = await searchParams;
 
   // Fetch all warehouses for the dropdown
   const allWarehouses = await prisma.warehouse.findMany({
@@ -13,7 +15,7 @@ export default async function HubCommandPage({ searchParams }: { searchParams: {
     orderBy: { name: "asc" }
   });
 
-  const selectedHubId = searchParams.hub || (allWarehouses.length > 0 ? allWarehouses[0].id : null);
+  const selectedHubId = params.hub || (allWarehouses.length > 0 ? allWarehouses[0].id : null);
 
   let hubData = null;
 
@@ -68,7 +70,7 @@ export default async function HubCommandPage({ searchParams }: { searchParams: {
       }),
       prisma.inventory.findMany({
         where: { warehouseId: selectedHubId },
-        include: { variant: { include: { product: { select: { title: true } } }, sku: true } }
+        include: { variant: { include: { product: { select: { title: true } } } } }
       })
     ]);
 
@@ -111,9 +113,9 @@ export default async function HubCommandPage({ searchParams }: { searchParams: {
 
   return (
     <HubCommandClient 
-      allWarehouses={allWarehouses} 
+      allWarehouses={JSON.parse(JSON.stringify(allWarehouses))} 
       selectedHubId={selectedHubId} 
-      hubData={hubData} 
+      hubData={hubData ? JSON.parse(JSON.stringify(hubData)) : null} 
     />
   );
 }
