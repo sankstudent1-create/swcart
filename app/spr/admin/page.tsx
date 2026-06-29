@@ -87,12 +87,6 @@ export default async function AdminDashboard() {
   });
   const statusEntries = Object.entries(statusMap).filter(([, v]) => v.count > 0).sort((a, b) => b[1].count - a[1].count);
 
-  // ── Top 5 sellers by revenue ──
-  const topSellers = await prisma.sellerOrder.groupBy({
-    by: ["sellerId"],
-    _sum: { id: undefined },
-    _count: { id: true },
-  });
 
   // Get seller revenue manually
   const sellerRevenueMap: Record<string, { revenue: number; orderCount: number }> = {};
