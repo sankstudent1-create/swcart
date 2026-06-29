@@ -18,9 +18,7 @@ export default async function CheckoutPage() {
     where: { userId },
     include: { addresses: true }
   });
-
-  const savedAddress = profile?.addresses?.[0] || null;
-
+  const savedAddress = profile?.addresses?.find(a => a.isDefault) || profile?.addresses?.[0] || null;
   const wallet = await prisma.wallet.findUnique({
     where: { userId }
   });

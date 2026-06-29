@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSessionUserId } from "@/app/actions/auth";
 import { prisma } from "@/lib/db";
-import { PlayCircle, Clock, BookOpen, Award, CheckCircle, Lock, Video, HelpCircle, FileText, ChevronRight, Play } from "lucide-react";
+import { PlayCircle, Clock, BookOpen, Award, CheckCircle, Lock, Video, HelpCircle, FileText, ChevronRight, Play, MonitorPlay } from "lucide-react";
 
 interface Props {
   params: Promise<{ productId: string }>;
