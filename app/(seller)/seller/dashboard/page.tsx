@@ -19,6 +19,9 @@ function statusColor(s: string) {
 
 const getSellerStats = unstable_cache(
   async (sellerId: string) => {
+    const now = new Date();
+    const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
+
     // Products with variants + inventory
     const products = await prisma.product.findMany({
       where: { sellerId },
@@ -29,7 +32,7 @@ const getSellerStats = unstable_cache(
     const sellerOrders = await prisma.sellerOrder.findMany({
       where: { sellerId },
       include: {
-        order: { include: { user: { select: { name: true, email: true } } } },
+        order: { include: { user: { select: { id: true, name: true, email: true } } } },
         items: {
           include: { variant: { include: { product: { select: { title: true, images: true, categoryId: true } } } } }
         }
@@ -48,28 +51,78 @@ const getSellerStats = unstable_cache(
     const productRevMap: Record<string, { title: string; image: string; revenue: number; qty: number }> = {};
     const catRevMap: Record<string, number> = {};
     const last7: Record<string, number> = {};
+    const last30: Record<string, number> = {};
+    const monthly: Record<string, number> = {};
     
+    // Build 7-day keys
     for (let i = 6; i >= 0; i--) {
       const d = new Date(); d.setDate(d.getDate() - i);
       last7[d.toDateString()] = 0;
     }
 
+    // Build 30-day keys
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      last30[d.toDateString()] = 0;
+    }
+
+    // Build 6-month keys
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const key = d.toLocaleDateString("en-IN", { month: "short", year: "2-digit" });
+      monthly[key] = 0;
+    }
+
+    // Low stock
     products.forEach(p => p.variants.forEach(v => {
       const stock = v.inventory.reduce((a, inv) => a + inv.quantity, 0);
       if (stock < 10) lowStockItems.push({ title: p.title, sku: v.sku, stock });
     }));
     lowStockItems.sort((a, b) => a.stock - b.stock);
 
+    // Customer tracking for repeat buyer analysis
+    const customerOrderMap: Record<string, { name: string; email: string; orderCount: number; totalSpent: number }> = {};
+
+    // This week and last week revenue for growth calc
+    const thisWeekStart = new Date(todayStart);
+    thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay()); // Start of this week (Sunday)
+    const lastWeekStart = new Date(thisWeekStart);
+    lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+    let thisWeekRev = 0;
+    let lastWeekRev = 0;
+    let deliveredCount = 0;
+
     sellerOrders.forEach(so => {
       statusCounts[so.status] = (statusCounts[so.status] || 0) + 1;
-      const orderDate = new Date(so.createdAt).toDateString();
+      if (so.status === "DELIVERED") deliveredCount++;
+      const orderDate = new Date(so.createdAt);
+      const orderDateStr = orderDate.toDateString();
+
+      // Monthly key
+      const monthKey = orderDate.toLocaleDateString("en-IN", { month: "short", year: "2-digit" });
+
+      // Track customer
+      const customerId = so.order.user.id;
+      if (!customerOrderMap[customerId]) {
+        customerOrderMap[customerId] = { name: so.order.user.name, email: so.order.user.email, orderCount: 0, totalSpent: 0 };
+      }
+      customerOrderMap[customerId].orderCount++;
 
       so.items.forEach(i => {
         const rev = i.quantity * i.priceAtBuy;
         totalRevenue += rev;
         if (so.status === "DELIVERED") deliveredRevenue += rev;
 
-        if (orderDate in last7) last7[orderDate] += rev;
+        if (orderDateStr in last7) last7[orderDateStr] += rev;
+        if (orderDateStr in last30) last30[orderDateStr] += rev;
+        if (monthKey in monthly) monthly[monthKey] += rev;
+
+        // Week-over-week
+        if (orderDate >= thisWeekStart) thisWeekRev += rev;
+        else if (orderDate >= lastWeekStart && orderDate < thisWeekStart) lastWeekRev += rev;
+
+        customerOrderMap[customerId].totalSpent += rev;
 
         const pid = i.variant.productId || i.id;
         const key = i.variant.product?.title || pid;
@@ -87,7 +140,17 @@ const getSellerStats = unstable_cache(
     });
 
     const avgOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
+    const conversionRate = totalOrders > 0 ? Math.round((deliveredCount / totalOrders) * 100) : 0;
     
+    const repeatCustomers = Object.values(customerOrderMap).filter(c => c.orderCount > 1);
+    const topBuyers = Object.values(customerOrderMap)
+      .sort((a, b) => b.orderCount - a.orderCount)
+      .slice(0, 5);
+    
+    const weekGrowth = lastWeekRev === 0
+      ? (thisWeekRev > 0 ? 100 : 0)
+      : Math.round(((thisWeekRev - lastWeekRev) / lastWeekRev) * 100);
+
     const topProducts = Object.values(productRevMap)
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
@@ -101,6 +164,8 @@ const getSellerStats = unstable_cache(
       rev
     }));
 
+    const monthlyData = Object.entries(monthly).map(([label, rev]) => ({ label, rev }));
+
     // For recent items
     const recentItems: any[] = [];
     sellerOrders.slice(0, 8).forEach(so => {
@@ -111,10 +176,20 @@ const getSellerStats = unstable_cache(
 
     return {
       totalProducts, publishedProducts, totalOrders, totalRevenue, avgOrderValue, deliveredRevenue,
-      lowStockItems, statusCounts, topProducts, catRevList, weeklyData, recentItems: recentItems.slice(0, 8)
+      lowStockItems, statusCounts, topProducts, catRevList, weeklyData, recentItems: recentItems.slice(0, 8),
+      // NEW analytics
+      conversionRate,
+      repeatCustomerCount: repeatCustomers.length,
+      totalCustomers: Object.keys(customerOrderMap).length,
+      weekGrowth,
+      thisWeekRev,
+      lastWeekRev,
+      monthlyData,
+      topBuyers,
+      deliveredCount,
     };
   },
-  ["seller-dashboard-stats-v2"],
+  ["seller-dashboard-stats-v3"],
   { tags: ["seller-dashboard"], revalidate: 3600 }
 );
 
@@ -129,6 +204,14 @@ export default async function SellerDashboard() {
 
   const maxWeekly = Math.max(...stats.weeklyData.map(d => d.rev), 1);
   const maxCatRev = stats.catRevList[0]?.[1] || 1;
+  const maxMonthly = Math.max(...stats.monthlyData.map(d => d.rev), 1);
+
+  const growthBadge = (growth: number) => {
+    if (growth > 0) return { cls: "text-success", bg: "#34c75918", icon: "bi-graph-up-arrow", text: `+${growth}%` };
+    if (growth < 0) return { cls: "text-danger", bg: "#ff3b3018", icon: "bi-graph-down-arrow", text: `${growth}%` };
+    return { cls: "text-muted", bg: "rgba(255,255,255,0.06)", icon: "bi-dash", text: "—" };
+  };
+  const wg = growthBadge(stats.weekGrowth);
 
   return (
     <div style={{ color: "#fff" }}>
@@ -155,7 +238,7 @@ export default async function SellerDashboard() {
       <div className="row g-3 mb-4">
         {[
           { label: "Total Revenue", value: `₹${stats.totalRevenue.toLocaleString("en-IN")}`, sub: `₹${stats.deliveredRevenue.toLocaleString("en-IN")} confirmed`, icon: "bi-cash-stack", color: "#34c759" },
-          { label: "Total Orders", value: stats.totalOrders, sub: `${stats.statusCounts["DELIVERED"] || 0} delivered`, icon: "bi-cart-check", color: "#007aff" },
+          { label: "Total Orders", value: stats.totalOrders, sub: `${stats.deliveredCount} delivered`, icon: "bi-cart-check", color: "#007aff" },
           { label: "Avg. Order Value", value: `₹${stats.avgOrderValue.toLocaleString("en-IN")}`, sub: "Per transaction", icon: "bi-bag-check", color: "#ff9500" },
           { label: "Products", value: stats.totalProducts, sub: `${stats.publishedProducts} published`, icon: "bi-box-seam", color: "#5856d6" },
         ].map((card, i) => (
@@ -173,6 +256,50 @@ export default async function SellerDashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* NEW: Performance KPI Row */}
+      <div className="row g-3 mb-4">
+        <div className="col-6 col-lg-3">
+          <div className="rounded-4 p-3 p-lg-4 glass-panel h-100">
+            <div className="d-flex align-items-center gap-2 mb-2">
+              <i className="bi bi-check-circle-fill text-success" style={{ fontSize: "1.2rem" }}></i>
+              <span className="text-muted small text-uppercase fw-bold" style={{ fontSize: ".6rem", letterSpacing: "1px" }}>Conversion Rate</span>
+            </div>
+            <div className="fw-bold text-white" style={{ fontSize: "1.8rem", lineHeight: 1 }}>{stats.conversionRate}%</div>
+            <div className="text-muted mt-1" style={{ fontSize: ".68rem" }}>Orders delivered / total</div>
+          </div>
+        </div>
+        <div className="col-6 col-lg-3">
+          <div className="rounded-4 p-3 p-lg-4 glass-panel h-100">
+            <div className="d-flex align-items-center gap-2 mb-2">
+              <i className="bi bi-arrow-repeat text-primary" style={{ fontSize: "1.2rem" }}></i>
+              <span className="text-muted small text-uppercase fw-bold" style={{ fontSize: ".6rem", letterSpacing: "1px" }}>Repeat Customers</span>
+            </div>
+            <div className="fw-bold text-white" style={{ fontSize: "1.8rem", lineHeight: 1 }}>{stats.repeatCustomerCount}</div>
+            <div className="text-muted mt-1" style={{ fontSize: ".68rem" }}>of {stats.totalCustomers} total customers</div>
+          </div>
+        </div>
+        <div className="col-6 col-lg-3">
+          <div className="rounded-4 p-3 p-lg-4 glass-panel h-100">
+            <div className="d-flex align-items-center gap-2 mb-2">
+              <i className={`bi ${wg.icon}`} style={{ fontSize: "1.2rem", color: stats.weekGrowth >= 0 ? "#34c759" : "#ff3b30" }}></i>
+              <span className="text-muted small text-uppercase fw-bold" style={{ fontSize: ".6rem", letterSpacing: "1px" }}>Week Growth</span>
+            </div>
+            <div className="fw-bold" style={{ fontSize: "1.8rem", lineHeight: 1, color: stats.weekGrowth >= 0 ? "#34c759" : "#ff3b30" }}>{wg.text}</div>
+            <div className="text-muted mt-1" style={{ fontSize: ".68rem" }}>₹{stats.thisWeekRev.toLocaleString("en-IN")} vs ₹{stats.lastWeekRev.toLocaleString("en-IN")}</div>
+          </div>
+        </div>
+        <div className="col-6 col-lg-3">
+          <div className="rounded-4 p-3 p-lg-4 glass-panel h-100">
+            <div className="d-flex align-items-center gap-2 mb-2">
+              <i className="bi bi-people-fill text-warning" style={{ fontSize: "1.2rem" }}></i>
+              <span className="text-muted small text-uppercase fw-bold" style={{ fontSize: ".6rem", letterSpacing: "1px" }}>Total Customers</span>
+            </div>
+            <div className="fw-bold text-white" style={{ fontSize: "1.8rem", lineHeight: 1 }}>{stats.totalCustomers}</div>
+            <div className="text-muted mt-1" style={{ fontSize: ".68rem" }}>Unique buyers</div>
+          </div>
+        </div>
       </div>
 
       <div className="row g-4 mb-4">
@@ -249,6 +376,69 @@ export default async function SellerDashboard() {
                   ))}
                 </div>
               </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* NEW: Monthly Revenue Trend */}
+      <div className="row g-4 mb-4">
+        <div className="col-lg-7">
+          <div className="rounded-4 p-4 h-100 glass-panel">
+            <h6 className="fw-bold text-white mb-4"><i className="bi bi-calendar3 text-danger me-2"></i>Monthly Revenue Trend (6 Months)</h6>
+            <div className="d-flex align-items-end gap-3" style={{ height: 180 }}>
+              {stats.monthlyData.map((d, i) => (
+                <div key={i} className="d-flex flex-column align-items-center gap-1 flex-grow-1">
+                  <div className="text-muted small fw-bold" style={{ fontSize: ".63rem" }}>
+                    {d.rev > 0 ? `₹${d.rev >= 1000 ? `${(d.rev / 1000).toFixed(1)}k` : d.rev}` : ""}
+                  </div>
+                  <div
+                    className="w-100 rounded-top-3"
+                    style={{
+                      height: `${Math.max(4, (d.rev / maxMonthly) * 100)}%`,
+                      background: d.rev > 0
+                        ? "linear-gradient(180deg, #007aff 0%, rgba(0,122,255,0.25) 100%)"
+                        : "rgba(255,255,255,0.05)",
+                      transition: "height .4s ease",
+                      minHeight: 4,
+                    }}
+                  ></div>
+                  <span className="text-muted fw-semibold" style={{ fontSize: ".65rem" }}>{d.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Customer Insights */}
+        <div className="col-lg-5">
+          <div className="rounded-4 p-4 h-100 glass-panel">
+            <h6 className="fw-bold text-white mb-4"><i className="bi bi-person-hearts text-danger me-2"></i>Top Repeat Buyers</h6>
+            {stats.topBuyers.length === 0 ? (
+              <div className="text-center text-muted py-4 small">No customer data yet</div>
+            ) : (
+              <div className="d-flex flex-column gap-3">
+                {stats.topBuyers.map((buyer, i) => (
+                  <div key={i} className="d-flex align-items-center gap-3">
+                    <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style={{
+                      width: 36, height: 36,
+                      background: i === 0 ? "linear-gradient(135deg, #FFD700, #FFA500)" : "rgba(255,255,255,0.08)",
+                      color: i === 0 ? "#000" : "#fff",
+                      fontSize: "0.75rem"
+                    }}>
+                      #{i + 1}
+                    </div>
+                    <div className="flex-grow-1 min-width-0">
+                      <div className="text-white fw-semibold text-truncate" style={{ fontSize: ".82rem" }}>{buyer.name}</div>
+                      <div className="text-muted" style={{ fontSize: ".68rem" }}>{buyer.email}</div>
+                    </div>
+                    <div className="text-end flex-shrink-0">
+                      <div className="text-white fw-bold" style={{ fontSize: ".82rem" }}>{buyer.orderCount} orders</div>
+                      <div className="text-muted" style={{ fontSize: ".65rem" }}>₹{buyer.totalSpent.toLocaleString("en-IN")}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>

@@ -35,7 +35,7 @@ export default function WishlistItemCard({ item }: WishlistProps) {
 
   const handleAddToCart = () => {
     startTransition(async () => {
-      const res = await addToCartAction(p.id, 1);
+      const res = await addToCartAction(p.id, 1, item.variant.id);
       if (res.success) toast.success("Moved to cart!");
       else toast.error(res.message);
       

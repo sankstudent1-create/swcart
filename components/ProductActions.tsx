@@ -20,7 +20,7 @@ export default function ProductActions({ productId, variantId, disabled = false,
 
   const handleAddToCart = () => {
     startTransition(async () => {
-      const res = await addToCartAction(productId, quantity);
+      const res = await addToCartAction(productId, quantity, variantId);
       if (res.success) {
         toast.success(res.message);
       } else {
@@ -31,7 +31,7 @@ export default function ProductActions({ productId, variantId, disabled = false,
 
   const handleAddToWishlist = () => {
     startTransition(async () => {
-      const res = await addToWishlistAction(productId);
+      const res = await addToWishlistAction(productId, variantId);
       if (res.success) {
         toast.success(res.message);
       } else {
@@ -42,7 +42,7 @@ export default function ProductActions({ productId, variantId, disabled = false,
 
   const handleBuyNow = () => {
     startTransition(async () => {
-      const res = await addToCartAction(productId, quantity);
+      const res = await addToCartAction(productId, quantity, variantId);
       if (res.success) {
         router.push("/cart");
       } else {

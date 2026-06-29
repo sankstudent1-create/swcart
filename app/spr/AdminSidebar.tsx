@@ -28,6 +28,7 @@ const navGroups = [
     links: [
       { href: "/spr/admin/orders", label: "Order Ledger", icon: "bi-receipt" },
       { href: "/spr/admin/logistics", label: "Logistics Hub", icon: "bi-truck" },
+      { href: "/spr/admin/hub-command", label: "Hub Command Center", icon: "bi-radar" },
       { href: "/spr/admin/support", label: "Support Helpdesk", icon: "bi-headset" },
     ]
   },

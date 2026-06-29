@@ -162,100 +162,291 @@ export default async function Header() {
       </nav>
 
       {/* Mobile Offcanvas Drawer */}
-      <div className="offcanvas offcanvas-start text-white border-0 shadow-lg" tabIndex={-1} id="menuCanvas" aria-labelledby="menuCanvasLabel" style={{ background: "linear-gradient(135deg, #1A1410 0%, #2A1F18 100%)" }}>
-        <div className="offcanvas-header border-bottom border-light border-opacity-10 p-4 d-flex justify-content-between align-items-center">
-          <div className="d-flex align-items-center gap-2">
-            <img src="https://tools.swinfosystems.online/icon-192.png" alt="Swcart logo" style={{ width: "32px", height: "32px", borderRadius: "8px" }} />
-            <h5 className="offcanvas-title fw-bold mb-0" id="menuCanvasLabel">
+      <div className="offcanvas offcanvas-start border-0 shadow-lg premium-sidebar" tabIndex={-1} id="menuCanvas" aria-labelledby="menuCanvasLabel">
+        <div className="offcanvas-header p-4 d-flex justify-content-between align-items-center position-relative z-2">
+          <div className="d-flex align-items-center gap-3">
+            <div className="bg-gradient-primary p-1 rounded-3 shadow-sm" style={{ background: "var(--red)" }}>
+              <img src="https://tools.swinfosystems.online/icon-192.png" alt="Swcart logo" style={{ width: "28px", height: "28px", borderRadius: "6px" }} />
+            </div>
+            <h5 className="offcanvas-title fw-bolder mb-0 font-jakarta tracking-tight text-white" id="menuCanvasLabel">
               <span className="text-danger">Sw</span>cart
             </h5>
           </div>
-          <button type="button" className="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          <button type="button" className="btn-close btn-close-white opacity-75 hover-opacity-100 transition-all" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         
-        <div className="offcanvas-body p-0">
+        <div className="offcanvas-body p-0 d-flex flex-column custom-scrollbar">
           {/* User Profile Header */}
-          <div className="p-4 border-bottom border-light border-opacity-10 bg-white bg-opacity-5">
+          <div className="p-4 mx-3 my-2 rounded-4 premium-user-card position-relative overflow-hidden">
+            <div className="premium-glow"></div>
             {user ? (
-              <div className="d-flex align-items-center gap-3">
+              <div className="d-flex align-items-center gap-3 position-relative z-2">
                 {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="shadow-sm border border-light border-opacity-25" style={{ width: "50px", height: "50px", borderRadius: "50%", objectFit: "cover" }} />
+                  <img src={user.avatar} alt={user.name} className="shadow-lg border border-light border-opacity-25" style={{ width: "56px", height: "56px", borderRadius: "50%", objectFit: "cover" }} />
                 ) : (
-                  <div className="avatar-placeholder rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style={{ width: "50px", height: "50px", fontSize: "1.25rem" }}>
+                  <div className="avatar-placeholder rounded-circle bg-gradient-danger text-white d-flex align-items-center justify-content-center fw-bolder shadow-lg border border-light border-opacity-10" style={{ width: "56px", height: "56px", fontSize: "1.4rem" }}>
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div>
-                  <h6 className="fw-bold mb-0 text-white">{user.name}</h6>
-                  <p className="text-muted small mb-0 text-truncate" style={{ maxWidth: "160px" }}>{user.email}</p>
+                  <h6 className="fw-bolder mb-1 text-white font-jakarta">{user.name}</h6>
+                  <p className="text-white-50 small mb-0 text-truncate font-jakarta" style={{ maxWidth: "160px" }}>{user.email}</p>
                 </div>
               </div>
             ) : (
-              <div className="text-center py-2">
-                <a href="/login" className="btn btn-danger w-100 rounded-pill py-2 fw-bold shadow-sm">
-                  <i className="bi bi-box-arrow-in-right me-1"></i> Log In / Sign Up
+              <div className="text-center py-3 position-relative z-2">
+                <p className="text-white-50 small mb-3 font-jakarta">Sign in to sync your cart & track orders.</p>
+                <a href="/login" className="btn btn-danger w-100 rounded-pill py-2.5 fw-bolder shadow-lg d-flex align-items-center justify-content-center gap-2 transition-all hover-scale">
+                  <i className="bi bi-box-arrow-in-right"></i> Log In / Sign Up
                 </a>
               </div>
             )}
           </div>
 
           {/* Nav Items */}
-          <div className="p-4">
-            <nav className="d-flex flex-column gap-2">
-              <a href="/" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all">
-                <i className="bi bi-house fs-5 text-danger"></i> Home
+          <div className="p-3 flex-grow-1">
+            <nav className="d-flex flex-column gap-2 font-jakarta">
+              <div className="nav-group-label text-uppercase text-white-50 small fw-bold tracking-wide ms-3 mb-2 mt-2">Shopping</div>
+              <a href="/" className="premium-nav-item">
+                <div className="nav-icon-wrapper bg-white bg-opacity-10"><i className="bi bi-house text-white"></i></div>
+                <span className="fw-semibold">Home</span>
               </a>
               
               {user && (
-                <a href="/profile" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all">
-                  <i className="bi bi-person-circle fs-5 text-danger"></i> Profile
+                <a href="/profile" className="premium-nav-item">
+                  <div className="nav-icon-wrapper bg-white bg-opacity-10"><i className="bi bi-person-circle text-white"></i></div>
+                  <span className="fw-semibold">My Profile</span>
                 </a>
               )}
               
-              <CartWishlistCounts />
+              <div className="premium-nav-item-container">
+                <CartWishlistCounts />
+              </div>
               
-              <a href="/track-order" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all">
-                <i className="bi bi-geo-alt fs-5 text-danger"></i> Track Order
+              <a href="/track-order" className="premium-nav-item">
+                <div className="nav-icon-wrapper bg-white bg-opacity-10"><i className="bi bi-geo-alt text-white"></i></div>
+                <span className="fw-semibold">Track Order</span>
               </a>
               
-              <a href="/sell" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all">
-                <i className="bi bi-shop fs-5 text-danger"></i> Become Seller
+              <div className="nav-group-label text-uppercase text-white-50 small fw-bold tracking-wide ms-3 mb-2 mt-4">More</div>
+              
+              <a href="/sell" className="premium-nav-item">
+                <div className="nav-icon-wrapper bg-white bg-opacity-10"><i className="bi bi-shop text-white"></i></div>
+                <span className="fw-semibold">Become a Seller</span>
               </a>
               
-              <a href="/help" className="text-white text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all">
-                <i className="bi bi-question-circle fs-5 text-danger"></i> Help Center
+              <a href="/help" className="premium-nav-item">
+                <div className="nav-icon-wrapper bg-white bg-opacity-10"><i className="bi bi-question-circle text-white"></i></div>
+                <span className="fw-semibold">Help Center</span>
               </a>
 
+              {(isSeller || isWarehouseManager || isDeliveryAgent || isSuperAdmin) && (
+                <div className="nav-group-label text-uppercase text-white-50 small fw-bold tracking-wide ms-3 mb-2 mt-4">Portals</div>
+              )}
+
               {isSeller && (
-                <a href="/seller/dashboard" className="text-warning text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all fw-bold mt-2" style={{ background: "rgba(255, 193, 7, 0.05)", border: "1px solid rgba(255, 193, 7, 0.15)" }}>
-                  <i className="bi bi-shop fs-5"></i> Seller Dashboard
+                <a href="/seller/dashboard" className="premium-nav-item portal-item seller-portal">
+                  <div className="nav-icon-wrapper"><i className="bi bi-graph-up-arrow text-warning"></i></div>
+                  <span className="fw-bold text-warning">Seller Dashboard</span>
                 </a>
               )}
 
               {isWarehouseManager && (
-                <a href="/warehouse" className="text-info text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all fw-bold mt-2" style={{ background: "rgba(13, 202, 240, 0.05)", border: "1px solid rgba(13, 202, 240, 0.15)" }}>
-                  <i className="bi bi-building fs-5"></i> Hub Manager Portal
+                <a href="/warehouse" className="premium-nav-item portal-item hub-portal">
+                  <div className="nav-icon-wrapper"><i className="bi bi-building text-info"></i></div>
+                  <span className="fw-bold text-info">Hub Manager Portal</span>
                 </a>
               )}
 
               {isDeliveryAgent && (
-                <a href="/delivery" className="text-success text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all fw-bold mt-2" style={{ background: "rgba(25, 135, 84, 0.05)", border: "1px solid rgba(25, 135, 84, 0.15)" }}>
-                  <i className="bi bi-truck fs-5"></i> Driver App
+                <a href="/delivery" className="premium-nav-item portal-item driver-portal">
+                  <div className="nav-icon-wrapper"><i className="bi bi-truck text-success"></i></div>
+                  <span className="fw-bold text-success">Driver App</span>
                 </a>
               )}
 
               {isSuperAdmin && (
-                <a href="/spr/admin" className="text-danger text-decoration-none py-3 px-3 rounded-3 hover-bg-light-opacity d-flex align-items-center gap-3 transition-all fw-bold mt-2" style={{ background: "rgba(232, 71, 42, 0.05)", border: "1px solid rgba(232, 71, 42, 0.15)" }}>
-                  <i className="bi bi-speedometer2 fs-5"></i> Admin Control Panel
+                <a href="/spr/admin" className="premium-nav-item portal-item admin-portal">
+                  <div className="nav-icon-wrapper"><i className="bi bi-speedometer2 text-danger"></i></div>
+                  <span className="fw-bold text-danger">Admin Control Panel</span>
                 </a>
               )}
             </nav>
           </div>
+          
+          <div className="p-4 border-top border-light border-opacity-10 text-center">
+            <p className="text-white-50 small mb-0 font-jakarta">© 2026 Swcart. All rights reserved.</p>
+          </div>
         </div>
 
         <style>{`
-          .hover-bg-light-opacity:hover { background-color: rgba(255,255,255,0.06); }
-          .transition-all { transition: all 0.2s ease; }
+          .premium-sidebar {
+            background: linear-gradient(145deg, rgba(20,18,22,0.98) 0%, rgba(38,28,33,0.98) 100%) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            width: 320px;
+          }
+          
+          .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+          .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+          .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+          
+          .tracking-tight { letter-spacing: -0.02em; }
+          .tracking-wide { letter-spacing: 0.1em; }
+          .font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
+          
+          .premium-user-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+          }
+          .premium-glow {
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at center, rgba(232, 71, 42, 0.15) 0%, transparent 60%);
+            opacity: 0.5;
+            pointer-events: none;
+          }
+          .bg-gradient-danger {
+            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+          }
+          
+          .premium-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            font-size: 0.95rem;
+          }
+          .premium-nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.05);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+          .premium-nav-item:hover {
+            color: #fff;
+            transform: translateX(4px);
+          }
+          .premium-nav-item:hover::before {
+            opacity: 1;
+          }
+          .premium-nav-item .nav-icon-wrapper {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            color: #fff !important;
+          }
+          .premium-nav-item:hover .nav-icon-wrapper {
+            transform: scale(1.1) rotate(5deg);
+            background: var(--red) !important;
+            box-shadow: 0 4px 12px rgba(232, 71, 42, 0.3);
+          }
+          
+          .portal-item { border: 1px solid transparent; }
+          .seller-portal { background: rgba(255, 193, 7, 0.03); border-color: rgba(255, 193, 7, 0.1); }
+          .seller-portal:hover .nav-icon-wrapper { background: rgba(255, 193, 7, 0.2) !important; box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2); }
+          
+          .hub-portal { background: rgba(13, 202, 240, 0.03); border-color: rgba(13, 202, 240, 0.1); }
+          .hub-portal:hover .nav-icon-wrapper { background: rgba(13, 202, 240, 0.2) !important; box-shadow: 0 4px 12px rgba(13, 202, 240, 0.2); }
+          
+          .driver-portal { background: rgba(25, 135, 84, 0.03); border-color: rgba(25, 135, 84, 0.1); }
+          .driver-portal:hover .nav-icon-wrapper { background: rgba(25, 135, 84, 0.2) !important; box-shadow: 0 4px 12px rgba(25, 135, 84, 0.2); }
+          
+          .admin-portal { background: rgba(232, 71, 42, 0.03); border-color: rgba(232, 71, 42, 0.1); }
+          .admin-portal:hover .nav-icon-wrapper { background: rgba(232, 71, 42, 0.2) !important; box-shadow: 0 4px 12px rgba(232, 71, 42, 0.2); }
+
+          .hover-scale { transition: transform 0.2s ease; }
+          .hover-scale:hover { transform: scale(1.03); }
+          
+          .premium-nav-item-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+          }
+          
+          .premium-nav-item-container > a.header-icon-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px !important;
+            border-radius: 12px !important;
+            color: rgba(255, 255, 255, 0.75) !important;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            background: transparent !important;
+            border: none;
+            width: 100%;
+            justify-content: flex-start;
+          }
+          
+          .premium-nav-item-container > a.header-icon-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.05);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+          .premium-nav-item-container > a.header-icon-btn:hover {
+            color: #fff !important;
+            transform: translateX(4px);
+          }
+          .premium-nav-item-container > a.header-icon-btn:hover::before {
+            opacity: 1;
+          }
+          
+          .premium-nav-item-container > a.header-icon-btn .icon-wrap {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            position: relative;
+          }
+          
+          .premium-nav-item-container > a.header-icon-btn:hover .icon-wrap {
+            transform: scale(1.1) rotate(5deg);
+            background: var(--red) !important;
+            box-shadow: 0 4px 12px rgba(232, 71, 42, 0.3);
+          }
+          
+          .premium-nav-item-container > a.header-icon-btn .badge-count {
+            position: absolute;
+            top: -6px; right: -6px;
+            background: var(--red);
+            color: white;
+            font-size: 0.65rem;
+            width: 18px; height: 18px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            border: 2px solid #201a1e;
+            font-weight: bold;
+          }
+          
+          .premium-nav-item-container > a.header-icon-btn .d-none.d-md-inline {
+            display: inline !important;
+            font-weight: 600;
+            font-size: 0.95rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+          }
+          
           .mega-menu-item .dropdown-animate {
             opacity: 0;
             visibility: hidden;
