@@ -174,7 +174,7 @@ export default async function LibraryPage() {
             {courseItems.map(({ product: p, pct, total, completedCount }) => (
               <div key={p.id} className="col-12 col-md-6 col-lg-4">
                 <Link href={`/course/${p.id}`} className="text-decoration-none">
-                  <div className="card h-100 border-0 bg-white" style={{ borderRadius: 20, boxShadow: "0 10px 30px rgba(0,0,0,0.05)", overflow: "hidden", transition: "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 15px 40px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.05)'; }}>
+                  <div className="card h-100 border-0 bg-white library-card" style={{ borderRadius: 20, boxShadow: "0 10px 30px rgba(0,0,0,0.05)", overflow: "hidden", transition: "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }}>
                     
                     {/* Course Thumbnail */}
                     <div style={{ height: 180, background: p.images?.[0] ? `url(${p.images[0]}) center/cover` : "linear-gradient(135deg, #1d3557, #457b9d)", position: "relative" }}>
@@ -231,7 +231,7 @@ export default async function LibraryPage() {
             {ebooks.map((p) => (
               <div key={p.id} className="col-6 col-md-4 col-lg-3">
                 <Link href={`/read/${p.id}`} className="text-decoration-none">
-                  <div className="card h-100 border-0 bg-white" style={{ borderRadius: 16, boxShadow: "0 8px 20px rgba(0,0,0,0.04)", overflow: "hidden", transition: "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}>
+                  <div className="card h-100 border-0 bg-white library-card" style={{ borderRadius: 16, boxShadow: "0 8px 20px rgba(0,0,0,0.04)", overflow: "hidden", transition: "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }}>
                     
                     <div style={{ height: 200, background: p.images?.[0] ? `url(${p.images[0]}) center/cover` : "linear-gradient(135deg, #e63946, #c1121f)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
                       {!p.images?.[0] && <BookOpen size={64} color="rgba(255,255,255,0.5)" strokeWidth={1} />}
@@ -248,6 +248,13 @@ export default async function LibraryPage() {
           </div>
         </section>
       )}
+
+      <style dangerouslySetInnerHTML={{__html: `
+        .library-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 15px 40px rgba(0,0,0,0.1) !important;
+        }
+      `}} />
     </div>
   );
 }
