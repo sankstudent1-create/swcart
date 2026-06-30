@@ -71,7 +71,7 @@ export default async function SuperadDashboard() {
               <div className="d-flex align-items-end gap-2 mt-4" style={{ height: "100px" }}>
                 {graphData.map((val, idx) => (
                   <div key={idx} className="flex-grow-1 rounded-top" style={{ 
-                    height: \`\${(val / maxGraph) * 100}%\`, 
+                    height: `${(val / maxGraph) * 100}%`, 
                     background: idx === graphData.length - 1 ? "var(--bs-primary)" : "rgba(255,255,255,0.1)",
                     transition: "height 1s ease"
                   }}></div>
@@ -188,9 +188,9 @@ export default async function SuperadDashboard() {
         </div>
       </div>
       
-      <style dangerouslySetInnerHTML={{__html: \`
+      <style dangerouslySetInnerHTML={{__html: `
         .last-border-none:last-child { border-bottom: none !important; padding-bottom: 0 !important; }
-      \`}} />
+      `}} />
     </div>
   );
 }

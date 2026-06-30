@@ -42,7 +42,7 @@ export default function CommerceHub({ initialOrders, initialProducts }: any) {
           <button className="btn btn-sm btn-dark border border-secondary border-opacity-50 text-white rounded-pill px-3 fw-bold d-flex align-items-center gap-2" style={{ fontSize: "0.75rem" }}>
             <i className="bi bi-funnel-fill"></i> Filter by Status
           </button>
-          <button className="btn btn-sm btn-outline-secondary text-muted rounded-pill px-3 fw-bold" style={{ fontSize: "0.75rem" }}>High Value (>{'₹10k'})</button>
+          <button className="btn btn-sm btn-outline-secondary text-muted rounded-pill px-3 fw-bold" style={{ fontSize: "0.75rem" }}>High Value (&gt;{'₹10k'})</button>
         </div>
         <button className="btn btn-sm btn-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 fw-bold" style={{ fontSize: "0.75rem" }}>
           <i className="bi bi-arrow-counterclockwise me-1"></i> Auto-Refund Cancelled
