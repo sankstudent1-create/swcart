@@ -173,7 +173,7 @@ export default async function SuperadDashboard() {
                 <div key={i} className="d-flex align-items-start gap-3 pb-3 border-bottom border-secondary border-opacity-10 last-border-none">
                   <div className={`mt-1 rounded-circle bg-${log.status === 'SUCCESS' ? 'success' : 'warning'} bg-opacity-25 d-flex align-items-center justify-content-center border border-${log.status === 'SUCCESS' ? 'success' : 'warning'} border-opacity-50`} style={{ width: 8, height: 8 }}></div>
                   <div>
-                    <div className="fw-bold text-white small font-monospace">{log.action} <span className="text-muted">-></span> {log.target}</div>
+                    <div className="fw-bold text-white small font-monospace">{log.action} <span className="text-muted">-&gt;</span> {log.target}</div>
                     <div className="text-muted" style={{ fontSize: "0.65rem" }}>{log.time} by admin_sys</div>
                   </div>
                 </div>
