@@ -178,7 +178,12 @@ export async function saveCourseLessonAction(
           textBody: data.textBody || null,
           quizQuestions: {
             deleteMany: {},
-            create: data.type === "QUIZ" && data.quizQuestions ? data.quizQuestions : []
+            create: data.type === "QUIZ" && data.quizQuestions ? data.quizQuestions.map(q => ({
+              question: q.question,
+              options: q.options,
+              answer: q.answer,
+              explain: q.explain
+            })) : []
           }
         },
       });
@@ -197,7 +202,12 @@ export async function saveCourseLessonAction(
           pdfKey: data.pdfKey || null,
           textBody: data.textBody || null,
           quizQuestions: {
-            create: data.type === "QUIZ" && data.quizQuestions ? data.quizQuestions : []
+            create: data.type === "QUIZ" && data.quizQuestions ? data.quizQuestions.map(q => ({
+              question: q.question,
+              options: q.options,
+              answer: q.answer,
+              explain: q.explain
+            })) : []
           }
         },
       });

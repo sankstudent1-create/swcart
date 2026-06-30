@@ -111,8 +111,8 @@ export default async function SellerLayout({ children }: { children: React.React
           </div>
           
           <div className="d-flex align-items-center gap-4 ms-auto">
-            <div className="d-none d-sm-block px-3 py-1 rounded-pill" style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <span className="small fw-semibold" style={{ color: "rgba(255,255,255,0.5)" }}>Store: </span>
+            <div className="px-3 py-1 rounded-pill text-truncate" style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", maxWidth: "150px" }}>
+              <span className="small fw-semibold d-none d-md-inline" style={{ color: "rgba(255,255,255,0.5)" }}>Store: </span>
               <strong className="small text-white fw-bold">{seller.companyName}</strong>
             </div>
             
