@@ -26,6 +26,7 @@ export default async function LessonPage({ params }: Props) {
     where: { id: lessonId },
     include: {
       quizQuestions: true,
+      progress: { where: { userId } },
       chapter: { include: { product: true } },
     },
   });
