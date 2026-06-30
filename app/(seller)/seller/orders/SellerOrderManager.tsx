@@ -51,13 +51,14 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
   const [search, setSearch] = useState("");
   const [logisticsForm, setLogisticsForm] = useState({ status: "PENDING", shippingProvider: "Delhivery", trackingNumber: "" });
 
-  // Group items by orderId
+  // Group items by seller order id
   const groupedOrders = useMemo(() => {
     const map: Record<string, { order: any; items: OrderItem[]; totalEarnings: number }> = {};
     orderItems.forEach(item => {
-      if (!map[item.orderId]) map[item.orderId] = { order: item.order, items: [], totalEarnings: 0 };
-      map[item.orderId].items.push(item);
-      map[item.orderId].totalEarnings += item.quantity * item.priceAtBuy;
+      const key = item.order.id;
+      if (!map[key]) map[key] = { order: item.order, items: [], totalEarnings: 0 };
+      map[key].items.push(item);
+      map[key].totalEarnings += item.quantity * item.priceAtBuy;
     });
     return Object.values(map);
   }, [orderItems]);

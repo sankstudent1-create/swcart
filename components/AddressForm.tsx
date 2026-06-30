@@ -53,8 +53,18 @@ export default function AddressForm() {
           const data = await res.json();
           if (data && data.address) {
             const addr = data.address;
-            const street = addr.road || addr.suburb || addr.neighbourhood || addr.amenity || "";
-            const city = addr.city || addr.town || addr.village || addr.state_district || "";
+            const streetParts = [
+              addr.house_number, 
+              addr.building, 
+              addr.amenity, 
+              addr.road || addr.pedestrian || addr.path || addr.residential, 
+              addr.neighbourhood, 
+              addr.suburb,
+              addr.quarter
+            ].filter(Boolean);
+            
+            const street = streetParts.join(", ") || "";
+            const city = addr.city || addr.town || addr.village || addr.state_district || addr.county || "";
             const state = addr.state || "";
             const zip = addr.postcode || "";
             
