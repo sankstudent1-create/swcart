@@ -48,6 +48,8 @@ export default async function SellerOrdersPage() {
     order: {
       ...item.sellerOrder.order,
       status: item.sellerOrder.status, // use SellerOrder status
+      shippingProvider: item.sellerOrder.shippingProvider,
+      trackingNumber: item.sellerOrder.trackingNumber,
       id: item.sellerOrder.id // Use SellerOrderId so update actions work correctly
     }
   }));

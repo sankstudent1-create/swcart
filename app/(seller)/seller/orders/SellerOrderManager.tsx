@@ -184,7 +184,7 @@ export default function SellerOrderManager({ orderItems }: { orderItems: OrderIt
         </div>
         <div class="barcode-area">
           <div class="box-title">Tracking Number</div>
-          <div class="barcode">*${order.trackingNumber || order.id.slice(-8).toUpperCase()}*</div>
+          <div class="barcode">*${(order.trackingNumber || order.id.slice(-8)).toUpperCase()}*</div>
           <div class="trk">${order.trackingNumber || "PENDING ASSIGNMENT"}</div>
           <div class="carrier">${order.shippingProvider || "Internal Logistics"}</div>
         </div>

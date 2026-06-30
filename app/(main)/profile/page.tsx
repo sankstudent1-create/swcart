@@ -202,7 +202,10 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                               return (
                                 <div key={so.id} className="mb-3">
                                   <div className="d-flex justify-content-between align-items-center mb-2 px-2">
-                                    <div className="text-muted small fw-bold tracking-wide text-uppercase"><i className="bi bi-shop me-1 text-danger"></i> Package from {so.seller?.companyName || "Seller"}</div>
+                                    <div className="text-muted small fw-bold tracking-wide text-uppercase">
+                                      <i className="bi bi-shop me-1 text-danger"></i> Package from {so.seller?.companyName || "Seller"}
+                                      {so.trackingNumber && <span className="ms-3 badge bg-light text-dark border text-none text-lowercase" style={{textTransform: 'none'}}><i className="bi bi-truck text-primary me-1"></i>TRK: <span className="text-uppercase">{so.trackingNumber}</span></span>}
+                                    </div>
                                     {!isDigitalOnly && <RequestReturnBtn sellerOrderId={so.id} currentStatus={so.status} />}
                                   </div>
                                 {so.items.map((item: any) => (

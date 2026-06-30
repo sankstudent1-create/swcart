@@ -46,7 +46,9 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
         where: {
           OR: [
             { id: { equals: orderId } },
-            { id: { endsWith: orderId, mode: 'insensitive' } }
+            { id: { endsWith: orderId, mode: 'insensitive' } },
+            { trackingNumber: { equals: orderId, mode: 'insensitive' } },
+            { sellerOrders: { some: { trackingNumber: { equals: orderId, mode: 'insensitive' } } } }
           ]
         },
         include: {
@@ -197,7 +199,7 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
             <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
               <div>
                 <span className="text-muted small text-uppercase fw-bold tracking-wide">Tracking Reference</span>
-                <div className="font-jakarta fw-bolder fs-4 text-dark">#{order.id.toUpperCase()}</div>
+                <div className="font-jakarta fw-bolder fs-4 text-dark">#{(order.trackingNumber || order.sellerOrders?.[0]?.trackingNumber || order.id).toUpperCase()}</div>
               </div>
               <div className="glass-panel px-4 py-2 rounded-pill border-0 shadow-sm d-flex align-items-center gap-2" style={{ background: "rgba(255,255,255,0.9)" }}>
                 <div className="pulse-dot bg-danger rounded-circle" style={{ width: "10px", height: "10px" }}></div>
