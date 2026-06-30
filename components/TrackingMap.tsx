@@ -144,7 +144,7 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
             }));
             new sdk.Polyline({
               map,
-              coordinates: coords,
+              path: coords,
               strokeColor: "#e63946",
               strokeOpacity: 0.85,
               strokeWeight: 4,

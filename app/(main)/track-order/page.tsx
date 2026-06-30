@@ -374,7 +374,7 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
                       Detailed History
                     </h6>
                     <div style={{ width: "180px" }}>
-                      <PrintTrackingBtn order={order} />
+                      <PrintTrackingBtn order={order} checkpoints={checkpoints} />
                     </div>
                   </div>
                   

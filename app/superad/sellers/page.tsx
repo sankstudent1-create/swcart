@@ -10,7 +10,6 @@ export default async function SuperadSellersPage() {
 
   const sellers = await prisma.seller.findMany({
     take: 100,
-    orderBy: { createdAt: "desc" },
     include: {
       user: true,
       _count: {
