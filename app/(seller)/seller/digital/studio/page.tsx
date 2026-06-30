@@ -20,7 +20,12 @@ export default async function DigitalStudioPage(props: { searchParams: Promise<{
       include: {
         digitalAssets: true,
         courseChapters: {
-          include: { lessons: { orderBy: { order: "asc" } } },
+          include: { 
+            lessons: { 
+              orderBy: { order: "asc" },
+              include: { quizQuestions: true }
+            } 
+          },
           orderBy: { order: "asc" }
         }
       }

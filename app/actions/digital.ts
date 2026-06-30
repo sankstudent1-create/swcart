@@ -147,12 +147,13 @@ export async function saveCourseLessonAction(
   data: {
     title: string;
     order: number;
-    type: "VIDEO" | "PDF" | "TEXT";
+    type: "VIDEO" | "PDF" | "TEXT" | "QUIZ";
     isFree: boolean;
     duration?: number;
     videoKey?: string;
     pdfKey?: string;
     textBody?: string;
+    quizQuestions?: { question: string; options: string[]; answer: number; explain: string | null }[];
   }
 ) {
   const userId = await getSessionUserId();
@@ -175,6 +176,10 @@ export async function saveCourseLessonAction(
           videoKey: data.videoKey || null,
           pdfKey: data.pdfKey || null,
           textBody: data.textBody || null,
+          quizQuestions: {
+            deleteMany: {},
+            create: data.type === "QUIZ" && data.quizQuestions ? data.quizQuestions : []
+          }
         },
       });
       revalidatePath(`/seller/digital/studio`);
@@ -191,6 +196,9 @@ export async function saveCourseLessonAction(
           videoKey: data.videoKey || null,
           pdfKey: data.pdfKey || null,
           textBody: data.textBody || null,
+          quizQuestions: {
+            create: data.type === "QUIZ" && data.quizQuestions ? data.quizQuestions : []
+          }
         },
       });
       revalidatePath(`/seller/digital/studio`);

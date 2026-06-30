@@ -197,12 +197,14 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                           </div>
                           
                           <div className="order-items-scroll bg-light bg-opacity-50 p-3">
-                            {order.sellerOrders.map((so: any) => (
-                              <div key={so.id} className="mb-3">
-                                <div className="d-flex justify-content-between align-items-center mb-2 px-2">
-                                  <div className="text-muted small fw-bold tracking-wide text-uppercase"><i className="bi bi-shop me-1 text-danger"></i> Package from {so.seller?.companyName || "Seller"}</div>
-                                  <RequestReturnBtn sellerOrderId={so.id} currentStatus={so.status} />
-                                </div>
+                            {order.sellerOrders.map((so: any) => {
+                              const isDigitalOnly = so.items.every((item: any) => item.variant.product.productType === "DIGITAL" || item.variant.product.productType === "SERVICE");
+                              return (
+                                <div key={so.id} className="mb-3">
+                                  <div className="d-flex justify-content-between align-items-center mb-2 px-2">
+                                    <div className="text-muted small fw-bold tracking-wide text-uppercase"><i className="bi bi-shop me-1 text-danger"></i> Package from {so.seller?.companyName || "Seller"}</div>
+                                    {!isDigitalOnly && <RequestReturnBtn sellerOrderId={so.id} currentStatus={so.status} />}
+                                  </div>
                                 {so.items.map((item: any) => (
                                   <div key={item.id} className="order-item-chip d-flex align-items-center gap-3">
                                     {item.variant.product.images?.[0] ? (
@@ -231,7 +233,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                                   </div>
                                 ))}
                               </div>
-                            ))}
+                            );
+                            })}
                           </div>
                         </div>
                       ))}

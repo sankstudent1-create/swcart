@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import CourseSidebar from "@/components/CourseSidebar";
 import SecureVideoPlayer from "@/components/SecureVideoPlayer";
 import QuizPlayer from "@/components/QuizPlayer";
+import MarkCompleteButton from "@/components/MarkCompleteButton";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -195,22 +196,27 @@ export default async function LessonPage({ params }: Props) {
             {lesson.type === "PDF" && lesson.chapter.productId && (
               <div style={{ padding: "0 24px 24px" }}>
                 <p className="text-muted small">PDF lessons open in the secure reader.</p>
-                <Link
-                  href={`/read/${productId}?lesson=${lessonId}`}
-                  className="btn btn-danger"
-                  style={{ borderRadius: 12 }}
-                >
-                  Open PDF Reader
-                </Link>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <Link
+                    href={`/read/${productId}?lesson=${lessonId}`}
+                    className="btn btn-danger"
+                    style={{ borderRadius: 12 }}
+                  >
+                    Open PDF Reader
+                  </Link>
+                  <MarkCompleteButton lessonId={lessonId} isCompleted={lesson.progress[0]?.completed ?? false} />
+                </div>
               </div>
             )}
 
-            {/* TEXT */}
             {lesson.type === "TEXT" && lesson.textBody && (
-              <div
-                style={{ padding: "0 24px 24px", lineHeight: 1.8, fontSize: "0.95rem", color: "#333" }}
-                dangerouslySetInnerHTML={{ __html: lesson.textBody }}
-              />
+              <div style={{ padding: "0 24px 24px" }}>
+                <div
+                  style={{ lineHeight: 1.8, fontSize: "0.95rem", color: "#333", marginBottom: 24 }}
+                  dangerouslySetInnerHTML={{ __html: lesson.textBody }}
+                />
+                <MarkCompleteButton lessonId={lessonId} isCompleted={lesson.progress[0]?.completed ?? false} />
+              </div>
             )}
           </div>
 

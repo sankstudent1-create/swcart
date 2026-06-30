@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { checkSession, getSessionUserId, checkSuperAdmin } from "@/app/actions/auth";
+import { checkSession, getSessionUserId, checkSuperAdmin, logoutAction } from "@/app/actions/auth";
 import { prisma } from "@/lib/db";
 import CartWishlistCounts from "./CartWishlistCounts";
 
@@ -103,6 +103,14 @@ export default async function Header() {
                       {isDeliveryAgent && (
                         <li><Link className="dropdown-item py-2 text-success fw-bold d-flex align-items-center" href="/delivery"><i className="bi bi-truck me-3 fs-5"></i> Driver App</Link></li>
                       )}
+                      <li><hr className="dropdown-divider opacity-10" /></li>
+                      <li>
+                        <form action={logoutAction} className="m-0">
+                          <button type="submit" className="dropdown-item py-2 text-danger fw-bold d-flex align-items-center bg-transparent border-0 w-100 text-start">
+                            <i className="bi bi-box-arrow-right me-3 fs-5"></i> Sign Out
+                          </button>
+                        </form>
+                      </li>
                     </ul>
                   </div>
                 ) : (
@@ -188,9 +196,9 @@ export default async function Header() {
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div>
-                  <h6 className="fw-bolder mb-1 text-white font-jakarta">{user.name}</h6>
-                  <p className="text-white-50 small mb-0 text-truncate font-jakarta" style={{ maxWidth: "160px" }}>{user.email}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h6 className="fw-bolder mb-1 text-white font-jakarta text-truncate">{user.name}</h6>
+                  <p className="text-white-50 small mb-0 text-truncate font-jakarta">{user.email}</p>
                 </div>
               </div>
             ) : (
@@ -270,6 +278,18 @@ export default async function Header() {
                   <div className="nav-icon-wrapper"><i className="bi bi-speedometer2 text-danger"></i></div>
                   <span className="fw-bold text-danger">Admin Control Panel</span>
                 </a>
+              )}
+
+              {user && (
+                <>
+                  <div className="nav-group-label text-uppercase text-white-50 small fw-bold tracking-wide ms-3 mb-2 mt-4">Account</div>
+                  <form action={logoutAction} className="m-0">
+                    <button type="submit" className="premium-nav-item bg-transparent border-0 w-100 text-start">
+                      <div className="nav-icon-wrapper bg-white bg-opacity-10"><i className="bi bi-box-arrow-right text-danger"></i></div>
+                      <span className="fw-bold text-danger">Sign Out</span>
+                    </button>
+                  </form>
+                </>
               )}
             </nav>
           </div>

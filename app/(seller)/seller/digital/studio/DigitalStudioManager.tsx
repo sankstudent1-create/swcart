@@ -14,7 +14,7 @@ import {
 } from "@/app/actions/digital";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
-interface Lesson { id: string; title: string; order: number; type: string; isFree: boolean; duration: number | null; videoKey: string | null; pdfKey: string | null; textBody: string | null; }
+interface Lesson { id: string; title: string; order: number; type: string; isFree: boolean; duration: number | null; videoKey: string | null; pdfKey: string | null; textBody: string | null; quizQuestions?: { question: string; options: string[]; answer: number; explain: string | null }[]; }
 interface Chapter { id: string; title: string; order: number; lessons: Lesson[]; }
 interface DigitalAsset { id: string; fileUrl: string; assetType: string; }
 interface Product { id: string; title: string; description: string; basePrice: number; discountPercent: number; categoryId: string; images: string[]; isPublished: boolean; productType: string; courseChapters: Chapter[]; digitalAssets: DigitalAsset[]; }
@@ -80,13 +80,13 @@ export default function DigitalStudioManager({ categories, product }: { categori
 
   // ── Lesson Actions ──
   const [lessonModal, setLessonModal] = useState<{ chapterId: string, lesson: Lesson | null } | null>(null);
-  const [lesForm, setLesForm] = useState({ title: "", type: "VIDEO", isFree: false, url: "", duration: 0 });
+  const [lesForm, setLesForm] = useState({ title: "", type: "VIDEO", isFree: false, url: "", duration: 0, quizQuestions: [] as { question: string; options: string[]; answer: number; explain: string | null }[] });
 
   const openLessonModal = (chapterId: string, lesson: Lesson | null) => {
     if (lesson) {
-      setLesForm({ title: lesson.title, type: lesson.type, isFree: lesson.isFree, duration: lesson.duration || 0, url: lesson.videoKey || lesson.pdfKey || lesson.textBody || "" });
+      setLesForm({ title: lesson.title, type: lesson.type, isFree: lesson.isFree, duration: lesson.duration || 0, url: lesson.videoKey || lesson.pdfKey || lesson.textBody || "", quizQuestions: lesson.quizQuestions || [] });
     } else {
-      setLesForm({ title: "", type: "VIDEO", isFree: false, url: "", duration: 0 });
+      setLesForm({ title: "", type: "VIDEO", isFree: false, url: "", duration: 0, quizQuestions: [] });
     }
     setLessonModal({ chapterId, lesson });
   };
@@ -101,6 +101,7 @@ export default function DigitalStudioManager({ categories, product }: { categori
       if (lesForm.type === "VIDEO") { data.videoKey = lesForm.url; data.duration = lesForm.duration; }
       if (lesForm.type === "PDF") data.pdfKey = lesForm.url;
       if (lesForm.type === "TEXT") data.textBody = lesForm.url;
+      if (lesForm.type === "QUIZ") data.quizQuestions = lesForm.quizQuestions;
 
       const res = await saveCourseLessonAction(lessonModal.chapterId, lessonModal.lesson?.id || null, data);
       if (res.success) { toast.success(res.message); setLessonModal(null); router.refresh(); }
@@ -358,6 +359,7 @@ export default function DigitalStudioManager({ categories, product }: { categori
                       <option value="VIDEO">Video Stream</option>
                       <option value="PDF">PDF Document</option>
                       <option value="TEXT">Text Article</option>
+                      <option value="QUIZ">Quiz</option>
                     </select>
                   </div>
                   <div className="col-6">
@@ -365,15 +367,82 @@ export default function DigitalStudioManager({ categories, product }: { categori
                     <input type="number" className="form-control ds-input" value={lesForm.duration} onChange={e => setLesForm({ ...lesForm, duration: Number(e.target.value) })} disabled={lesForm.type !== "VIDEO"} />
                   </div>
                 </div>
-                <div className="mb-4">
-                  <label className="form-label small text-muted text-uppercase fw-bold">Resource URL *</label>
-                  {lesForm.type === "TEXT" ? (
-                    <textarea className="form-control ds-input" rows={4} placeholder="Write lesson body here..." value={lesForm.url} onChange={e => setLesForm({ ...lesForm, url: e.target.value })} />
-                  ) : (
-                    <input type="url" className="form-control ds-input" placeholder="https://..." value={lesForm.url} onChange={e => setLesForm({ ...lesForm, url: e.target.value })} />
-                  )}
-                  <div className="text-muted small mt-1" style={{ fontSize: "0.65rem" }}>Provide a direct link to the {lesForm.type.toLowerCase()} file.</div>
-                </div>
+                {lesForm.type !== "QUIZ" && (
+                  <div className="mb-4">
+                    <label className="form-label small text-muted text-uppercase fw-bold">Resource URL *</label>
+                    {lesForm.type === "TEXT" ? (
+                      <textarea className="form-control ds-input" rows={4} placeholder="Write lesson body here..." value={lesForm.url} onChange={e => setLesForm({ ...lesForm, url: e.target.value })} />
+                    ) : (
+                      <input type="url" className="form-control ds-input" placeholder="https://..." value={lesForm.url} onChange={e => setLesForm({ ...lesForm, url: e.target.value })} />
+                    )}
+                    <div className="text-muted small mt-1" style={{ fontSize: "0.65rem" }}>Provide a direct link to the {lesForm.type.toLowerCase()} file.</div>
+                  </div>
+                )}
+                
+                {lesForm.type === "QUIZ" && (
+                  <div className="mb-4">
+                    <label className="form-label small text-muted text-uppercase fw-bold d-flex justify-content-between align-items-center">
+                      Quiz Questions
+                      <button type="button" className="btn btn-sm btn-outline-light" style={{ fontSize: "0.7rem", padding: "2px 8px" }} onClick={() => setLesForm({ ...lesForm, quizQuestions: [...lesForm.quizQuestions, { question: "", options: ["", ""], answer: 0, explain: "" }] })}>+ Question</button>
+                    </label>
+                    
+                    <div style={{ maxHeight: 340, overflowY: "auto", paddingRight: 4 }}>
+                      {lesForm.quizQuestions.map((q, qi) => (
+                        <div key={qi} className="mb-3 p-3 bg-dark border border-secondary border-opacity-25 rounded-3">
+                           <div className="d-flex justify-content-between mb-2 align-items-center">
+                             <span style={{ fontSize: "0.8rem", fontWeight: "bold" }}>Question {qi + 1}</span>
+                             <button type="button" className="btn-close btn-close-white" style={{ fontSize: "0.6rem" }} onClick={() => {
+                               const newQs = [...lesForm.quizQuestions];
+                               newQs.splice(qi, 1);
+                               setLesForm({ ...lesForm, quizQuestions: newQs });
+                             }}></button>
+                           </div>
+                           <input type="text" className="form-control ds-input form-control-sm mb-3" placeholder="What is your question?" value={q.question} onChange={e => {
+                               const newQs = [...lesForm.quizQuestions];
+                               newQs[qi].question = e.target.value;
+                               setLesForm({ ...lesForm, quizQuestions: newQs });
+                           }} />
+                           
+                           <div className="mb-3">
+                             <label className="form-label small text-muted text-uppercase fw-bold" style={{ fontSize: "0.65rem" }}>Options (Select the correct one)</label>
+                             {q.options.map((opt, oi) => (
+                               <div key={oi} className="d-flex align-items-center gap-2 mb-2">
+                                 <input type="radio" name={`q${qi}_ans`} checked={q.answer === oi} onChange={() => {
+                                   const newQs = [...lesForm.quizQuestions];
+                                   newQs[qi].answer = oi;
+                                   setLesForm({ ...lesForm, quizQuestions: newQs });
+                                 }} />
+                                 <input type="text" className="form-control ds-input form-control-sm flex-grow-1" placeholder={`Option ${oi + 1}`} value={opt} onChange={e => {
+                                   const newQs = [...lesForm.quizQuestions];
+                                   newQs[qi].options[oi] = e.target.value;
+                                   setLesForm({ ...lesForm, quizQuestions: newQs });
+                                 }} />
+                                 <button type="button" className="btn btn-sm btn-link text-danger p-0" onClick={() => {
+                                   const newQs = [...lesForm.quizQuestions];
+                                   newQs[qi].options.splice(oi, 1);
+                                   if (newQs[qi].answer >= newQs[qi].options.length) newQs[qi].answer = Math.max(0, newQs[qi].options.length - 1);
+                                   setLesForm({ ...lesForm, quizQuestions: newQs });
+                                 }}><i className="bi bi-x-circle"></i></button>
+                               </div>
+                             ))}
+                             <button type="button" className="btn btn-sm btn-link text-info p-0 mt-1 text-decoration-none" style={{ fontSize: "0.75rem" }} onClick={() => {
+                               const newQs = [...lesForm.quizQuestions];
+                               newQs[qi].options.push("");
+                               setLesForm({ ...lesForm, quizQuestions: newQs });
+                             }}>+ Add Option</button>
+                           </div>
+
+                           <input type="text" className="form-control ds-input form-control-sm" placeholder="Explanation (Optional)" value={q.explain || ""} onChange={e => {
+                               const newQs = [...lesForm.quizQuestions];
+                               newQs[qi].explain = e.target.value;
+                               setLesForm({ ...lesForm, quizQuestions: newQs });
+                           }} />
+                        </div>
+                      ))}
+                      {lesForm.quizQuestions.length === 0 && <div className="text-muted small">No questions added. Click "+ Question" to start.</div>}
+                    </div>
+                  </div>
+                )}
                 <div className="form-check form-switch">
                   <input className="form-check-input" type="checkbox" id="freeToggle" checked={lesForm.isFree} onChange={e => setLesForm({ ...lesForm, isFree: e.target.checked })} />
                   <label className="form-check-label text-white small fw-bold ms-2" htmlFor="freeToggle">Free Preview (Users can watch without buying)</label>
