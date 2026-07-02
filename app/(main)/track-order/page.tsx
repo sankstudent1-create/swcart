@@ -102,24 +102,43 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
       icon: "bi-shop",
     });
 
-    // 2. Hub (assigned warehouse)
-    const warehouseQuery = order.assignedWarehouse?.location
-      ? `${order.assignedWarehouse.location} India`
-      : order.assignedWarehouse?.pincodes?.[0]
-      ? `${order.assignedWarehouse.pincodes[0]} India`
-      : null;
+    // 2. Hubs (from TrackingHistory or assignedWarehouse)
+    const historyHubLocations = (order.trackingHistory || [])
+      .filter((h: any) => h.location && typeof h.location === 'string' && h.location.trim().length > 0)
+      .map((h: any) => h.location as string)
+      .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i)
+      .reverse(); // Reverse to get chronological order since it's fetched desc
 
-    const hubCoords = warehouseQuery
-      ? await geocodeAddress(warehouseQuery)
-      : null;
+    // If there are no history hub locations, fallback to assignedWarehouse
+    if (historyHubLocations.length === 0 && order.assignedWarehouse) {
+      const warehouseQuery = order.assignedWarehouse.location
+        ? `${order.assignedWarehouse.location} India`
+        : order.assignedWarehouse.pincodes?.[0]
+        ? `${order.assignedWarehouse.pincodes[0]} India`
+        : null;
+        
+      if (warehouseQuery) {
+        historyHubLocations.push(warehouseQuery);
+      }
+    }
 
-    checkpoints.push({
-      name: order.assignedWarehouse?.location || "Sorting Hub",
-      label: "Hub",
-      position: hubCoords,
-      color: "#f39c12",
-      icon: "bi-building",
-    });
+    // Geocode and add each hub
+    for (let i = 0; i < historyHubLocations.length; i++) {
+      const locStr = historyHubLocations[i];
+      const query = locStr.toLowerCase().includes('india') ? locStr : `${locStr} India`;
+      const hubCoords = await geocodeAddress(query);
+      
+      // Clean up the name for display if we appended India
+      const displayName = locStr.replace(/ India$/i, '');
+      
+      checkpoints.push({
+        name: displayName,
+        label: historyHubLocations.length > 1 ? `Hub ${i + 1}` : "Hub",
+        position: hubCoords,
+        color: "#f39c12",
+        icon: "bi-building",
+      });
+    }
 
     // 3. Delivery address
     const addr = order.shippingAddress;
@@ -149,21 +168,20 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
 
   let activeVehicle: VehicleAnimation | undefined = undefined;
   if (order && order.status === "SHIPPED") {
-    const hasHub = !!order.assignedWarehouse;
     const isOutForDelivery = order.trackingHistory?.some((h: any) => h.status.toLowerCase().includes("out for delivery"));
     
     if (isOutForDelivery) {
        activeVehicle = {
          type: "bike",
-         fromIndex: hasHub ? 1 : 0,
-         toIndex: hasHub ? 2 : 1,
+         fromIndex: checkpoints.length > 2 ? checkpoints.length - 2 : 0,
+         toIndex: checkpoints.length - 1,
          progress: 0.1
        };
     } else {
        activeVehicle = {
          type: "truck",
-         fromIndex: 0,
-         toIndex: hasHub ? 1 : 1,
+         fromIndex: checkpoints.length > 2 ? checkpoints.length - 3 : 0, // from second to last hub
+         toIndex: checkpoints.length > 2 ? checkpoints.length - 2 : checkpoints.length - 1,
          progress: 0.1
        };
     }
