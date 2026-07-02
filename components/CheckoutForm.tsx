@@ -106,21 +106,16 @@ export default function CheckoutForm({ items, savedAddresses = [], defaultAddres
     };
 
     try {
-      let position: GeolocationPosition;
-      try {
-        // Try high accuracy first (may timeout on iOS indoors)
-        position = await getPosition({ enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
-      } catch (err: any) {
-        // Fallback for iOS/Safari timeout (code 3) or position unavailable (code 2)
-        if (err.code === 3 || err.code === 2) {
-          position = await getPosition({ enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 });
-        } else {
-          throw err;
-        }
-      }
+      // iOS Safari Fix: ALWAYS use enableHighAccuracy: false to prevent the dreaded indoor timeout bug.
+      const position = await getPosition({ enableHighAccuracy: false, timeout: 20000, maximumAge: Infinity });
 
       const { latitude, longitude } = position.coords;
       const res = await fetch(`https://apis.mappls.com/advancedmaps/v1/${process.env.NEXT_PUBLIC_MAPPLS_KEY}/rev_geocode?lat=${latitude}&lng=${longitude}`);
+      
+      if (!res.ok) {
+        throw new Error(`Map API Error: ${res.status}`);
+      }
+      
       const data = await res.json();
       
       if (data && data.results && data.results.length > 0) {
@@ -147,13 +142,16 @@ export default function CheckoutForm({ items, savedAddresses = [], defaultAddres
         }));
         toast.success("Location autofilled successfully!", { id: "locate" });
       } else {
-        toast.error("Could not resolve address details", { id: "locate" });
+        toast.error("Could not resolve address details from coordinates", { id: "locate" });
       }
     } catch (e: any) {
+      console.error("Location Fetch Error:", e);
       if (e?.code === 1) {
-        toast.error("Location access denied. Please enable permissions.", { id: "locate" });
+        toast.error("Location access denied by user or iOS settings.", { id: "locate" });
+      } else if (e?.code === 3) {
+        toast.error("Location request timed out. Try moving near a window.", { id: "locate" });
       } else {
-        toast.error("Location access denied or timed out", { id: "locate" });
+        toast.error(`Location failed: ${e?.message || "Unknown error"}`, { id: "locate" });
       }
     } finally {
       setIsLocating(false);
