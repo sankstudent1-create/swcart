@@ -10,8 +10,6 @@ export interface Checkpoint {
   icon: string; // Bootstrap icon class
 }
 
-}
-
 export interface VehicleAnimation {
   type: "truck" | "bike";
   fromIndex: number;
