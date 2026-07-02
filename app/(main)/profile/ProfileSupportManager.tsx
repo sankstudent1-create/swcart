@@ -62,7 +62,17 @@ export default function ProfileSupportManager({ tickets, userId }: ProfileSuppor
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeTicket]);
+    
+    let interval: NodeJS.Timeout;
+    if (activeTicket && (activeTicket.status === "OPEN" || activeTicket.status === "IN_PROGRESS")) {
+      interval = setInterval(() => {
+        router.refresh();
+      }, 5000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [activeTicket, router]);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,7 +160,7 @@ export default function ProfileSupportManager({ tickets, userId }: ProfileSuppor
               </div>
             )}
             {activeTicket.conversations[0]?.messages.map((m) => {
-              const isMe = m.senderId !== "admin";
+              const isMe = m.senderId === userId;
               return (
                 <div key={m.id} className="sup-msg-bubble" style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start" }}>
                   {!isMe && (

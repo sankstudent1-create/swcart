@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import TrackingMap, { type Checkpoint } from "@/components/TrackingMap";
+import TrackingMap, { type Checkpoint, type VehicleAnimation } from "@/components/TrackingMap";
 
 /**
  * Server-side geocode helper using the free Nominatim API (OpenStreetMap).
@@ -146,6 +146,28 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
 
   const statusSteps = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED"];
   const currentStatusIndex = order ? statusSteps.indexOf(order.status) : -1;
+
+  let activeVehicle: VehicleAnimation | undefined = undefined;
+  if (order && order.status === "SHIPPED") {
+    const hasHub = !!order.assignedWarehouse;
+    const isOutForDelivery = order.trackingHistory?.some((h: any) => h.status.toLowerCase().includes("out for delivery"));
+    
+    if (isOutForDelivery) {
+       activeVehicle = {
+         type: "bike",
+         fromIndex: hasHub ? 1 : 0,
+         toIndex: hasHub ? 2 : 1,
+         progress: 0.1
+       };
+    } else {
+       activeVehicle = {
+         type: "truck",
+         fromIndex: 0,
+         toIndex: hasHub ? 1 : 1,
+         progress: 0.1
+       };
+    }
+  }
 
   return (
     <>
@@ -329,7 +351,7 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
 
 {/* Map Section */}
 <div className="my-5">
-  <TrackingMap checkpoints={checkpoints} />
+  <TrackingMap checkpoints={checkpoints} activeVehicle={activeVehicle} />
 </div>
 <div className="row g-4">
               {/* Package Details */}

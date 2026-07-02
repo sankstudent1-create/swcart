@@ -10,9 +10,22 @@ export interface Checkpoint {
   icon: string; // Bootstrap icon class
 }
 
+}
+
+export interface VehicleAnimation {
+  type: "truck" | "bike";
+  fromIndex: number;
+  toIndex: number;
+  progress: number;
+}
+
 interface TrackingMapProps {
   checkpoints: Checkpoint[];
+  activeVehicle?: VehicleAnimation;
 }
+
+const TRUCK_ICON = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32"><circle cx="12" cy="12" r="12" fill="%233b82f6"/><path d="M17 8h-3V6c0-1.1-.9-2-2-2H4C2.9 6 2 6.9 2 8v7h2c0 1.1.9 2 2 2s2-.9 2-2h6c0 1.1.9 2 2 2s2-.9 2-2h2v-5l-3-2zM6 15.5c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm12 0c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm-1-5H6V6h6v4z" fill="white"/></svg>`;
+const BIKE_ICON = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32"><circle cx="12" cy="12" r="12" fill="%2310b981"/><path d="M15.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM5 12c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8.5c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5zm5.8-10l2.4-2.4.8.8c1.3 1.3 3 2.1 5.1 2.1V9c-1.5 0-2.7-.6-3.6-1.5l-1.9-1.9c-.5-.4-1-.7-1.6-.7-.6 0-1.1.2-1.4.6L7.8 8.4c-.4.4-.6.9-.6 1.4 0 .6.2 1.1.6 1.4L11 14v5h2v-6.2l-2.2-2.3zM19 12c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8.5c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5z" fill="white"/></svg>`;
 
 const MAPPLS_KEY =
   process.env.NEXT_PUBLIC_MAPPLS_KEY || "e5287c2e8e625032961522666d3693e7";
@@ -79,7 +92,7 @@ const loadMapplsSDK = (): Promise<boolean> =>
     tryNext();
   });
 
-const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
+const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints, activeVehicle }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapReady, setMapReady] = useState(false);
   const [hasCoords, setHasCoords] = useState(false);
@@ -149,6 +162,33 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
               strokeOpacity: 0.85,
               strokeWeight: 4,
             });
+          }
+
+          // Animated Vehicle
+          if (activeVehicle && activeVehicle.fromIndex < validCheckpoints.length && activeVehicle.toIndex < validCheckpoints.length) {
+            const p1 = validCheckpoints[activeVehicle.fromIndex].position!;
+            const p2 = validCheckpoints[activeVehicle.toIndex].position!;
+            const iconUrl = activeVehicle.type === 'truck' ? TRUCK_ICON : BIKE_ICON;
+            
+            const vMarker = new sdk.Marker({
+              map,
+              position: { lat: p1[0], lng: p1[1] },
+              icon: iconUrl,
+            });
+
+            let t = activeVehicle.progress;
+            const animate = () => {
+              t += 0.003;
+              if (t > 1) t = 0;
+              const curLat = p1[0] + (p2[0] - p1[0]) * t;
+              const curLng = p1[1] + (p2[1] - p1[1]) * t;
+              vMarker.setPosition({ lat: curLat, lng: curLng });
+              (vMarker as any)._animationId = requestAnimationFrame(animate);
+            };
+            animate();
+            
+            // Store for cleanup
+            (map as any)._vMarker = vMarker;
           }
 
           setMapProvider("mappls");
@@ -247,6 +287,35 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
           }).addTo(map);
         }
 
+        // Animated Vehicle for Leaflet
+        if (activeVehicle && activeVehicle.fromIndex < validCheckpoints.length && activeVehicle.toIndex < validCheckpoints.length) {
+          const p1 = validCheckpoints[activeVehicle.fromIndex].position!;
+          const p2 = validCheckpoints[activeVehicle.toIndex].position!;
+          const iconUrl = activeVehicle.type === 'truck' ? TRUCK_ICON : BIKE_ICON;
+          
+          const vIcon = L.icon({
+            iconUrl: iconUrl,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+          });
+          
+          const vMarker = L.marker([p1[0], p1[1]], { icon: vIcon }).addTo(map);
+
+          let t = activeVehicle.progress;
+          const animate = () => {
+            t += 0.003;
+            if (t > 1) t = 0;
+            const curLat = p1[0] + (p2[0] - p1[0]) * t;
+            const curLng = p1[1] + (p2[1] - p1[1]) * t;
+            vMarker.setLatLng([curLat, curLng]);
+            (vMarker as any)._animationId = requestAnimationFrame(animate);
+          };
+          animate();
+          
+          // Store for cleanup
+          (map as any)._vMarker = vMarker;
+        }
+
         setMapProvider("leaflet");
         setMapReady(true);
       } catch (err) {
@@ -260,6 +329,7 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
       const m = mapInstanceRef.current;
       if (m) {
         try {
+          if (m._vMarker && m._vMarker._animationId) cancelAnimationFrame(m._vMarker._animationId);
           if (typeof m.remove === "function") m.remove(); // Leaflet
           else if (typeof m.destroy === "function") m.destroy(); // Mappls
         } catch {
@@ -268,7 +338,7 @@ const TrackingMap: React.FC<TrackingMapProps> = ({ checkpoints }) => {
         mapInstanceRef.current = null;
       }
     };
-  }, [checkpoints]);
+  }, [checkpoints, activeVehicle]);
 
   // ── No-coords state ─────────────────────────────────────────────────────────
   if (mapReady && !hasCoords) {

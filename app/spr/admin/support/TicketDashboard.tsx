@@ -421,7 +421,16 @@ export default function TicketDashboard({ tickets, activeTicket, userIntelligenc
   const [isPending, startTransition] = useTransition();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [activeTicket]);
+  useEffect(() => { 
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); 
+    let interval: NodeJS.Timeout;
+    if (activeTicket && (activeTicket.status === "OPEN" || activeTicket.status === "IN_PROGRESS")) {
+      interval = setInterval(() => {
+        router.refresh();
+      }, 5000);
+    }
+    return () => { if (interval) clearInterval(interval); };
+  }, [activeTicket, router]);
 
   const filtered = tickets.filter(t => {
     const matchFilter = filter === "ALL" || t.status === filter;
