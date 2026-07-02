@@ -92,56 +92,72 @@ export default function CheckoutForm({ items, savedAddresses = [], defaultAddres
     }
   };
 
-  const handleAutofillLocation = () => {
+  const handleAutofillLocation = async () => {
     if (!navigator.geolocation) {
       return toast.error("Geolocation is not supported by your browser");
     }
     setIsLocating(true);
     toast.loading("Locating your position...", { id: "locate" });
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
-          const data = await res.json();
-          if (data && data.address) {
-            const addr = data.address;
-            const streetParts = [
-              addr.house_number, 
-              addr.building, 
-              addr.amenity, 
-              addr.road || addr.pedestrian || addr.path || addr.residential, 
-              addr.neighbourhood, 
-              addr.suburb,
-              addr.quarter
-            ].filter(Boolean);
-            
-            const street = streetParts.join(", ") || "";
-            const city = addr.city || addr.town || addr.village || addr.state_district || addr.county || "";
-            const zip = addr.postcode || "";
-            
-            setShippingForm(prev => ({
-              ...prev,
-              address: street,
-              city: city,
-              zip: zip
-            }));
-            toast.success("Location autofilled successfully!", { id: "locate" });
-          } else {
-            toast.error("Could not resolve address details", { id: "locate" });
-          }
-        } catch (e) {
-          toast.error("Failed to fetch address from location", { id: "locate" });
-        } finally {
-          setIsLocating(false);
+
+    const getPosition = (options: PositionOptions): Promise<GeolocationPosition> => {
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, options);
+      });
+    };
+
+    try {
+      let position: GeolocationPosition;
+      try {
+        // Try high accuracy first (may timeout on iOS indoors)
+        position = await getPosition({ enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
+      } catch (err: any) {
+        // Fallback for iOS/Safari timeout (code 3) or position unavailable (code 2)
+        if (err.code === 3 || err.code === 2) {
+          position = await getPosition({ enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 });
+        } else {
+          throw err;
         }
-      },
-      (error) => {
+      }
+
+      const { latitude, longitude } = position.coords;
+      const res = await fetch(`https://apis.mappls.com/advancedmaps/v1/${process.env.NEXT_PUBLIC_MAPPLS_KEY}/rev_geocode?lat=${latitude}&lng=${longitude}`);
+      const data = await res.json();
+      
+      if (data && data.results && data.results.length > 0) {
+        const addr = data.results[0];
+        const streetParts = [
+          addr.houseNumber,
+          addr.houseName,
+          addr.poi,
+          addr.street,
+          addr.subSubLocality,
+          addr.subLocality,
+          addr.locality
+        ].filter(Boolean);
+        
+        const street = streetParts.join(", ") || addr.formatted_address || "";
+        const city = addr.city || addr.district || "";
+        const zip = addr.pincode || "";
+        
+        setShippingForm(prev => ({
+          ...prev,
+          address: street,
+          city: city,
+          zip: zip
+        }));
+        toast.success("Location autofilled successfully!", { id: "locate" });
+      } else {
+        toast.error("Could not resolve address details", { id: "locate" });
+      }
+    } catch (e: any) {
+      if (e?.code === 1) {
+        toast.error("Location access denied. Please enable permissions.", { id: "locate" });
+      } else {
         toast.error("Location access denied or timed out", { id: "locate" });
-        setIsLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+      }
+    } finally {
+      setIsLocating(false);
+    }
   };
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
