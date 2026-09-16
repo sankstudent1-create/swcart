@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   try {
     // Launch headless browser
     browser = await puppeteer.launch({ 
-      headless: "new",
+      headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'] 
     });
     
