@@ -215,7 +215,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                             </div>
                           </div>
                           
-                          <div className="order-items-scroll bg-light bg-opacity-50 p-4">
+                          <div className="order-items-scroll bg-light bg-opacity-25 p-3 border-top">
                             {order.sellerOrders.map((so: any) => {
                               const isDigitalOnly = so.items.every((item: any) => item.variant.product.productType === "DIGITAL" || item.variant.product.productType === "SERVICE");
                               return (
@@ -230,15 +230,15 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                                 {so.items.map((item: any) => (
                                   <div key={item.id} className="order-item-chip d-flex align-items-center gap-3">
                                     {item.variant.product.images?.[0] ? (
-                                      <img src={item.variant.product.images[0]} alt={item.variant.product.title} className="rounded-3 object-fit-cover shadow-sm" style={{width: "60px", height: "60px"}} />
+                                      <img src={item.variant.product.images[0]} alt={item.variant.product.title} className="rounded-3 object-fit-cover shadow-sm" style={{width: "48px", height: "48px"}} />
                                     ) : (
-                                      <div className="bg-light rounded-3 d-flex align-items-center justify-content-center border" style={{width: "60px", height: "60px"}}>
-                                        <i className="bi bi-image text-muted fs-4"></i>
+                                      <div className="bg-light rounded-3 d-flex align-items-center justify-content-center border" style={{width: "48px", height: "48px"}}>
+                                        <i className="bi bi-image text-muted fs-5"></i>
                                       </div>
                                     )}
                                     <div className="text-truncate flex-grow-1">
-                                      <div className="fw-bold text-dark font-jakarta text-truncate" style={{ fontSize: "1.05rem" }} title={item.variant.product.title}>{item.variant.product.title}</div>
-                                      <div className="text-muted small mt-1 fw-medium">
+                                      <div className="fw-bold text-dark font-jakarta text-truncate" style={{ fontSize: "0.95rem" }} title={item.variant.product.title}>{item.variant.product.title}</div>
+                                      <div className="text-muted small mt-1 fw-medium" style={{fontSize: "0.8rem"}}>
                                         Qty: <span className="fw-bold text-dark">{item.quantity}</span> &bull; {item.variant.size} {item.variant.color}
                                         {order.status === "DELIVERED" && (
                                           <Link 
