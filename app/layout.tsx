@@ -25,6 +25,8 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
+      </head>
+      <body className={jakarta.className}>
         <Script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/3.37.1/minified.js" strategy="beforeInteractive" crossOrigin="anonymous" />
         <Script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.6.20/dist/fetch.umd.min.js" strategy="beforeInteractive" crossOrigin="anonymous" />
         <Script src="https://cdn.jsdelivr.net/npm/resize-observer-polyfill@1.5.1/dist/ResizeObserver.global.min.js" strategy="beforeInteractive" crossOrigin="anonymous" />
@@ -42,8 +44,7 @@ export default function RootLayout({
             })();
           `
         }} />
-      </head>
-      <body className={jakarta.className}>
+
         {children}
         <Toaster position="bottom-right" richColors />
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" async></script>
