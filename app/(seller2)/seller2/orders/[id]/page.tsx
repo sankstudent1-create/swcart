@@ -16,13 +16,12 @@ export default async function Seller2OrderDetails({ params }: { params: Promise<
         include: {
           user: true,
           shippingAddress: true,
-          items: {
-            where: { variant: { product: { sellerId: seller.id } } },
-            include: {
-              variant: {
-                include: { product: true }
-              }
-            }
+        }
+      },
+      items: {
+        include: {
+          variant: {
+            include: { product: true }
           }
         }
       }
@@ -144,7 +143,7 @@ export default async function Seller2OrderDetails({ params }: { params: Promise<
             </tr>
           </thead>
           <tbody>
-            {order.order.items.map((item: any) => (
+            {order.items.map((item: any) => (
               <tr key={item.id} className="border-bottom border-light">
                 <td className="ps-0 py-3">
                   <div className="fw-bold text-dark">{item.variant.product.title}</div>
