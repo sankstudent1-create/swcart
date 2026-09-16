@@ -4,12 +4,13 @@ import Link from "next/link";
 import React from "react";
 import { StaggerContainer, StaggerItem } from "@/components/Seller2/MotionWrapper";
 
-export default async function Seller2OrderDetails({ params }: { params: { id: string } }) {
+export default async function Seller2OrderDetails({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   const seller = await prisma.seller.findFirst();
   if (!seller) return <div>No seller found</div>;
 
   const order = await prisma.sellerOrder.findUnique({
-    where: { id: params.id },
+    where: { id: resolvedParams.id },
     include: {
       order: {
         include: {
