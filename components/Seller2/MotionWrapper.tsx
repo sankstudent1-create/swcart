@@ -2,20 +2,21 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-export function FadeUp({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) {
+export function FadeUp({ children, delay = 0, className = "", style }: { children: React.ReactNode, delay?: number, className?: string, style?: React.CSSProperties }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: "easeOut" }}
       className={className}
+      style={style}
     >
       {children}
     </motion.div>
   );
 }
 
-export function StaggerContainer({ children, className = "" }: { children: React.ReactNode, className?: string }) {
+export function StaggerContainer({ children, className = "", style }: { children: React.ReactNode, className?: string, style?: React.CSSProperties }) {
   return (
     <motion.div
       initial="hidden"
@@ -28,20 +29,26 @@ export function StaggerContainer({ children, className = "" }: { children: React
         }
       }}
       className={className}
+      style={style}
     >
       {children}
     </motion.div>
   );
 }
 
-export function StaggerItem({ children, className = "" }: { children: React.ReactNode, className?: string }) {
+export function StaggerItem({ children, className = "", style }: { children: React.ReactNode, className?: string, style?: React.CSSProperties }) {
   return (
     <motion.div
       variants={{
         hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
+        visible: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.5, ease: "easeOut" }
+        }
       }}
       className={className}
+      style={style}
     >
       {children}
     </motion.div>
