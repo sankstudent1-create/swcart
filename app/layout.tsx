@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import Script from "next/script";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -24,11 +25,11 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/3.37.1/minified.js" crossOrigin="anonymous" defer></script>
-        <script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.6.20/dist/fetch.umd.min.js" crossOrigin="anonymous" defer></script>
-        <script src="https://cdn.jsdelivr.net/npm/resize-observer-polyfill@1.5.1/dist/ResizeObserver.global.min.js" crossOrigin="anonymous" defer></script>
-        <script src="https://cdn.jsdelivr.net/npm/intersection-observer@0.12.2/intersection-observer.min.js" crossOrigin="anonymous" defer></script>
-        <script dangerouslySetInnerHTML={{
+        <Script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/3.37.1/minified.js" strategy="beforeInteractive" crossOrigin="anonymous" />
+        <Script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.6.20/dist/fetch.umd.min.js" strategy="beforeInteractive" crossOrigin="anonymous" />
+        <Script src="https://cdn.jsdelivr.net/npm/resize-observer-polyfill@1.5.1/dist/ResizeObserver.global.min.js" strategy="beforeInteractive" crossOrigin="anonymous" />
+        <Script src="https://cdn.jsdelivr.net/npm/intersection-observer@0.12.2/intersection-observer.min.js" strategy="beforeInteractive" crossOrigin="anonymous" />
+        <Script id="ref-tracker" strategy="beforeInteractive" dangerouslySetInnerHTML={{
           __html: `
             (function() {
               const urlParams = new URLSearchParams(window.location.search);
