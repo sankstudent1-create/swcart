@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import React from "react";
 import { FadeUp, StaggerContainer, StaggerItem } from "@/components/Seller2/MotionWrapper";
+import { ProductDeleteButton } from "@/components/Seller2/ProductDeleteButton";
 
 export default async function Seller2Products() {
   const seller = await prisma.seller.findFirst();
@@ -102,7 +103,7 @@ export default async function Seller2Products() {
                       <div className="s2-row-actions position-absolute top-50 translate-middle-y end-0 pe-4 bg-white bg-opacity-75 backdrop-blur rounded-start p-2 shadow-sm d-flex gap-2">
                         <button className="btn btn-sm btn-primary rounded-circle shadow-sm" style={{width: 32, height:32}}><i className="bi bi-pencil"></i></button>
                         <button className="btn btn-sm btn-light text-muted rounded-circle shadow-sm" style={{width: 32, height:32}}><i className="bi bi-files"></i></button>
-                        <button className="btn btn-sm btn-danger rounded-circle shadow-sm" style={{width: 32, height:32}}><i className="bi bi-trash"></i></button>
+                        <ProductDeleteButton productId={p.id} />
                       </div>
                       {/* Default state icon */}
                       <i className="bi bi-three-dots text-muted"></i>
