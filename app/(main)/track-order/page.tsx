@@ -190,17 +190,19 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
   return (
     <>
       {/* Vibrant Hero Section */}
-      <div className="track-hero position-relative overflow-hidden" style={{ background: "linear-gradient(135deg, rgba(230,57,70,0.05) 0%, rgba(29,53,87,0.05) 100%)", padding: "4rem 0 3rem", marginTop: "-1.5rem" }}>
-        <div className="position-absolute top-0 start-50 translate-middle" style={{ width: "800px", height: "800px", background: "radial-gradient(circle, rgba(230,57,70,0.08) 0%, transparent 60%)", zIndex: 0 }}></div>
+      <div className="track-hero position-relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)", padding: "5rem 0 4rem", marginTop: "-1.5rem" }}>
+        <div className="position-absolute top-0 start-50 translate-middle" style={{ width: "800px", height: "800px", background: "radial-gradient(circle, rgba(230,57,70,0.15) 0%, transparent 60%)", zIndex: 0 }}></div>
+        <div className="position-absolute bottom-0 end-0 translate-middle" style={{ width: "600px", height: "600px", background: "radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 60%)", zIndex: 0 }}></div>
+        
         <div className="container position-relative z-2 text-center" style={{ maxWidth: "800px" }}>
-          <div className="d-inline-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm mb-3" style={{ width: "64px", height: "64px", border: "2px solid rgba(230,57,70,0.1)" }}>
+          <div className="d-inline-flex align-items-center justify-content-center bg-white rounded-circle shadow mb-3" style={{ width: "64px", height: "64px", border: "4px solid rgba(255,255,255,0.1)" }}>
             <i className="bi bi-box-seam text-danger fs-3"></i>
           </div>
-          <h1 className="font-jakarta fw-bolder text-dark mb-2" style={{ letterSpacing: "-1px", fontSize: "2.5rem" }}>Track Your Package</h1>
-          <p className="font-jakarta text-muted mb-4 fs-5">Enter your Order ID to get real-time tracking updates.</p>
+          <h1 className="font-jakarta fw-bolder text-white mb-2" style={{ letterSpacing: "-1px", fontSize: "2.8rem" }}>Track Your Package</h1>
+          <p className="font-jakarta text-light opacity-75 mb-4 fs-5">Enter your Order ID to get real-time tracking updates.</p>
 
           {/* Glassmorphic Search Form */}
-          <div className="glass-panel p-3 p-md-4 mx-auto shadow-lg" style={{ maxWidth: "600px", borderRadius: "20px" }}>
+          <div className="p-3 p-md-4 mx-auto shadow-lg fade-up-element" style={{ maxWidth: "600px", borderRadius: "20px", background: "rgba(255, 255, 255, 0.1)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.2)" }}>
             <form method="GET" action="/track-order">
               <div className="d-flex flex-column flex-md-row gap-3">
                 <div className="flex-grow-1 position-relative">
@@ -208,14 +210,14 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
                   <input 
                     type="text" 
                     name="id"
-                    className="form-control form-control-lg border-0 shadow-none font-jakarta"
-                    style={{ background: "rgba(255,255,255,0.8)", paddingLeft: "50px", borderRadius: "14px", height: "56px" }}
+                    className="form-control form-control-lg border-0 shadow-sm font-jakarta text-dark"
+                    style={{ background: "rgba(255,255,255,0.95)", paddingLeft: "50px", borderRadius: "14px", height: "56px" }}
                     placeholder="e.g. clx123456789..."
                     defaultValue={orderId || ""}
                     required
                   />
                 </div>
-                <button type="submit" className="btn btn-danger btn-lg fw-bold font-jakarta text-white border-0 shadow-sm px-4" style={{ borderRadius: "14px", height: "56px", background: "linear-gradient(135deg, #e63946 0%, #c1121f 100%)" }}>
+                <button type="submit" className="btn btn-danger btn-lg fw-bold font-jakarta text-white border-0 shadow px-4" style={{ borderRadius: "14px", height: "56px", background: "linear-gradient(135deg, #e63946 0%, #c1121f 100%)" }}>
                   Track Order
                 </button>
               </div>
@@ -423,22 +425,22 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
                       {/* Vertical Dashed Line */}
                       <div className="position-absolute border-start border-2 border-dashed border-secondary border-opacity-25" style={{ top: "10px", bottom: "0", left: "9px" }}></div>
                       
-                      <div className="d-flex flex-column gap-4">
+                      <div className="d-flex flex-column gap-3">
                         {order.trackingHistory.map((history: any, i: number) => {
                           const isLatest = i === 0;
                           return (
                             <div key={i} className="position-relative ps-4 ms-2">
                               {/* Timeline Dot */}
-                              <div className={`position-absolute rounded-circle shadow-sm ${isLatest ? 'bg-danger pulse-dot-small border border-2 border-white' : 'bg-white border border-2 border-secondary border-opacity-50'}`} style={{ width: "16px", height: "16px", left: "-6px", top: "4px" }}></div>
+                              <div className={`position-absolute rounded-circle shadow-sm ${isLatest ? 'bg-danger pulse-dot-small border border-2 border-white' : 'bg-white border border-2 border-secondary border-opacity-50'}`} style={{ width: "16px", height: "16px", left: "-6px", top: "12px" }}></div>
                               
-                              <div className="d-flex flex-column bg-white bg-opacity-50 p-3 rounded-4 border border-light">
+                              <div className={`d-flex flex-column bg-white ${isLatest ? 'bg-opacity-100 shadow-sm' : 'bg-opacity-50'} p-3 rounded-3 border border-light transition-all`}>
                                 <span className={`font-jakarta fw-bold ${isLatest ? 'text-danger' : 'text-dark'}`}>{history.status}</span>
-                                <div className="d-flex align-items-center text-muted small gap-2 mt-2">
+                                <div className="d-flex align-items-center text-muted mt-1 gap-2" style={{fontSize: "0.8rem"}}>
                                   <i className="bi bi-clock"></i>
                                   <span>{new Date(history.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' })}</span>
                                 </div>
                                 {history.location && (
-                                  <div className="d-flex align-items-center text-muted small gap-2 mt-1">
+                                  <div className="d-flex align-items-center text-muted mt-1 gap-2" style={{fontSize: "0.8rem"}}>
                                     <i className="bi bi-geo-alt-fill text-secondary opacity-50"></i>
                                     <span>{history.location}</span>
                                   </div>
