@@ -176,27 +176,46 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                   ) : (
                     <div className="d-flex flex-column gap-4">
                       {user.orders.map((order: any) => (
-                        <div key={order.id} className="order-card">
-                          <div className="order-card-header d-flex flex-wrap justify-content-between align-items-start gap-3">
-                            <div>
-                              <div className="text-muted small fw-bold tracking-wide mb-1 text-uppercase">Order Details</div>
-                              <div className="fw-bolder font-jakarta text-dark fs-5">#{order.id.slice(-8).toUpperCase()}</div>
-                              <div className="text-muted small mt-1 fw-medium"><i className="bi bi-calendar3 me-1"></i> {new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                        <div key={order.id} className="order-card mb-4">
+                          <div className="order-card-header">
+                            <div className="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                              <div>
+                                <div className="text-muted small fw-bold tracking-wide mb-1 text-uppercase">Order ID</div>
+                                <div className="fw-bolder font-jakarta text-dark fs-5">#{order.id.slice(-8).toUpperCase()}</div>
+                                <div className="text-muted small mt-1 fw-medium"><i className="bi bi-calendar3 me-1"></i> {new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                              </div>
+                              <div className="text-md-end">
+                                <div className="text-muted small fw-bold tracking-wide mb-1 text-uppercase">Total Amount</div>
+                                <div className="fw-bolder font-jakarta text-dark fs-4 text-primary">₹{order.totalAmount.toLocaleString('en-IN')}</div>
+                                <div className="d-flex align-items-center gap-2 mt-2 flex-wrap justify-content-md-end">
+                                  <Link href={`/track-order?id=${order.id}`} className="btn btn-sm btn-dark rounded-pill px-4 py-2 fw-bold shadow-sm"><i className="bi bi-geo-alt-fill me-1 text-danger"></i> Track Order</Link>
+                                  <Link href={`/orders/${order.id}/invoice`} className="btn btn-sm btn-white rounded-pill px-4 py-2 fw-bold border shadow-sm" style={{background: '#fff'}} target="_blank"><i className="bi bi-receipt me-1 text-primary"></i> Invoice</Link>
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-md-end">
-                              <div className="text-muted small fw-bold tracking-wide mb-1 text-uppercase">Total Amount</div>
-                              <div className="fw-bolder font-jakarta text-dark fs-4">₹{order.totalAmount.toLocaleString('en-IN')}</div>
-                              <div className="d-flex align-items-center gap-2 mt-2 flex-wrap justify-content-md-end">
-                                <span className={`badge rounded-pill px-3 py-2 border font-jakarta ${order.status === 'PAID' || order.status === 'DELIVERED' ? 'bg-success bg-opacity-10 text-success border-success border-opacity-25' : 'bg-warning bg-opacity-10 text-warning border-warning border-opacity-50'}`}>
-                                  {order.status}
-                                </span>
-                                <Link href={`/track-order?id=${order.id}`} className="btn btn-sm btn-dark rounded-pill px-3 fw-bold"><i className="bi bi-geo-alt-fill me-1 text-danger"></i> Track</Link>
-                                <Link href={`/orders/${order.id}/invoice`} className="btn btn-sm btn-light rounded-pill px-3 fw-bold border" target="_blank"><i className="bi bi-download me-1 text-primary"></i> Invoice</Link>
+                            
+                            {/* Order Timeline */}
+                            <div className="order-timeline">
+                              <div className={`timeline-step ${order.status !== 'CANCELLED' ? 'completed' : ''}`}>
+                                <div className="timeline-icon"><i className="bi bi-cart-check"></i></div>
+                                <div className="timeline-label">Placed</div>
+                              </div>
+                              <div className={`timeline-step ${order.status === 'PAID' || order.status === 'SHIPPED' || order.status === 'DELIVERED' ? 'completed' : (order.status === 'PENDING' ? 'active' : '')}`}>
+                                <div className="timeline-icon"><i className="bi bi-credit-card"></i></div>
+                                <div className="timeline-label">Paid</div>
+                              </div>
+                              <div className={`timeline-step ${order.status === 'SHIPPED' || order.status === 'DELIVERED' ? 'completed' : ''}`}>
+                                <div className="timeline-icon"><i className="bi bi-box-seam"></i></div>
+                                <div className="timeline-label">Shipped</div>
+                              </div>
+                              <div className={`timeline-step ${order.status === 'DELIVERED' ? 'completed active' : ''}`}>
+                                <div className="timeline-icon"><i className="bi bi-house-door"></i></div>
+                                <div className="timeline-label">Delivered</div>
                               </div>
                             </div>
                           </div>
                           
-                          <div className="order-items-scroll bg-light bg-opacity-50 p-3">
+                          <div className="order-items-scroll bg-light bg-opacity-50 p-4">
                             {order.sellerOrders.map((so: any) => {
                               const isDigitalOnly = so.items.every((item: any) => item.variant.product.productType === "DIGITAL" || item.variant.product.productType === "SERVICE");
                               return (

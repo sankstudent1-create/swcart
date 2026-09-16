@@ -20,35 +20,42 @@
 
 /* Hero Section */
 .profile-hero {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
   position: relative;
   overflow: hidden;
-  padding: 3rem 0 4rem;
-  margin-bottom: -2.5rem;
+  padding: 4rem 0 5rem;
+  margin-bottom: -3.5rem;
 }
 
 .profile-hero::before {
   content: '';
   position: absolute;
   top: -50%;
-  right: -10%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(230, 57, 70, 0.08) 0%, transparent 60%);
+  right: -20%;
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(230, 57, 70, 0.1) 0%, rgba(230, 57, 70, 0) 60%);
   border-radius: 50%;
   pointer-events: none;
+  animation: pulse-glow 8s infinite alternate ease-in-out;
 }
 
 .profile-hero::after {
   content: '';
   position: absolute;
   bottom: -40%;
-  left: -5%;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 60%);
+  left: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0) 60%);
   border-radius: 50%;
   pointer-events: none;
+  animation: pulse-glow 10s infinite alternate-reverse ease-in-out;
+}
+
+@keyframes pulse-glow {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.1); opacity: 1; }
 }
 
 /* Glass Panels */
@@ -161,24 +168,97 @@
   border-color: rgba(230, 57, 70, 0.1);
 }
 
-/* Order Cards */
+/* Order Cards Premium Style */
 .order-card {
   background: #fff;
-  border-radius: 1.25rem;
-  border: 1px solid rgba(0,0,0,0.04);
-  box-shadow: var(--card-shadow);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
   overflow: hidden;
-  transition: all var(--transition-smooth);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
 }
 
 .order-card:hover {
-  box-shadow: var(--hover-shadow);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
 }
 
 .order-card-header {
-  background: #f8fafc;
-  padding: 1.5rem;
-  border-bottom: 1px solid rgba(0,0,0,0.04);
+  background: linear-gradient(to right, #f8fafc, #f1f5f9);
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  position: relative;
+}
+
+/* Timeline Styles */
+.order-timeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin: 2rem 0 1rem;
+  padding: 0 1rem;
+}
+
+.order-timeline::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: #e2e8f0;
+  z-index: 0;
+  transform: translateY(-50%);
+}
+
+.timeline-step {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  padding: 0 0.5rem;
+}
+
+.timeline-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  border: 4px solid #fff;
+  transition: all 0.3s ease;
+}
+
+.timeline-step.active .timeline-icon {
+  background: var(--primary-red);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.2);
+}
+
+.timeline-step.completed .timeline-icon {
+  background: #10b981;
+  color: #fff;
+}
+
+.timeline-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+}
+
+.timeline-step.active .timeline-label {
+  color: var(--primary-dark);
 }
 
 .order-items-scroll {
@@ -201,15 +281,34 @@
 
 .order-item-chip {
   background: #fff;
-  border-radius: 0.75rem;
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-  border: 1px solid rgba(0,0,0,0.03);
-  transition: background var(--transition-fast);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.01);
+  transition: all var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+.order-item-chip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+  transition: background 0.3s;
 }
 
 .order-item-chip:hover {
-  background: #f8fafc;
+  transform: translateX(4px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.04);
+}
+
+.order-item-chip:hover::before {
+  background: var(--primary-red);
 }
 
 /* Inputs & Details */
