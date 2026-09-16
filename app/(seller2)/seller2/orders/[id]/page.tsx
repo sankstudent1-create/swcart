@@ -108,7 +108,7 @@ export default async function Seller2OrderDetails({ params }: { params: Promise<
             </div>
             <div className="text-muted small">
               GSTIN: {seller.gstNumber || "Not Provided"}<br />
-              {seller.pickupAddress || "No Pickup Address Set"}
+              {seller.pickupAddress ? (typeof seller.pickupAddress === 'string' ? seller.pickupAddress : JSON.stringify(seller.pickupAddress)) : "No Pickup Address Set"}
             </div>
           </div>
           <div className="text-end">
