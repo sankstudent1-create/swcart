@@ -220,3 +220,121 @@ body {
     background: #fff !important;
   }
 }
+
+/* --- Ultra Premium Dynamics (Phase 1.5) --- */
+
+/* Bento Box Grid System */
+.s2-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: minmax(140px, auto);
+  gap: 1.5rem;
+}
+
+.s2-bento-col-2 { grid-column: span 2; }
+.s2-bento-col-3 { grid-column: span 3; }
+.s2-bento-col-4 { grid-column: span 4; }
+.s2-bento-row-2 { grid-row: span 2; }
+
+@media (max-width: 1200px) {
+  .s2-bento-col-3 { grid-column: span 4; }
+  .s2-bento-col-2 { grid-column: span 4; }
+}
+
+/* Glass & Depth Enhancements */
+.s2-card-bento {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 24px;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255,255,255,1);
+  padding: 1.5rem;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.s2-card-bento:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255,255,255,1);
+}
+
+.s2-gradient-text {
+  background: linear-gradient(135deg, var(--s2-primary), #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* CSS Chart Bars */
+.s2-chart-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 120px;
+  padding-top: 20px;
+}
+
+.s2-chart-bar {
+  flex: 1;
+  background: linear-gradient(180deg, var(--s2-primary) 0%, rgba(59,130,246,0.1) 100%);
+  border-radius: 6px 6px 0 0;
+  min-height: 10%;
+  transition: height 1s ease-out;
+  position: relative;
+  cursor: pointer;
+}
+
+.s2-chart-bar:hover {
+  background: linear-gradient(180deg, #8b5cf6 0%, rgba(139,92,246,0.1) 100%);
+}
+
+.s2-chart-bar:hover::after {
+  content: attr(data-value);
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--s2-text-main);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+/* Hover Action Menus for Tables */
+.s2-table-row {
+  transition: background 0.2s ease;
+  position: relative;
+}
+.s2-table-row:hover {
+  background: rgba(255,255,255,0.8) !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  transform: scale(1.002);
+  z-index: 10;
+}
+.s2-row-actions {
+  opacity: 0;
+  transform: translateX(10px);
+  transition: all 0.3s ease;
+}
+.s2-table-row:hover .s2-row-actions {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Visual Progress Bar for Orders */
+.s2-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(0,0,0,0.05);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.s2-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
