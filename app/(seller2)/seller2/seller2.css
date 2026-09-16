@@ -1,0 +1,222 @@
+/* Seller Portal v2 Global Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --s2-bg: #f8fafc;
+  --s2-sidebar-bg: #ffffff;
+  --s2-card-bg: #ffffff;
+  --s2-text-main: #0f172a;
+  --s2-text-muted: #64748b;
+  --s2-border: rgba(15, 23, 42, 0.08);
+  --s2-primary: #3b82f6;
+  --s2-primary-hover: #2563eb;
+  --s2-danger: #ef4444;
+  --s2-success: #10b981;
+  --s2-warning: #f59e0b;
+  --s2-shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+  --s2-shadow-md: 0 4px 15px rgba(0,0,0,0.03);
+  --s2-shadow-lg: 0 10px 30px rgba(0,0,0,0.05);
+  --s2-radius: 16px;
+  --s2-radius-sm: 8px;
+}
+
+body {
+  background-color: var(--s2-bg);
+  color: var(--s2-text-main);
+}
+
+.s2-font {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Layout */
+.s2-layout {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: var(--s2-bg);
+}
+
+.s2-sidebar {
+  width: 280px;
+  background: var(--s2-sidebar-bg);
+  border-right: 1px solid var(--s2-border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 40;
+}
+
+.s2-sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--s2-border);
+}
+
+.s2-brand {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--s2-text-main);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.s2-brand span {
+  color: var(--s2-primary);
+}
+
+.s2-nav {
+  padding: 1.5rem 1rem;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.s2-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: var(--s2-text-muted);
+  text-decoration: none;
+  border-radius: var(--s2-radius-sm);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.s2-nav-link:hover, .s2-nav-link.active {
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--s2-primary);
+}
+
+.s2-nav-link i {
+  font-size: 1.25rem;
+}
+
+.s2-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.s2-topbar {
+  height: 72px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--s2-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.s2-content {
+  padding: 2rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* UI Components */
+.s2-card {
+  background: var(--s2-card-bg);
+  border-radius: var(--s2-radius);
+  border: 1px solid var(--s2-border);
+  box-shadow: var(--s2-shadow-md);
+  padding: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.s2-card:hover {
+  box-shadow: var(--s2-shadow-lg);
+}
+
+.s2-page-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--s2-text-main);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.5px;
+}
+
+.s2-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--s2-radius-sm);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.s2-btn-primary {
+  background: var(--s2-primary);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+}
+
+.s2-btn-primary:hover {
+  background: var(--s2-primary-hover);
+  transform: translateY(-1px);
+}
+
+.s2-btn-outline {
+  background: transparent;
+  color: var(--s2-text-main);
+  border: 1px solid var(--s2-border);
+}
+
+.s2-btn-outline:hover {
+  background: var(--s2-bg);
+}
+
+/* Dashboard Grid */
+.s2-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 1200px) {
+  .s2-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .s2-sidebar { display: none; } /* Mobile sidebar toggle would be needed */
+  .s2-grid-4 { grid-template-columns: 1fr; }
+}
+
+/* Print Styles for PDFs */
+@media print {
+  .s2-sidebar, .s2-topbar, .no-print {
+    display: none !important;
+  }
+  .s2-main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .s2-content {
+    padding: 0 !important;
+  }
+  .s2-card {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+  body {
+    background: #fff !important;
+  }
+}
